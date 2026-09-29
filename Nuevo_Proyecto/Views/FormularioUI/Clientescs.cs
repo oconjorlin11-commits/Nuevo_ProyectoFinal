@@ -297,6 +297,47 @@ namespace Nuevo_Proyecto.Models.Views
             }
 
         }
+
+        private void dataGridClientes_SelectionChanged(object sender, EventArgs e)
+        {
+            // Cuando el usuario selecciona una fila en el grid, cargar datos en los campos
+            if (dataGridClientes.SelectedRows == null || dataGridClientes.SelectedRows.Count == 0)
+                return;
+
+            var row = dataGridClientes.SelectedRows[0];
+
+            // Soportar origen DataTable (binding) o objetos
+            try
+            {
+                if (row.Cells[0].Value == null) return;
+
+                CodigoOriginal = row.Cells[0].Value?.ToString();
+                NombreOriginal = row.Cells[1].Value?.ToString();
+                TelefonoOriginal = row.Cells[2].Value?.ToString();
+                DireccionOriginal = row.Cells[3].Value?.ToString();
+                NotaOriginal = row.Cells[4].Value?.ToString();
+                EstadoOriginal = row.Cells[5].Value != null && row.Cells[5].Value != DBNull.Value && Convert.ToBoolean(row.Cells[5].Value);
+
+                txtCodigoClient.Text = CodigoOriginal;
+                txtNombreClient.Text = NombreOriginal;
+                txtTelefonoClient.Text = TelefonoOriginal;
+                txtDireccionClient.Text = DireccionOriginal;
+                checboxClient.Checked = EstadoOriginal;
+                checboxClient.Enabled = !EstadoOriginal;
+
+                // Cargar notas en combo
+                DataTable notas = _presenter.GetNotas();
+                cmboxNotasClient.DataSource = notas;
+                cmboxNotasClient.DisplayMember = "Nota";
+                cmboxNotasClient.ValueMember = "Nota";
+                cmboxNotasClient.DropDownStyle = ComboBoxStyle.DropDown;
+                cmboxNotasClient.Text = NotaOriginal;
+            }
+            catch
+            {
+                // ignore parsing errors
+            }
+        }
         private void Clientescs_Load(object sender, EventArgs e)
         {
             txtCodigoClient.ReadOnly = true;

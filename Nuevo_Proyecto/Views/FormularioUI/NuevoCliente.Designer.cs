@@ -110,7 +110,6 @@
             txtTelefonoClient.Name = "txtTelefonoClient";
             txtTelefonoClient.Size = new Size(294, 39);
             txtTelefonoClient.TabIndex = 41;
-            txtTelefonoClient.TextChanged += txtTelefonoClient_TextChanged;
             // 
             // label2
             // 
@@ -171,7 +170,6 @@
             txtDireccionClient.Name = "txtDireccionClient";
             txtDireccionClient.Size = new Size(294, 39);
             txtDireccionClient.TabIndex = 51;
-            txtDireccionClient.TextChanged += txtDireccionClient_TextChanged;
             // 
             // pictureBox1
             // 
@@ -214,7 +212,6 @@
             checboxActico.TabIndex = 55;
             checboxActico.Text = "Activo";
             checboxActico.UseVisualStyleBackColor = true;
-            checboxActico.CheckedChanged += checboxActico_CheckedChanged;
             // 
             // cmboxNota
             // 
@@ -225,7 +222,6 @@
             cmboxNota.Name = "cmboxNota";
             cmboxNota.Size = new Size(294, 33);
             cmboxNota.TabIndex = 56;
-            cmboxNota.SelectedIndexChanged += cmboxNota_SelectedIndexChanged;
             // 
             // NuevoCliente
             // 
@@ -260,7 +256,7 @@
 
         private void cmboxNota_SelectedIndexChanged(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
+            // No action required on designer-side; event exists for future logic in the form class.
         }
 
         private void checboxActico_CheckedChanged(object sender, EventArgs e)

@@ -81,7 +81,7 @@ namespace Nuevo_Proyecto.Presenters
             dt.Columns.Add("Codigo", typeof(string));
             dt.Columns.Add("Nombre", typeof(string));
             using var db = new Dev_ComideriaDbContext();
-            var usuarios = db.Empleado.AsNoTracking().Where(e => e.Cargo == "Cajero" || e.Cargo == "Administrador").Select(e => new { e.Codigo, e.Nombre }).ToList();
+            var usuarios = db.Empleados.AsNoTracking().Where(e => e.Cargo == "Cajero" || e.Cargo == "Administrador").Select(e => new { e.Codigo, e.Nombre }).ToList();
             foreach (var u in usuarios) dt.Rows.Add(u.Codigo, u.Nombre);
             return dt;
         }

@@ -9,10 +9,11 @@ namespace Nuevo_Proyecto.Presenters
 {
     public class FacturacionPresenter
     {
-        private readonly IFacturacionView _view;
-        public FacturacionPresenter(IFacturacionView view)
+        private readonly IFacturacionView? _view;
+        public FacturacionPresenter(IFacturacionView? view = null)
         {
-            _view = view ?? throw new ArgumentNullException(nameof(view));
+            // El view es opcional: algunas vistas (ej. InicioMenu) usan solo los métodos de consulta
+            _view = view;
         }
 
         public System.Data.DataTable ObtenerDetalleFacturaPorCodigo(string codigoFactura)

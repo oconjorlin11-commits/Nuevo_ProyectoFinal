@@ -64,6 +64,8 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void btnCancelarEmple_Click(object sender, EventArgs e)
         {
+            // Notify presenter to reset fields if subscribed
+            CancelarClicked?.Invoke(this, EventArgs.Empty);
             this.Close();
         }
 

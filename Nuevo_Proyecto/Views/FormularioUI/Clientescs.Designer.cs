@@ -56,9 +56,10 @@
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI", 14F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label1.ForeColor = Color.FromArgb(153, 40, 35);
-            label1.Location = new Point(28, 34);
+            label1.Location = new Point(36, 44);
+            label1.Margin = new Padding(4, 0, 4, 0);
             label1.Name = "label1";
-            label1.Size = new Size(120, 38);
+            label1.Size = new Size(165, 51);
             label1.TabIndex = 1;
             label1.Text = "Clientes";
             label1.Click += label1_Click;
@@ -68,10 +69,12 @@
             txtBuscarClient.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             txtBuscarClient.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtBuscarClient.ForeColor = Color.FromArgb(38, 38, 38);
-            txtBuscarClient.Location = new Point(1019, 36);
+            txtBuscarClient.Location = new Point(1325, 46);
+            txtBuscarClient.Margin = new Padding(4, 4, 4, 4);
             txtBuscarClient.Name = "txtBuscarClient";
-            txtBuscarClient.Size = new Size(330, 39);
+            txtBuscarClient.Size = new Size(428, 50);
             txtBuscarClient.TabIndex = 10;
+            txtBuscarClient.TextChanged += txtBuscarClientes_TextChanged;
             // 
             // label4
             // 
@@ -79,21 +82,26 @@
             label4.AutoSize = true;
             label4.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label4.ForeColor = Color.FromArgb(38, 38, 38);
-            label4.Location = new Point(920, 39);
+            label4.Location = new Point(1196, 50);
+            label4.Margin = new Padding(4, 0, 4, 0);
             label4.Name = "label4";
-            label4.Size = new Size(93, 32);
+            label4.Size = new Size(125, 45);
             label4.TabIndex = 9;
             label4.Text = "Buscar:";
             // 
             // dataGridClientes
             // 
             dataGridClientes.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            dataGridClientes.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dataGridClientes.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
             dataGridClientes.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridClientes.Location = new Point(26, 313);
+            dataGridClientes.Location = new Point(34, 401);
+            dataGridClientes.Margin = new Padding(4, 4, 4, 4);
             dataGridClientes.Name = "dataGridClientes";
             dataGridClientes.RowHeadersWidth = 62;
-            dataGridClientes.Size = new Size(1321, 425);
+            dataGridClientes.Size = new Size(1717, 544);
             dataGridClientes.TabIndex = 11;
+            dataGridClientes.SelectionChanged += dataGridClientes_SelectionChanged;
             // 
             // btnNuevoClien
             // 
@@ -104,9 +112,10 @@
             btnNuevoClien.ForeColor = Color.FromArgb(250, 247, 241);
             btnNuevoClien.Image = Properties.Resources.new_add_user_16734__1_;
             btnNuevoClien.ImageAlign = ContentAlignment.MiddleLeft;
-            btnNuevoClien.Location = new Point(1160, 778);
+            btnNuevoClien.Location = new Point(1508, 996);
+            btnNuevoClien.Margin = new Padding(4, 4, 4, 4);
             btnNuevoClien.Name = "btnNuevoClien";
-            btnNuevoClien.Size = new Size(189, 65);
+            btnNuevoClien.Size = new Size(246, 83);
             btnNuevoClien.TabIndex = 12;
             btnNuevoClien.Text = "Nuevo Cliente";
             btnNuevoClien.TextAlign = ContentAlignment.MiddleRight;
@@ -122,9 +131,10 @@
             btnEliminarClie.ForeColor = Color.FromArgb(250, 247, 241);
             btnEliminarClie.Image = (Image)resources.GetObject("btnEliminarClie.Image");
             btnEliminarClie.ImageAlign = ContentAlignment.MiddleLeft;
-            btnEliminarClie.Location = new Point(920, 778);
+            btnEliminarClie.Location = new Point(1196, 996);
+            btnEliminarClie.Margin = new Padding(4, 4, 4, 4);
             btnEliminarClie.Name = "btnEliminarClie";
-            btnEliminarClie.Size = new Size(189, 65);
+            btnEliminarClie.Size = new Size(246, 83);
             btnEliminarClie.TabIndex = 13;
             btnEliminarClie.Text = "Eliminar";
             btnEliminarClie.UseVisualStyleBackColor = false;
@@ -139,9 +149,10 @@
             btnEditarClien.ForeColor = Color.FromArgb(250, 247, 241);
             btnEditarClien.Image = (Image)resources.GetObject("btnEditarClien.Image");
             btnEditarClien.ImageAlign = ContentAlignment.MiddleLeft;
-            btnEditarClien.Location = new Point(675, 778);
+            btnEditarClien.Location = new Point(877, 996);
+            btnEditarClien.Margin = new Padding(4, 4, 4, 4);
             btnEditarClien.Name = "btnEditarClien";
-            btnEditarClien.Size = new Size(189, 65);
+            btnEditarClien.Size = new Size(246, 83);
             btnEditarClien.TabIndex = 14;
             btnEditarClien.Text = "Editar";
             btnEditarClien.UseVisualStyleBackColor = false;
@@ -151,9 +162,10 @@
             // 
             checboxClient.AutoSize = true;
             checboxClient.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
-            checboxClient.Location = new Point(626, 239);
+            checboxClient.Location = new Point(814, 306);
+            checboxClient.Margin = new Padding(4, 4, 4, 4);
             checboxClient.Name = "checboxClient";
-            checboxClient.Size = new Size(108, 36);
+            checboxClient.Size = new Size(143, 49);
             checboxClient.TabIndex = 53;
             checboxClient.Text = "Activo";
             checboxClient.UseVisualStyleBackColor = true;
@@ -163,9 +175,10 @@
             cmboxNotasClient.Font = new Font("Segoe UI", 12F);
             cmboxNotasClient.ForeColor = Color.FromArgb(38, 38, 38);
             cmboxNotasClient.FormattingEnabled = true;
-            cmboxNotasClient.Location = new Point(600, 137);
+            cmboxNotasClient.Location = new Point(780, 175);
+            cmboxNotasClient.Margin = new Padding(4, 4, 4, 4);
             cmboxNotasClient.Name = "cmboxNotasClient";
-            cmboxNotasClient.Size = new Size(209, 40);
+            cmboxNotasClient.Size = new Size(270, 53);
             cmboxNotasClient.TabIndex = 50;
             // 
             // label8
@@ -173,9 +186,10 @@
             label8.AutoSize = true;
             label8.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label8.ForeColor = Color.FromArgb(38, 38, 38);
-            label8.Location = new Point(656, 102);
+            label8.Location = new Point(853, 131);
+            label8.Margin = new Padding(4, 0, 4, 0);
             label8.Name = "label8";
-            label8.Size = new Size(78, 32);
+            label8.Size = new Size(107, 45);
             label8.TabIndex = 49;
             label8.Text = "Notas";
             // 
@@ -183,9 +197,10 @@
             // 
             txtDireccionClient.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtDireccionClient.ForeColor = Color.FromArgb(38, 38, 38);
-            txtDireccionClient.Location = new Point(348, 239);
+            txtDireccionClient.Location = new Point(452, 306);
+            txtDireccionClient.Margin = new Padding(4, 4, 4, 4);
             txtDireccionClient.Name = "txtDireccionClient";
-            txtDireccionClient.Size = new Size(209, 39);
+            txtDireccionClient.Size = new Size(270, 50);
             txtDireccionClient.TabIndex = 46;
             // 
             // label6
@@ -193,9 +208,10 @@
             label6.AutoSize = true;
             label6.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label6.ForeColor = Color.FromArgb(38, 38, 38);
-            label6.Location = new Point(404, 204);
+            label6.Location = new Point(525, 261);
+            label6.Margin = new Padding(4, 0, 4, 0);
             label6.Name = "label6";
-            label6.Size = new Size(115, 32);
+            label6.Size = new Size(156, 45);
             label6.TabIndex = 45;
             label6.Text = "Direccion";
             // 
@@ -203,9 +219,10 @@
             // 
             txtNombreClient.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtNombreClient.ForeColor = Color.FromArgb(38, 38, 38);
-            txtNombreClient.Location = new Point(348, 137);
+            txtNombreClient.Location = new Point(452, 175);
+            txtNombreClient.Margin = new Padding(4, 4, 4, 4);
             txtNombreClient.Name = "txtNombreClient";
-            txtNombreClient.Size = new Size(209, 39);
+            txtNombreClient.Size = new Size(270, 50);
             txtNombreClient.TabIndex = 44;
             // 
             // label5
@@ -213,9 +230,10 @@
             label5.AutoSize = true;
             label5.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label5.ForeColor = Color.FromArgb(38, 38, 38);
-            label5.Location = new Point(404, 102);
+            label5.Location = new Point(525, 131);
+            label5.Margin = new Padding(4, 0, 4, 0);
             label5.Name = "label5";
-            label5.Size = new Size(103, 32);
+            label5.Size = new Size(140, 45);
             label5.TabIndex = 43;
             label5.Text = "Nombre";
             // 
@@ -223,9 +241,10 @@
             // 
             txtTelefonoClient.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtTelefonoClient.ForeColor = Color.FromArgb(38, 38, 38);
-            txtTelefonoClient.Location = new Point(86, 239);
+            txtTelefonoClient.Location = new Point(112, 306);
+            txtTelefonoClient.Margin = new Padding(4, 4, 4, 4);
             txtTelefonoClient.Name = "txtTelefonoClient";
-            txtTelefonoClient.Size = new Size(209, 39);
+            txtTelefonoClient.Size = new Size(270, 50);
             txtTelefonoClient.TabIndex = 42;
             // 
             // label3
@@ -233,9 +252,10 @@
             label3.AutoSize = true;
             label3.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label3.ForeColor = Color.FromArgb(38, 38, 38);
-            label3.Location = new Point(142, 204);
+            label3.Location = new Point(185, 261);
+            label3.Margin = new Padding(4, 0, 4, 0);
             label3.Name = "label3";
-            label3.Size = new Size(107, 32);
+            label3.Size = new Size(145, 45);
             label3.TabIndex = 41;
             label3.Text = "Telefono";
             // 
@@ -243,9 +263,10 @@
             // 
             txtCodigoClient.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtCodigoClient.ForeColor = Color.FromArgb(38, 38, 38);
-            txtCodigoClient.Location = new Point(86, 137);
+            txtCodigoClient.Location = new Point(112, 175);
+            txtCodigoClient.Margin = new Padding(4, 4, 4, 4);
             txtCodigoClient.Name = "txtCodigoClient";
-            txtCodigoClient.Size = new Size(209, 39);
+            txtCodigoClient.Size = new Size(270, 50);
             txtCodigoClient.TabIndex = 40;
             // 
             // label2
@@ -253,18 +274,19 @@
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label2.ForeColor = Color.FromArgb(38, 38, 38);
-            label2.Location = new Point(142, 102);
+            label2.Location = new Point(185, 131);
+            label2.Margin = new Padding(4, 0, 4, 0);
             label2.Name = "label2";
-            label2.Size = new Size(91, 32);
+            label2.Size = new Size(124, 45);
             label2.TabIndex = 39;
             label2.Text = "Codigo";
             // 
             // Clientescs
             // 
-            AutoScaleDimensions = new SizeF(10F, 25F);
+            AutoScaleDimensions = new SizeF(13F, 32F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(232, 221, 206);
-            ClientSize = new Size(1373, 885);
+            ClientSize = new Size(1785, 1133);
             Controls.Add(checboxClient);
             Controls.Add(cmboxNotasClient);
             Controls.Add(label8);
@@ -284,6 +306,7 @@
             Controls.Add(label4);
             Controls.Add(label1);
             FormBorderStyle = FormBorderStyle.None;
+            Margin = new Padding(4, 4, 4, 4);
             Name = "Clientescs";
             Text = "Clientescs";
             Load += Clientescs_Load;

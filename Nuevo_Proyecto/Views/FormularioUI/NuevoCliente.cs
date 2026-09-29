@@ -39,6 +39,8 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void btnCancelarClient_Click(object sender, EventArgs e)
         {
+            // Notify presenter to reset fields if subscribed
+            CancelarClicked?.Invoke(this, EventArgs.Empty);
             this.Close();
         }
 
@@ -69,43 +71,23 @@ namespace Nuevo_Proyecto.Models.Views
             cmboxAutizado.SelectedIndex = -1;
 
             checboxActico.Checked = true;
+            // Inicializar estado de controles
+            UpdateControlsState();
         }
 
-        private void txtTelefonoClient_KeyPress(object sender, KeyPressEventArgs e)
+        // Habilita/deshabilita el botón Guardar según validaciones simples
+        private void UpdateControlsState()
         {
-            if (e.KeyChar == (char)Keys.Enter)
-            {
-                e.Handled = true;
-                txtDireccionClient.Focus();
-            }
+            bool codigoOk = !string.IsNullOrWhiteSpace(txtCodigoClient.Text);
+            bool nombreOk = !string.IsNullOrWhiteSpace(txtNombreClient.Text);
+            bool direccionOk = !string.IsNullOrWhiteSpace(txtDireccionClient.Text);
+            bool telefonoOk = !string.IsNullOrWhiteSpace(txtTelefonoClient.Text);
+
+            // Requerir código, nombre, dirección y teléfono para habilitar guardar
+            btnGuardarClient.Enabled = codigoOk && nombreOk && direccionOk && telefonoOk;
         }
 
 
-        private void cmboxNota_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == (char)Keys.Enter)
-            {
-                e.Handled = true;
-                checboxActico.Focus();
-            }
-        }
-
-        private void txtDireccionClient_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == (char)Keys.Enter)
-            {
-                e.Handled = true;
-                cmboxNota.Focus();
-            }
-        }
-        private void checboxActico_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == (char)Keys.Enter)
-            {
-                e.Handled = true;
-                btnGuardarClient.Focus();
-            }
-        }
 
         // IClienteView - mostrar mensaje
         public void showMessage(string message, string titulo, bool esError)

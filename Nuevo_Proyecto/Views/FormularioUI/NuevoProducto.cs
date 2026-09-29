@@ -122,6 +122,8 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void btnCancelarProduct_Click(object sender, EventArgs e)
         {
+            // Avisar al presenter que se canceló (si hay suscriptores)
+            CancelarClicked?.Invoke(this, EventArgs.Empty);
             this.Close();
         }
 
