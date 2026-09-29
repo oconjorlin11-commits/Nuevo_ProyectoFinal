@@ -1,4 +1,5 @@
-﻿using Nuevo_Proyecto.Services;
+using Nuevo_Proyecto.Presenters;
+using Nuevo_Proyecto.Views.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -12,7 +13,7 @@ using Microsoft.Data.SqlClient;
 
 namespace Nuevo_Proyecto.Models.Views
 {
-    public partial class Empleados : Form
+    public partial class Empleados : Form, Nuevo_Proyecto.Views.Interfaces.IEmpleadoView
     {
         private bool EstadoOriginal; // true= trabajando, false= despedido
 
@@ -31,9 +32,37 @@ namespace Nuevo_Proyecto.Models.Views
         private DateTime FechaIngresoOriginal;
 
 
+        private readonly EmpleadoPresenter _presenter;
+
         public Empleados()
         {
             InitializeComponent();
+            _presenter = new EmpleadoPresenter(this);
+        }
+
+        // IEmpleadoView implementation
+        public string Codigo { get => txtCodigoEmpl.Text; set => txtCodigoEmpl.Text = value; }
+        public string Nombre { get => txtNombreEmpl.Text; set => txtNombreEmpl.Text = value; }
+        public string Cedula { get => txtCedulaEmpl.Text; set => txtCedulaEmpl.Text = value; }
+        public string Telefono { get => txtTelefonoEmpl.Text; set => txtTelefonoEmpl.Text = value; }
+        public string Cargo { get => cmboxCargoEmpl.Text; set => cmboxCargoEmpl.Text = value; }
+        public decimal Salario { get => decimal.TryParse(txtSalarioEmpl.Text, out var s) ? s : 0; set => txtSalarioEmpl.Text = value.ToString(); }
+        public DateTime? FechaIngreso { get => dateTimePickerEmpleado.Value; set => dateTimePickerEmpleado.Value = value ?? DateTime.Now; }
+        public bool Activo { get => checkBoxEmpleado.Checked; set => checkBoxEmpleado.Checked = value; }
+        public string AutorizadoPor { get => string.Empty; set { } }
+
+        public event EventHandler GuardarClicked;
+        public event EventHandler CancelarClicked;
+
+        public void showMessage(string message, string titulo, bool esError)
+        {
+            MessageBoxIcon icon = esError ? MessageBoxIcon.Error : MessageBoxIcon.Information;
+            MessageBox.Show(message, titulo, MessageBoxButtons.OK, icon);
+        }
+
+        public void ResetFields()
+        {
+            LimpiarControles();
         }
 
         private void RellenarEstado()
@@ -64,9 +93,23 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void CargarEmpleadosActivos()
         {
-            SelectQuery selectQuery = new SelectQuery();
-            DataTable empleados = selectQuery.GetEmpleadosActivosGrid();
-            dataGridEmpleados.DataSource = empleados;
+            var empleados = _presenter.GetEmpleadosActivos();
+            var dt = new DataTable();
+            dt.Columns.Add("Codigo");
+            dt.Columns.Add("Nombre");
+            dt.Columns.Add("Cargo");
+            dt.Columns.Add("FechaIngreso");
+            dt.Columns.Add("Cedula");
+            dt.Columns.Add("Telefono");
+            dt.Columns.Add("Salario");
+            dt.Columns.Add("Activo", typeof(bool));
+
+            foreach (var e in empleados)
+            {
+                dt.Rows.Add(e.Codigo, e.Nombre, e.Cargo, e.Fechaingreso, e.Cedula, e.Telefono, e.Salario, e.Activo);
+            }
+
+            dataGridEmpleados.DataSource = dt;
 
             dataGridEmpleados.Columns["Codigo"].HeaderText = "Código";
             dataGridEmpleados.Columns["Nombre"].HeaderText = "Nombre";
@@ -137,8 +180,7 @@ namespace Nuevo_Proyecto.Models.Views
 
 
             // 👉 cargar combo de cargos al inicio
-            SelectQuery query = new SelectQuery();
-            DataTable cargos = query.GetCargos();
+            DataTable cargos = _presenter.GetCargos();
             cmboxCargoEmpl.DataSource = cargos;
             cmboxCargoEmpl.DisplayMember = "Cargo";
             cmboxCargoEmpl.ValueMember = "Cargo";
@@ -175,7 +217,6 @@ namespace Nuevo_Proyecto.Models.Views
         {
 
             string codigo = txtBuscarEmpl.Text.Trim();
-            SelectQuery query = new SelectQuery();
 
             if (string.IsNullOrEmpty(codigo))
             {
@@ -185,7 +226,7 @@ namespace Nuevo_Proyecto.Models.Views
                 return;
             }
 
-            DataTable empleado = query.BuscarEmpleadoPorCodigo(codigo);
+            DataTable empleado = _presenter.BuscarEmpleadoPorCodigo(codigo);
 
             if (empleado.Rows.Count > 0)
             {
@@ -203,7 +244,7 @@ namespace Nuevo_Proyecto.Models.Views
 
                 txtCodigoEmpl.Text = CodigoOriginal;
                 txtNombreEmpl.Text = NombreOriginal;
-                DataTable cargos = query.GetCargos();
+                DataTable cargos = _presenter.GetCargos();
                 cmboxCargoEmpl.DataSource = cargos;
                 cmboxCargoEmpl.DisplayMember = "Cargo";
                 cmboxCargoEmpl.ValueMember = "Cargo";
@@ -241,14 +282,12 @@ namespace Nuevo_Proyecto.Models.Views
                 return;
             }
 
-            UpdateCommand updateService = new UpdateCommand();
-
             // 👉 Caso 1: Reactivar empleado
             if (!EstadoOriginal && checkBoxEmpleado.Checked)
             {
-                int filas = updateService.ReactivarEmpleado(CodigoOriginal);
+                bool ok = _presenter.ReactivarEmpleado(CodigoOriginal);
 
-                if (filas > 0)
+                if (ok)
                 {
                     MessageBox.Show("Empleado reactivado correctamente.");
                     // ⚡ Mostrar lista inicial de empleados activos
@@ -275,7 +314,7 @@ namespace Nuevo_Proyecto.Models.Views
                 return;
             }
 
-            int filasUpdate = updateService.ActualizarEmpleado(
+            bool okUpdate = _presenter.ActualizarEmpleado(
                 CodigoOriginal,
                 txtNombreEmpl.Text,
                 cmboxCargoEmpl.Text,
@@ -284,7 +323,7 @@ namespace Nuevo_Proyecto.Models.Views
                 Convert.ToDecimal(txtSalarioEmpl.Text)
             );
 
-            if (filasUpdate > 0)
+            if (okUpdate)
             {
                 MessageBox.Show("Empleado actualizado correctamente.");
                 // ⚡ Siempre volver a la vista inicial de empleados activos
@@ -305,10 +344,9 @@ namespace Nuevo_Proyecto.Models.Views
                 return;
             }
 
-            DeleteCommand deleteService = new DeleteCommand();
-            int filas = deleteService.EliminarEmpleado(CodigoOriginal);
+            bool ok = _presenter.EliminarEmpleado(CodigoOriginal);
 
-            if (filas > 0)
+            if (ok)
             {
                 MessageBox.Show("Empleado despedido correctamente.");
                 LimpiarDespuesDeAccion();

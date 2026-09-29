@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Nuevo_Proyecto.Models.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -26,7 +26,9 @@ public partial class Dev_ComideriaDbContext : DbContext
 
     public virtual DbSet<DetalleFactura> DetalleFactura { get; set; }
 
-    public virtual DbSet<Empleado> Empleado { get; set; }
+    public virtual DbSet<Empleado> Empleados { get; set; }
+
+    public virtual DbSet<Empleado> Empleado { get => Empleados; set => Empleados = value; }
 
     public virtual DbSet<Estado> EmpleadoEstado { get; private set; }
 
@@ -42,7 +44,8 @@ public partial class Dev_ComideriaDbContext : DbContext
 
     public virtual DbSet<Productos> Productos { get; set; }
 
-    public virtual DbSet<Unidade> Unidade { get; set; }
+    public virtual DbSet<Unidade> Unidades { get; set; }
+
 
     public virtual DbSet<InventarioConValor> InventarioConValor { get; set; }
 
@@ -56,7 +59,16 @@ public partial class Dev_ComideriaDbContext : DbContext
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
 
-            string? connectionString = configuration.GetConnectionString("ConexionDB");
+            // Unificar clave de conexión: preferir Dev_ComideriaDbConnection y caer
+            // a ConexionDB por compatibilidad.
+            string? connectionString = configuration.GetConnectionString("Dev_ComideriaDbConnection")
+                                      ?? configuration.GetConnectionString("ConexionDB");
+
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new InvalidOperationException("No se encontró la cadena de conexión 'Dev_ComideriaDbConnection' ni 'ConexionDB' en appsettings.json.");
+            }
+
             optionsBuilder.UseSqlServer(connectionString);
         
         }
@@ -116,6 +128,8 @@ public partial class Dev_ComideriaDbContext : DbContext
 
         modelBuilder.Entity<Empleado>(entity =>
         {
+            entity.ToTable("Empleados");
+
             entity.HasKey(e => e.EmpleadoId).HasName("PK__Empleado__958BE6F02F0D128D");
 
             entity.HasIndex(e => e.Codigo, "UQ__Empleado__06370DACAF531A5D").IsUnique();
@@ -243,7 +257,7 @@ public partial class Dev_ComideriaDbContext : DbContext
             entity.Property(e => e.Codigo).HasMaxLength(10);
             entity.Property(e => e.Descripcion).HasMaxLength(200);
             entity.Property(e => e.Nombre).HasMaxLength(100);
-            entity.Property(e => e.PrecioVentas).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.PrecioVenta).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.UnidadId).HasColumnName("UnidadID");
 
             entity.HasOne(d => d.Categoria).WithMany(p => p.Productos)
@@ -259,9 +273,11 @@ public partial class Dev_ComideriaDbContext : DbContext
 
         modelBuilder.Entity<Unidade>(entity =>
         {
-            entity.HasKey(e => e.UnidadeId).HasName("PK__Unidades__C6F324360CA7D0D7");
+            entity.ToTable("Unidades");
 
-            entity.Property(e => e.UnidadeId).HasColumnName("UnidadID");
+            entity.HasKey(e => e.UnidadId).HasName("PK__Unidades__C6F324360CA7D0D7");
+
+            entity.Property(e => e.UnidadId).HasColumnName("UnidadID");
             entity.Property(e => e.Nombre).HasMaxLength(20);
         });
 

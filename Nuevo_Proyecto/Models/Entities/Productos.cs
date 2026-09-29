@@ -14,7 +14,7 @@ namespace Nuevo_Proyecto.Models.Entities
         public int CategoriaId { get; set; }
         public int UnidadId { get; set; }
         public string Descripcion { get; set; } = null!;
-        public decimal PrecioVentas { get; set; }
+        public decimal PrecioVenta { get; set; }
         public bool? Activo { get; set; }
 
         public virtual Categoria Categoria { get; set; } = null!;

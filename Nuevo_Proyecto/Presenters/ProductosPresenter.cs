@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Nuevo_Proyecto.Data;
 using Nuevo_Proyecto.Models.Entities;
@@ -19,6 +19,50 @@ namespace Nuevo_Proyecto.Presenters
 
             _view.GuardarClicked += OnGuardarClicked;
             _view.CancelarClicked += OnCancelarClicked;
+        }
+
+        // Métodos auxiliares para la vista
+        public System.Data.DataTable GetCategoriasActivas()
+        {
+            using var db = new Dev_ComideriaDbContext();
+            var dt = new System.Data.DataTable();
+            dt.Columns.Add("CategoriaID", typeof(int));
+            dt.Columns.Add("Nombre", typeof(string));
+            var items = db.Categorias.AsNoTracking().Select(c => new { c.CategoriaId, c.Nombre }).ToList();
+            foreach (var i in items) dt.Rows.Add(i.CategoriaId, i.Nombre);
+            return dt;
+        }
+
+        public System.Data.DataTable GetUnidades()
+        {
+            using var db = new Dev_ComideriaDbContext();
+            var dt = new System.Data.DataTable();
+            dt.Columns.Add("UnidadID", typeof(int));
+            dt.Columns.Add("Nombre", typeof(string));
+            var items = db.Unidades.AsNoTracking().Select(u => new { u.UnidadId, u.Nombre }).ToList();
+            foreach (var i in items) dt.Rows.Add(i.UnidadId, i.Nombre);
+            return dt;
+        }
+
+        public string ObtenerProximoCodigoProducto()
+        {
+            using var db = new Dev_ComideriaDbContext();
+            var max = db.Productos.AsNoTracking().Select(p => p.Codigo).OrderByDescending(c => c).FirstOrDefault();
+            if (string.IsNullOrEmpty(max)) return "P0001";
+            if (int.TryParse(max.TrimStart('P'), out int num)) return "P" + (num + 1).ToString("D4");
+            return max + "_1";
+        }
+
+        public System.Data.DataTable CargarUsuariosAdmin()
+        {
+            using var db = new Dev_ComideriaDbContext();
+            var dt = new System.Data.DataTable();
+            dt.Columns.Add("EmpleadoID", typeof(int));
+            dt.Columns.Add("Nombre", typeof(string));
+            dt.Columns.Add("Cargo", typeof(string));
+            var items = db.Empleado.AsNoTracking().Select(e => new { e.EmpleadoId, e.Nombre, e.Cargo }).Where(e => e.Cargo == "Administrador" || e.Cargo == "Admin" || e.Cargo == "ADMIN").ToList();
+            foreach (var i in items) dt.Rows.Add(i.EmpleadoId, i.Nombre, i.Cargo);
+            return dt;
         }
 
         private void OnCancelarClicked(object? sender, EventArgs e)
@@ -69,7 +113,7 @@ namespace Nuevo_Proyecto.Presenters
                         CategoriaId = categoriaId,
                         UnidadId = unidadId,
                         Descripcion = descripcion,
-                        PrecioVentas = precioVenta,
+                        PrecioVenta = precioVenta,
                         Activo = activo
                     };
                     db.Productos.Add(nuevoProducto);

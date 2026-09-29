@@ -18,7 +18,7 @@ namespace Nuevo_Proyecto.Views.Interfaces
 
         decimal Salario { get; set; }
 
-        DateTime FechaIngreso { get; set; }
+        DateTime? FechaIngreso { get; set; }
 
         bool Activo { get; set; }
 

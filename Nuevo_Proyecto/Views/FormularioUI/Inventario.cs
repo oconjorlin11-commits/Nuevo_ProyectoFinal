@@ -1,5 +1,6 @@
-﻿using Nuevo_Proyecto.Catalogos;
-using Nuevo_Proyecto.Services;
+using Nuevo_Proyecto.Catalogos;
+using Nuevo_Proyecto.Presenters;
+using Nuevo_Proyecto.Views.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -14,7 +15,7 @@ using System.Windows.Forms;
 
 namespace Nuevo_Proyecto.Models.Views
 {
-    public partial class Inventario : Form
+    public partial class Inventario : Form, Nuevo_Proyecto.Views.Interfaces.IInventarioView
     {
 
         private int ProductoIDSeleccionado;
@@ -30,9 +31,24 @@ namespace Nuevo_Proyecto.Models.Views
         private int EmpleadoID;
 
 
+        private readonly InventarioPresenter _presenter;
+
         public Inventario()
         {
             InitializeComponent();
+            _presenter = new InventarioPresenter(this);
+        }
+
+        public void showMessage(string message, string titulo, bool esError)
+        {
+            MessageBoxIcon icon = esError ? MessageBoxIcon.Error : MessageBoxIcon.Information;
+            MessageBox.Show(message, titulo, MessageBoxButtons.OK, icon);
+        }
+
+        public void ResetFields()
+        {
+            LimpiarDespuesDeAccion();
+            dataGridInventario.DataSource = null;
         }
 
         private void ConfigurardataGridInventario()
@@ -130,11 +146,11 @@ namespace Nuevo_Proyecto.Models.Views
                 DropDownStyle = ComboBoxStyle.DropDownList
             };
 
-            // 👉 Cargar empleados desde BD
-            SelectQuery select = new SelectQuery();
+            // Cargar empleados desde presenter
+            var empleadosDt = _presenter.GetEmpleadosActivos();
             cbEmpleados.DisplayMember = "Nombre";
             cbEmpleados.ValueMember = "EmpleadoID";
-            cbEmpleados.DataSource = select.GetEmpleadosActivos(); // tu método que devuelve lista de empleados
+            cbEmpleados.DataSource = empleadosDt; // DataTable con empleados
 
             TextBox txtMotivo = new TextBox
             {
@@ -239,8 +255,7 @@ namespace Nuevo_Proyecto.Models.Views
                 if (frm_NuevoProducto.ShowDialog() == DialogResult.OK)
                 {
                     // 👉 refrescar inventario solo si se insertó algo
-                    SelectQuery select = new SelectQuery();
-                    dataGridInventario.DataSource = select.ObtenerInventarioActivo();
+                    dataGridInventario.DataSource = _presenter.ObtenerInventarioActivo();
                 }
             }
         }
@@ -249,20 +264,18 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void Inventario_Load(object sender, EventArgs e)
         {
-            SelectQuery select = new SelectQuery();
-
             // 👉 Configurar columnas del DataGridView
             ConfigurardataGridInventario();
 
             // 👉 Llenar combo de unidades
             cmboxUnidad.DisplayMember = "Nombre";
             cmboxUnidad.ValueMember = "UnidadID";
-            cmboxUnidad.DataSource = select.GetUnidades();
+            cmboxUnidad.DataSource = _presenter.GetUnidades();
 
             // 👉 Llenar combo de categorías solo con activas
             cmboxCategoriaInve.DisplayMember = "Nombre";
             cmboxCategoriaInve.ValueMember = "CategoriaID";
-            cmboxCategoriaInve.DataSource = select.GetCategoriasActivas();
+            cmboxCategoriaInve.DataSource = _presenter.GetCategoriasActivas();
 
             // Insertar opción "Todas"
             DataTable dt = (DataTable)cmboxCategoriaInve.DataSource;
@@ -273,7 +286,7 @@ namespace Nuevo_Proyecto.Models.Views
             cmboxCategoriaInve.SelectedIndex = 0;
 
             // 👉 Mostrar inventario solo activo al inicio
-            dataGridInventario.DataSource = select.ObtenerInventarioActivo();
+            dataGridInventario.DataSource = _presenter.ObtenerInventarioActivo();
 
             // 👉 Opciones de selección
             dataGridInventario.ReadOnly = true;
@@ -286,16 +299,15 @@ namespace Nuevo_Proyecto.Models.Views
 
 
             string texto = txtBucarInvet.Text.Trim();
-            SelectQuery query = new SelectQuery();
 
             if (string.IsNullOrEmpty(texto))
             {
-                dataGridInventario.DataSource = query.ObtenerInventarioActivo(); // 👉 solo activos
+                dataGridInventario.DataSource = _presenter.ObtenerInventarioActivo(); // 👉 solo activos
                 LimpiarDespuesDeAccion();
                 return;
             }
 
-            DataTable resultados = query.BuscarInventarioPorCodigoONombre(texto); // 👉 usa versión filtrada
+            DataTable resultados = _presenter.BuscarInventarioPorCodigoONombre(texto); // 👉 usa versión filtrada
 
             if (resultados.Rows.Count > 0)
             {
@@ -327,19 +339,19 @@ namespace Nuevo_Proyecto.Models.Views
                 // 👉 Llenar combos de edición solo con categorías activas
                 cmboxCategorias.DisplayMember = "Nombre";
                 cmboxCategorias.ValueMember = "CategoriaID";
-                cmboxCategorias.DataSource = query.GetCategoriasActivas();
+                cmboxCategorias.DataSource = _presenter.GetCategoriasActivas();
                 cmboxCategorias.SelectedValue = CategoriaOriginalID;
 
                 cmboxUnidad.DisplayMember = "Nombre";
                 cmboxUnidad.ValueMember = "UnidadID";
-                cmboxUnidad.DataSource = query.GetUnidades();
+                cmboxUnidad.DataSource = _presenter.GetUnidades();
                 cmboxUnidad.SelectedValue = UnidadOriginalID;
             }
             else
             {
                 MessageBox.Show("Producto no encontrado.");
                 LimpiarDespuesDeAccion();
-                dataGridInventario.DataSource = query.ObtenerInventarioActivo(); // 👉 solo activos
+                dataGridInventario.DataSource = _presenter.ObtenerInventarioActivo(); // 👉 solo activos
             }
         }
 
@@ -371,8 +383,6 @@ namespace Nuevo_Proyecto.Models.Views
                 return;
             }
 
-            UpdateCommand updateService = new UpdateCommand();
-
             // 👉 Paso 3: lógica especial para reactivación
             if (!EstadoOriginal && checkBoxInventario.Checked)
             {
@@ -382,7 +392,7 @@ namespace Nuevo_Proyecto.Models.Views
                     return;
                 }
 
-                int filas = updateService.ReactivarProducto(CodigoOriginal, stock, minimo);
+                int filas = _presenter.ReactivarProducto(CodigoOriginal, stock, minimo);
                 MessageBox.Show(filas > 0 ? "Producto reactivado correctamente." : "No se pudo reactivar.");
                 LimpiarDespuesDeAccion();
                 return;
@@ -441,7 +451,7 @@ namespace Nuevo_Proyecto.Models.Views
             string observacion = resultado.motivo;
 
 
-            int filasUpdate = updateService.ActualizarProducto(
+            int filasUpdate = _presenter.ActualizarProducto(
         ProductoIDOriginal,
         txtProductosInven.Text,
         Convert.ToInt32(cmboxCategorias.SelectedValue),
@@ -486,8 +496,7 @@ namespace Nuevo_Proyecto.Models.Views
                 EmpleadoID = resultado.empleadoID;
                 string motivo = resultado.motivo;
 
-                DeleteCommand delete = new DeleteCommand();
-                int filas = delete.InhabilitarProducto(
+                int filas = _presenter.InhabilitarProducto(
                     ProductoIDOriginal,   // 👉 usa el ID cargado en búsqueda
                     EmpleadoID,
                     motivo
@@ -512,17 +521,16 @@ namespace Nuevo_Proyecto.Models.Views
             if (cmboxCategorias.SelectedValue != null && cmboxCategorias.SelectedValue is int)
             {
                 int categoriaID = (int)cmboxCategorias.SelectedValue;
-                SelectQuery select = new SelectQuery();
 
                 if (categoriaID == 0)
                 {
                     // 👉 Mostrar solo inventario activo
-                    dataGridInventario.DataSource = select.ObtenerInventarioActivo();
+                    dataGridInventario.DataSource = _presenter.ObtenerInventarioActivo();
                 }
                 else
                 {
                     // 👉 Mostrar inventario filtrado por categoría pero solo activos
-                    dataGridInventario.DataSource = select.GetInventarioActivoPorCategoria(categoriaID);
+                    dataGridInventario.DataSource = _presenter.GetInventarioActivoPorCategoria(categoriaID);
                 }
 
                 // 👉 Formatear columna Activo

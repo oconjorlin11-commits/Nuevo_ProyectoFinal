@@ -1,7 +1,8 @@
-﻿using Microsoft.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using Nuevo_Proyecto.Catalogos;
 using Nuevo_Proyecto.Models.Entities;
-using Nuevo_Proyecto.Services;
+using Nuevo_Proyecto.Presenters;
+using Nuevo_Proyecto.Views.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -17,11 +18,14 @@ using System.Windows.Forms;
 
 namespace Nuevo_Proyecto.Models.Views
 {
-    public partial class Facturacion : Form
+    public partial class Facturacion : Form, Nuevo_Proyecto.Views.Interfaces.IFacturacionView
     {
+        private readonly FacturacionPresenter _presenter;
+
         public Facturacion()
         {
             InitializeComponent();
+            _presenter = new FacturacionPresenter(this);
         }
 
         private void CalcularTotales()
@@ -41,31 +45,25 @@ namespace Nuevo_Proyecto.Models.Views
         {
 
 
-            SelectQuery query = new SelectQuery();
-
-            // Categorías
-            cmboxCategorias.DataSource = query.ObtenerCategorias();
+            // Cargar datos mediante el presenter
+            cmboxCategorias.DataSource = _presenter.ObtenerCategorias();
             cmboxCategorias.DisplayMember = "Nombre";
             cmboxCategorias.ValueMember = "CategoriaID";
             cmboxCategorias.SelectedIndex = -1;
 
-            // Productos (se cargan después de seleccionar categoría)
             cmboxProductos.DataSource = null;
 
-            // Empleados
-            cmboxAtendidoPor.DataSource = query.ObtenerEmpleados();
+            cmboxAtendidoPor.DataSource = _presenter.ObtenerEmpleados();
             cmboxAtendidoPor.DisplayMember = "Nombre";
             cmboxAtendidoPor.ValueMember = "EmpleadoID";
             cmboxAtendidoPor.SelectedIndex = -1;
 
-            // Clientes
-            cmboxClientes.DataSource = query.ObtenerClientes();
+            cmboxClientes.DataSource = _presenter.ObtenerClientes();
             cmboxClientes.DisplayMember = "Nombre";
             cmboxClientes.ValueMember = "ClienteID";
             cmboxClientes.SelectedIndex = -1;
 
-            // Formas de pago
-            comboBox2.DataSource = query.ObtenerFormasPago();
+            comboBox2.DataSource = _presenter.ObtenerFormasPago();
             comboBox2.DisplayMember = "Nombre";
             comboBox2.ValueMember = "FormaPagoID";
             comboBox2.SelectedIndex = -1;
@@ -105,20 +103,20 @@ namespace Nuevo_Proyecto.Models.Views
         {
             try
             {
-                SelectQuery query = new SelectQuery();
-                string codigoFactura = query.GenerarCodigoFacturaSiguiente();
+                string codigoFactura = _presenter.GenerarCodigoFacturaSiguiente();
+                var clienteId = string.IsNullOrEmpty(cmboxClientes.SelectedValue?.ToString()) ? (int?)null : Convert.ToInt32(cmboxClientes.SelectedValue);
+                var empleadoId = cmboxAtendidoPor.SelectedValue == null ? 0 : Convert.ToInt32(cmboxAtendidoPor.SelectedValue);
+                var formaPagoId = comboBox2.SelectedValue == null ? 0 : Convert.ToInt32(comboBox2.SelectedValue);
 
-                InsertCommand insertCmd = new InsertCommand();
-
-                int nuevaFacturaId = insertCmd.InsertarFacturaConDetalle(
-                    string.IsNullOrEmpty(cmboxAtendidoPor.SelectedValue?.ToString()) ? (int?)null : Convert.ToInt32(cmboxClientes.SelectedValue),
-                    Convert.ToInt32(cmboxAtendidoPor.SelectedValue),
-                    Convert.ToInt32(comboBox2.SelectedValue),
+                int nuevaFacturaId = _presenter.InsertarFacturaConDetalle(
+                    clienteId,
+                    empleadoId,
+                    formaPagoId,
                     string.IsNullOrEmpty(txtObseravciones.Text) ? null : txtObseravciones.Text,
                     Convert.ToDecimal(txtTotal.Text),
                     Convert.ToDecimal(txtTotal.Text),
                     dataGridDetallesFacturas,
-                    codigoFactura // se guarda el código amigable
+                    codigoFactura
                 );
 
                 MessageBox.Show($"Factura guardada correctamente con código: {codigoFactura}");
@@ -141,6 +139,17 @@ namespace Nuevo_Proyecto.Models.Views
             // Mostrar el formulario embebido
             frm.Show();
 
+        }
+
+        public void showMessage(string message, string titulo, bool esError)
+        {
+            MessageBoxIcon icon = esError ? MessageBoxIcon.Error : MessageBoxIcon.Information;
+            MessageBox.Show(message, titulo, MessageBoxButtons.OK, icon);
+        }
+
+        public void ResetFields()
+        {
+            dataGridDetallesFacturas.Rows.Clear();
         }
 
         private void btnQuitarLinea_Click(object sender, EventArgs e)
@@ -189,15 +198,14 @@ namespace Nuevo_Proyecto.Models.Views
 
         
             // Obtener precio
-            SelectQuery query = new SelectQuery();
             int productoID = Convert.ToInt32(cmboxProductos.SelectedValue);
             string nombreProducto = cmboxProductos.Text;
-            decimal precioUnitario = query.ObtenerPrecioProducto(productoID);
+            decimal precioUnitario = _presenter.ObtenerPrecioProducto(productoID);
             int cantidad = (int)numericUpCantidad.Value;
             decimal subtotal = cantidad * precioUnitario;
 
             // Código actual de factura (se mantiene mientras agregás productos)
-            string codigoFactura = query.ObtenerCodigoFacturaActual();
+            string codigoFactura = _presenter.ObtenerCodigoFacturaActual();
 
             // Insertar en el DataGridView
             dataGridDetallesFacturas.Rows.Add(codigoFactura, productoID, nombreProducto, cantidad, precioUnitario, subtotal);

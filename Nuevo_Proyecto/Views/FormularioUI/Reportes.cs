@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using ClosedXML.Excel;
-using Nuevo_Proyecto.Services;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
 using System.Diagnostics;
@@ -21,15 +20,12 @@ namespace Nuevo_Proyecto.Models.Views
 {
     public partial class Reportes : Form
     {
-
-        private SelectQuery selectQuery; // tu clase que hereda de DataConnection
-
+        private readonly Nuevo_Proyecto.Presenters.InventarioPresenter _presenter;
 
         public Reportes()
         {
             InitializeComponent();
-            selectQuery = new SelectQuery();
-
+            _presenter = new Nuevo_Proyecto.Presenters.InventarioPresenter(this as Nuevo_Proyecto.Views.Interfaces.IInventarioView);
         }
 
         private void ExportarMovimientosAExcel()
@@ -88,8 +84,8 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void CargarReportes(DateTime? desde, DateTime? hasta)
         {
-            // Obtener datos desde la vista con filtro de fechas
-            DataTable dt = selectQuery.ObtenerMovimientosInventario(desde, hasta);
+            // Obtener datos desde el presenter con filtro de fechas
+            DataTable dt = _presenter.GetMovimientosInventario(desde, hasta);
             dataGridReportes.DataSource = dt;
 
             // Ajustar encabezados de columnas principales

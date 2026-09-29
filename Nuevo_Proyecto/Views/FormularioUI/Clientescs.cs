@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -7,14 +7,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Nuevo_Proyecto.Services;
+using Nuevo_Proyecto.Presenters;
+using Nuevo_Proyecto.Views.Interfaces;
 using Microsoft.Data.SqlClient;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
 namespace Nuevo_Proyecto.Models.Views
 {
-    public partial class Clientescs : Form
+    public partial class Clientescs : Form, IClienteView
     {
         private bool EstadoOriginal; // guarda el estado activo real del cliente
         private string CodigoOriginal;
@@ -23,9 +24,12 @@ namespace Nuevo_Proyecto.Models.Views
         private string DireccionOriginal;
         private string NotaOriginal;
 
+        private readonly ClientePresenter _presenter;
+
         public Clientescs()
         {
             InitializeComponent();
+            _presenter = new ClientePresenter(this);
         }
 
         private void ConfigurarDataGridView()
@@ -103,11 +107,49 @@ namespace Nuevo_Proyecto.Models.Views
             txtBuscarClient.Clear();
         }
 
+        // IClienteView properties (implementación mínima usada por presenter)
+        public string Codigo { get => txtCodigoClient.Text; set => txtCodigoClient.Text = value; }
+        public string Nombre { get => txtNombreClient.Text; set => txtNombreClient.Text = value; }
+        public string Telefono { get => txtTelefonoClient.Text; set => txtTelefonoClient.Text = value; }
+        public string Direccion { get => txtDireccionClient.Text; set => txtDireccionClient.Text = value; }
+        public string Nota { get => cmboxNotasClient.Text; set => cmboxNotasClient.Text = value; }
+        public bool Activo { get => checboxClient.Checked; set => checboxClient.Checked = value; }
+        public string AutorizadoPor { get => string.Empty; set { } }
+
+        public event EventHandler GuardarClicked;
+        public event EventHandler CancelarClicked;
+
         public void CargarClientesActivos()
         {
-            SelectQuery selectQuery = new SelectQuery();
-            DataTable clientes = selectQuery.GetClientesActivos();
-            dataGridClientes.DataSource = clientes;
+            var clientes = _presenter.GetClientesActivos();
+            // Convertir lista de entidades a DataTable para compatibilidad con la UI existente
+            var dt = new DataTable();
+            dt.Columns.Add("Codigo");
+            dt.Columns.Add("Nombre");
+            dt.Columns.Add("Telefono");
+            dt.Columns.Add("Direccion");
+            dt.Columns.Add("Nota");
+            dt.Columns.Add("Activo", typeof(bool));
+
+            foreach (var c in clientes)
+            {
+                dt.Rows.Add(c.Codigo, c.Nombre, c.Telefono, c.Direccion, c.Nota, c.Activo);
+            }
+
+            dataGridClientes.DataSource = dt;
+        }
+
+        // IClienteView - mostrar mensaje
+        public void showMessage(string message, string titulo, bool esError)
+        {
+            MessageBoxIcon icon = esError ? MessageBoxIcon.Error : MessageBoxIcon.Information;
+            MessageBox.Show(message, titulo, MessageBoxButtons.OK, icon);
+        }
+
+        // IClienteView - resetear campos
+        public void ResetFields()
+        {
+            LimpiarControles();
         }
 
 
@@ -136,14 +178,12 @@ namespace Nuevo_Proyecto.Models.Views
                 return;
             }
 
-            UpdateCommand updateService = new UpdateCommand();
-
             // 👉 Si estaba inactivo y el usuario marcó el CheckBox
             if (!EstadoOriginal && checboxClient.Checked)
             {
-                int filas = updateService.ReactivarCliente(CodigoOriginal);
+                bool ok = _presenter.ReactivarCliente(CodigoOriginal);
 
-                if (filas > 0)
+                if (ok)
                 {
                     MessageBox.Show("Cliente reactivado correctamente.");
                     LimpiarDespuesDeAccion();
@@ -154,7 +194,6 @@ namespace Nuevo_Proyecto.Models.Views
                 }
                 return;
             }
-
             // 👉 Si estaba activo, validar cambios
             bool huboCambios =
                 txtNombreClient.Text != NombreOriginal ||
@@ -168,7 +207,7 @@ namespace Nuevo_Proyecto.Models.Views
                 return;
             }
 
-            int filasUpdate = updateService.ActualizarCliente(
+            bool okUpdate = _presenter.ActualizarCliente(
                 CodigoOriginal,
                 txtNombreClient.Text,
                 txtTelefonoClient.Text,
@@ -176,7 +215,7 @@ namespace Nuevo_Proyecto.Models.Views
                 cmboxNotasClient.Text
             );
 
-            if (filasUpdate > 0)
+            if (okUpdate)
             {
                 MessageBox.Show("Cliente actualizado correctamente.");
                 LimpiarDespuesDeAccion();
@@ -196,10 +235,9 @@ namespace Nuevo_Proyecto.Models.Views
                 return;
             }
 
-            DeleteCommand deleteService = new DeleteCommand();
-            int filas = deleteService.EliminarCliente(CodigoOriginal);
+            bool ok = _presenter.EliminarCliente(CodigoOriginal);
 
-            if (filas > 0)
+            if (ok)
             {
                 MessageBox.Show("Cliente eliminado (inactivado) correctamente.");
                 LimpiarDespuesDeAccion();
@@ -215,7 +253,6 @@ namespace Nuevo_Proyecto.Models.Views
         {
 
             string codigo = txtBuscarClient.Text.Trim();
-            SelectQuery query = new SelectQuery();
 
             if (string.IsNullOrEmpty(codigo))
             {
@@ -224,7 +261,7 @@ namespace Nuevo_Proyecto.Models.Views
                 return;
             }
 
-            DataTable cliente = query.BuscarClientePorCodigo(codigo);
+            DataTable cliente = _presenter.BuscarClientePorCodigo(codigo);
 
             if (cliente.Rows.Count > 0)
             {
@@ -246,7 +283,7 @@ namespace Nuevo_Proyecto.Models.Views
                 checboxClient.Enabled = !EstadoOriginal;
 
                 // 👉 cargar notas
-                DataTable notas = query.GetNotas();
+                DataTable notas = _presenter.GetNotas();
                 cmboxNotasClient.DataSource = notas;
                 cmboxNotasClient.DisplayMember = "Nota";
                 cmboxNotasClient.ValueMember = "Nota";

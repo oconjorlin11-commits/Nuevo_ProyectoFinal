@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Nuevo_Proyecto.Models.Entities
 {
+    [Table("Empleados")]
     public partial class Empleado
     {
         public int EmpleadoId { get; set; }

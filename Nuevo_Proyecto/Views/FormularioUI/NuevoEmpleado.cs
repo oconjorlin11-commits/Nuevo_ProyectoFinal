@@ -7,27 +7,55 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Nuevo_Proyecto.Services;
-using Microsoft.Data.SqlClient;
+using Nuevo_Proyecto.Presenters;
+using Nuevo_Proyecto.Views.Interfaces;
 
 
 namespace Nuevo_Proyecto.Models.Views
 {
-    public partial class NuevoEmpleado : Form
+    public partial class NuevoEmpleado : Form, IEmpleadoView
     {
-
-        private readonly InsertCommand _InsertService;
-
-        private readonly SelectQuery _selectService;
-
+        private readonly EmpleadoPresenter _presenter;
 
         public NuevoEmpleado()
         {
             InitializeComponent();
-            _InsertService = new InsertCommand();
-            _selectService = new SelectQuery();
-
+            _presenter = new EmpleadoPresenter(this);
         }
+
+        // IEmpleadoView - mostrar mensaje
+        public void showMessage(string message, string titulo, bool esError)
+        {
+            MessageBoxIcon icon = esError ? MessageBoxIcon.Error : MessageBoxIcon.Information;
+            MessageBox.Show(message, titulo, MessageBoxButtons.OK, icon);
+        }
+
+        // IEmpleadoView - resetear campos
+        public void ResetFields()
+        {
+            txtCodigoEmple.Text = string.Empty;
+            txtNombreEmple.Text = string.Empty;
+            txtCedulaEmpl.Text = string.Empty;
+            txtTelefonoEmple.Text = string.Empty;
+            comboxCargoEmpleado.DataSource = null;
+            txtSalarioEmpleado.Text = "0";
+            cmboxAutizadoEmple.DataSource = null;
+            checkEmpleadoAct.Checked = false;
+        }
+
+        // IEmpleadoView implementation
+        public string Codigo { get => txtCodigoEmple.Text; set => txtCodigoEmple.Text = value; }
+        public string Nombre { get => txtNombreEmple.Text; set => txtNombreEmple.Text = value; }
+        public string Cedula { get => txtCedulaEmpl.Text; set => txtCedulaEmpl.Text = value; }
+        public string Telefono { get => txtTelefonoEmple.Text; set => txtTelefonoEmple.Text = value; }
+        public string Cargo { get => comboxCargoEmpleado.Text; set => comboxCargoEmpleado.Text = value; }
+        public decimal Salario { get => decimal.TryParse(txtSalarioEmpleado.Text, out var s) ? s : 0; set => txtSalarioEmpleado.Text = value.ToString(); }
+        public DateTime? FechaIngreso { get => dateTimePicker1.Value; set => dateTimePicker1.Value = value ?? DateTime.Now; }
+        public bool Activo { get => checkEmpleadoAct.Checked; set => checkEmpleadoAct.Checked = value; }
+        public string AutorizadoPor { get => cmboxAutizadoEmple.Text; set => cmboxAutizadoEmple.Text = value; }
+
+        public event EventHandler GuardarClicked;
+        public event EventHandler CancelarClicked;
 
         private void label4_Click(object sender, EventArgs e)
         {
@@ -41,74 +69,17 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void btnGuardarEmple_Click(object sender, EventArgs e)
         {
-            try
-            {
-                // 👉 Validar que todos los campos estén llenos
-                if (string.IsNullOrWhiteSpace(txtCodigoEmple.Text) ||
-                    string.IsNullOrWhiteSpace(txtNombreEmple.Text) ||
-                    string.IsNullOrWhiteSpace(txtCedulaEmpl.Text) ||
-                    string.IsNullOrWhiteSpace(txtTelefonoEmple.Text) ||
-                    string.IsNullOrWhiteSpace(comboxCargoEmpleado.Text) ||
-                    string.IsNullOrWhiteSpace(txtSalarioEmpleado.Text) ||
-                    cmboxAutizadoEmple.SelectedIndex == -1 ||
-                    !checkEmpleadoAct.Checked)
-                {
-                    MessageBox.Show("Debe llenar todos los campos, seleccionar un administrador y marcar el estado Activo.");
-                    return;
-                }
-
-                // 👉 Validar salario
-                if (!decimal.TryParse(txtSalarioEmpleado.Text, out decimal salario))
-                {
-                    MessageBox.Show("El salario debe ser un número válido.");
-                    return;
-                }
-
-                // 👉 Validar que el autorizado sea Admin
-                string autorizado = cmboxAutizadoEmple.Text;
-                if (!_selectService.EsEmpleadoAdmin(autorizado))
-                {
-                    MessageBox.Show("Solo un administrador puede agregar empleados.");
-                    return;
-                }
-
-                // 👉 Insertar empleado
-                int filas = _InsertService.InsertarEmpleado(
-                    txtCodigoEmple.Text,
-                    txtNombreEmple.Text,
-                    txtCedulaEmpl.Text,
-                    txtTelefonoEmple.Text,
-                    comboxCargoEmpleado.Text,
-                    salario,
-                    dateTimePicker1.Value,
-                    checkEmpleadoAct.Checked,
-                    autorizado
-                );
-
-                if (filas > 0)
-                {
-                    MessageBox.Show("Empleado guardado exitosamente.");
-                    this.Close();
-                }
-                else
-                {
-                    MessageBox.Show("No se insertó ningún registro.");
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error al guardar empleado: {ex.Message}");
-            }
-
+            // Delegar la acción al presenter
+            GuardarClicked?.Invoke(this, EventArgs.Empty);
         }
 
         private void NuevoEmpleado_Load(object sender, EventArgs e)
         {
-            // 👉 Generar el próximo código automáticamente
-            txtCodigoEmple.Text = _selectService.GetNextCodigoEmpleado();
+            // Obtener valores iniciales desde el presenter
+            txtCodigoEmple.Text = _presenter.GetNextCodigoEmpleado();
 
-            // 👉 Cargar cargos disponibles en el ComboBox
-            DataTable cargos = _selectService.GetCargosDisponibles();
+            // Cargar cargos disponibles en el ComboBox
+            DataTable cargos = _presenter.GetCargos();
             comboxCargoEmpleado.DataSource = cargos;
             comboxCargoEmpleado.DisplayMember = "Cargo";
             comboxCargoEmpleado.ValueMember = "Cargo";
@@ -119,19 +90,19 @@ namespace Nuevo_Proyecto.Models.Views
             comboxCargoEmpleado.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             comboxCargoEmpleado.AutoCompleteSource = AutoCompleteSource.ListItems;
 
-            // 👉 Cargar solo administradores en ComboBox de autorización
-            DataTable admins = _selectService.GetUsuariosAdministradores();
+            // Cargar solo administradores en ComboBox de autorización
+            DataTable admins = _presenter.GetUsuariosAdministradores();
             cmboxAutizadoEmple.DataSource = admins;
             cmboxAutizadoEmple.DisplayMember = "Nombre";
             cmboxAutizadoEmple.ValueMember = "Codigo";
             cmboxAutizadoEmple.SelectedIndex = -1;
 
-            // 👉 Inicializar salario en 0
+            // Inicializar salario en 0
             txtSalarioEmpleado.Text = "0";
 
-            // 👉 Estado activo por defecto
+            // Estado activo por defecto
             checkEmpleadoAct.Checked = true;
-            checkEmpleadoAct.Enabled = false; // ⚡ para que no lo desmarquen al agregar
+            checkEmpleadoAct.Enabled = false; // para que no lo desmarquen al agregar
         }
 
         private void txtCedulaEmple_KeyPress(object sender, KeyPressEventArgs e)

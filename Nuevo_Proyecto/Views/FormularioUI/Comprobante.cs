@@ -1,4 +1,5 @@
-﻿using Nuevo_Proyecto.Services;
+﻿using Nuevo_Proyecto.Presenters;
+using Nuevo_Proyecto.Views.Interfaces;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
 using System;
@@ -17,24 +18,43 @@ using DocumentFormat.OpenXml.Drawing.ChartDrawing;
 
 namespace Nuevo_Proyecto.Models.Views
 {
-    public partial class Comprobante : Form
+    public partial class Comprobante : Form, IFacturacionView
     {
         private string _facturaCodigo;
 
         private DataTable? _dtFactura;
+        private FacturacionPresenter _presenter;
 
         public Comprobante() : this("")
         {
 
         }
 
+        public void showMessage(string message, string titulo, bool esError)
+        {
+            MessageBoxIcon icon = esError ? MessageBoxIcon.Error : MessageBoxIcon.Information;
+            MessageBox.Show(message, titulo, MessageBoxButtons.OK, icon);
+        }
+
+        public void ResetFields()
+        {
+            // No aplica para comprobante; método requerido por la interfaz
+        }
+
         public Comprobante(string facturaCodigo)
         {
             InitializeComponent();
             _facturaCodigo = facturaCodigo;
+            _presenter = new FacturacionPresenter(this);
 
 
         }
+
+        public Comprobante(string facturaCodigo, FacturacionPresenter presenter) : this(facturaCodigo)
+        {
+            _presenter = presenter ?? new FacturacionPresenter(this);
+        }
+
 
         private void CargarFacturaEnLabels(DataTable? dt)
         {
@@ -115,8 +135,7 @@ namespace Nuevo_Proyecto.Models.Views
                 // Asegurar que tengamos los datos de la factura cargados
                 if (_dtFactura == null || _dtFactura.Rows.Count == 0)
                 {
-                    SelectQuery sq = new SelectQuery();
-                    _dtFactura = sq.ObtenerDetalleFacturaPorCodigo(_facturaCodigo?.Trim() ?? "");
+                    _dtFactura = _presenter.ObtenerDetalleFacturaPorCodigo(_facturaCodigo?.Trim() ?? "");
                     if (_dtFactura == null || _dtFactura.Rows.Count == 0)
                     {
                         MessageBox.Show("No hay datos disponibles para exportar esta factura.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -326,8 +345,8 @@ namespace Nuevo_Proyecto.Models.Views
             {
                 if (!string.IsNullOrWhiteSpace(_facturaCodigo))
                 {
-                    SelectQuery sq = new SelectQuery();
-                    _dtFactura = sq.ObtenerDetalleFacturaPorCodigo(_facturaCodigo.Trim());
+                    // Usar el presenter para obtener los datos en lugar de SelectQuery
+                    _dtFactura = (_presenter ?? new FacturacionPresenter(this)).ObtenerDetalleFacturaPorCodigo(_facturaCodigo.Trim());
                     CargarFacturaEnLabels(_dtFactura);
                 }
             }

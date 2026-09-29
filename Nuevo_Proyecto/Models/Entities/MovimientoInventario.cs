@@ -10,6 +10,9 @@ namespace Nuevo_Proyecto.Models.Entities
         public int ProductoId { get; set; } 
         public DateTime Fecha { get; set; } 
         public string? TipoMovimiento { get; set; } = null!;
+        // Compatibilidad: alias de propiedad para código existente que referenciaba MovimientoInventarioId / Tipo
+        public int MovimientoInventarioId { get => MovimientoId; set => MovimientoId = value; }
+        public string? Tipo { get => TipoMovimiento; set => TipoMovimiento = value; }
         public int Cantidad { get; set; }
         public int StockAnterior { get; set; }
         public int StockNuevo { get; set; }

@@ -1,5 +1,4 @@
 ﻿using Microsoft.Data.SqlClient;
-using Nuevo_Proyecto.Services;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -35,12 +34,11 @@ namespace Nuevo_Proyecto.Models.Views
 
             var parametros = new[]
             {
-   new SqlParameter("@usuario", txtUsuario.Text.Trim()),
-   new SqlParameter("@password", txtContraseña.Text.Trim())
-};
+                new SqlParameter("@usuario", txtUsuario.Text.Trim()),
+                new SqlParameter("@password", txtContraseña.Text.Trim())
+            };
 
-            SelectQuery selectQuery = new SelectQuery();
-            DataTable dt = selectQuery.ExecuteSelect(sql, parametros);
+            DataTable dt = Nuevo_Proyecto.Presenters.DbExecutor.ExecuteQuery(sql, parametros);
 
             if (dt.Rows.Count > 0)
             {

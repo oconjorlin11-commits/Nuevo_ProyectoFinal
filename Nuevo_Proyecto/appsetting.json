@@ -1,5 +1,0 @@
-{
-  "ConnectionStrings": {
-    "Dev_ComideriaDbconnection": "Server=localhost;Database=Dev_Comideria;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True;"
-  }
-}

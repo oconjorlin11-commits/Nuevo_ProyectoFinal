@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using Nuevo_Proyecto.Services;
-using System;
-using System.Collections.Generic;
+using Nuevo_Proyecto.Presenters;
+using Nuevo_Proyecto.Views.Interfaces;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
@@ -14,17 +13,19 @@ using System.Windows.Forms;
 
 namespace Nuevo_Proyecto.Models.Views
 {
-    public partial class FacturasEmitidas : Form
+    public partial class FacturasEmitidas : Form, IFacturacionView
     {
+        private readonly FacturacionPresenter _presenter;
+
         public FacturasEmitidas()
         {
             InitializeComponent();
+            _presenter = new FacturacionPresenter(this);
         }
 
         private void CargarTodasLasFacturas()
         {
-            SelectQuery sq = new SelectQuery();
-            dataGridFacturasEmitidas.DataSource = sq.GetTodasLasFacturasConDetalles();
+            dataGridFacturasEmitidas.DataSource = _presenter.GetTodasLasFacturasConDetalles();
             btnVerComprob.Enabled = false;
         }
 
@@ -34,8 +35,7 @@ namespace Nuevo_Proyecto.Models.Views
 
             if (!string.IsNullOrWhiteSpace(codigo))
             {
-                SelectQuery sq = new SelectQuery();
-                DataTable dt = sq.BuscarFacturaPorCodigo(codigo);
+                DataTable dt = _presenter.BuscarFacturaPorCodigo(codigo);
                 dataGridFacturasEmitidas.DataSource = dt;
 
                 // 👉 habilitar solo si hay exactamente 1 resultado
@@ -56,8 +56,7 @@ namespace Nuevo_Proyecto.Models.Views
             DateTime desde = dateTimeDesde.Value.Date;
             DateTime hasta = dateTimeHasta.Value.Date;
 
-            SelectQuery sq = new SelectQuery();
-            dataGridFacturasEmitidas.DataSource = sq.FiltrarFacturasPorFecha(desde, hasta);
+            dataGridFacturasEmitidas.DataSource = _presenter.FiltrarFacturasPorFecha(desde, hasta);
             btnVerComprob.Enabled = false;
         }
 
@@ -102,6 +101,17 @@ namespace Nuevo_Proyecto.Models.Views
         private void btnBucarFacturas_Click(object sender, EventArgs e)
         {
             FiltrarFacturasPorFecha();
+        }
+
+        public void showMessage(string message, string titulo, bool esError)
+        {
+            MessageBoxIcon icon = esError ? MessageBoxIcon.Error : MessageBoxIcon.Information;
+            MessageBox.Show(message, titulo, MessageBoxButtons.OK, icon);
+        }
+
+        public void ResetFields()
+        {
+            dataGridFacturasEmitidas.DataSource = null;
         }
     }
 }

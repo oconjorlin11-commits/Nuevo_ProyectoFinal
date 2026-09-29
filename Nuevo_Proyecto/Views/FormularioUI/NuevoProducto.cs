@@ -1,5 +1,6 @@
 ﻿using Nuevo_Proyecto.Models.Entities;
-using Nuevo_Proyecto.Services;
+using Nuevo_Proyecto.Presenters;
+using Nuevo_Proyecto.Views.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -14,17 +15,50 @@ using System.Windows.Forms;
 
 namespace Nuevo_Proyecto.Models.Views
 {
-    public partial class NuevoProducto : Form
+    public partial class NuevoProducto : Form, IProductoView
     {
+        private readonly ProductosPresenter _presenter;
+
         public NuevoProducto()
         {
             InitializeComponent();
+            _presenter = new ProductosPresenter(this);
+        }
+
+        // IProductoView properties
+        public string Codigo { get => txtCodigoProduc.Text; set => txtCodigoProduc.Text = value; }
+        public string Nombre { get => txtNombreProduct.Text; set => txtNombreProduct.Text = value; }
+        public int CategoriaId { get => cmboxCategoriaProduc.SelectedValue == null ? 0 : Convert.ToInt32(cmboxCategoriaProduc.SelectedValue); set => cmboxCategoriaProduc.SelectedValue = value; }
+        public int UnidadId { get => cmboxUnidadProduct.SelectedValue == null ? 0 : Convert.ToInt32(cmboxUnidadProduct.SelectedValue); set => cmboxUnidadProduct.SelectedValue = value; }
+        public string Descripcion { get => txtDescripcion.Text; set => txtDescripcion.Text = value; }
+        public decimal PrecioVenta { get => decimal.TryParse(txtPrecioProduct.Text, out var p) ? p : 0; set => txtPrecioProduct.Text = value.ToString(); }
+        public bool Activo { get => checkBoxProductosActi.Checked; set => checkBoxProductosActi.Checked = value; }
+        public int stockInicial { get => int.TryParse(txtStockInicial.Text, out var s) ? s : 0; set => txtStockInicial.Text = value.ToString(); }
+        public int StockMinimo { get => int.TryParse(txtStockMinimo.Text, out var m) ? m : 0; set => txtStockMinimo.Text = value.ToString(); }
+
+        public event EventHandler GuardarClicked;
+        public event EventHandler CancelarClicked;
+
+        public void showMessage(string message, string titulo, bool esError)
+        {
+            MessageBoxIcon icon = esError ? MessageBoxIcon.Error : MessageBoxIcon.Information;
+            MessageBox.Show(message, titulo, MessageBoxButtons.OK, icon);
+        }
+
+        public void ResetFields()
+        {
+            Codigo = string.Empty;
+            Nombre = string.Empty;
+            Descripcion = string.Empty;
+            PrecioVenta = 0;
+            stockInicial = 0;
+            StockMinimo = 0;
+            Activo = true;
         }
 
         private void CargarUsuarios()
         {
-            SelectQuery sq = new SelectQuery();
-            DataTable dt = sq.CargarUsuariosAdmin(); // SELECT EmpleadoID, Nombre, Rol FROM Empleados
+            var dt = _presenter.CargarUsuariosAdmin();
             CmboxEmpleado.DataSource = dt;
             CmboxEmpleado.DisplayMember = "Nombre";
             CmboxEmpleado.ValueMember = "EmpleadoID";
@@ -93,28 +127,22 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void NuevoProducto_Load(object sender, EventArgs e)
         {
-            SelectQuery sq = new SelectQuery();
-
             // Código automático
-
-            txtCodigoProduc.Text = sq.ObtenerProximoCodigoProducto();
+            txtCodigoProduc.Text = _presenter.ObtenerProximoCodigoProducto();
             txtCodigoProduc.Enabled = false;
 
             // 👉 Solo admins
-
-            CmboxEmpleado.DataSource = sq.CargarUsuariosAdmin();
+            CmboxEmpleado.DataSource = _presenter.CargarUsuariosAdmin();
             CmboxEmpleado.DisplayMember = "Nombre";
             CmboxEmpleado.ValueMember = "EmpleadoID";
 
             // Categorías
-
-            cmboxCategoriaProduc.DataSource = sq.GetCategoriasActivas();
+            cmboxCategoriaProduc.DataSource = _presenter.GetCategoriasActivas();
             cmboxCategoriaProduc.DisplayMember = "Nombre";
             cmboxCategoriaProduc.ValueMember = "CategoriaID";
 
             // Unidades
-
-            cmboxUnidadProduct.DataSource = sq.GetUnidades();
+            cmboxUnidadProduct.DataSource = _presenter.GetUnidades();
             cmboxUnidadProduct.DisplayMember = "Nombre";
             cmboxUnidadProduct.ValueMember = "UnidadID";
 
@@ -143,38 +171,8 @@ namespace Nuevo_Proyecto.Models.Views
                 return;
             }
 
-            // 👉 Si es admin, continuar con el guardado
-            InsertCommand insertService = new InsertCommand();
-
-            string codigo = txtCodigoProduc.Text;
-            string nombre = txtNombreProduct.Text.Trim();
-            int categoriaID = Convert.ToInt32(cmboxCategoriaProduc.SelectedValue);
-            int unidadID = Convert.ToInt32(cmboxUnidadProduct.SelectedValue);
-            string descripcion = txtDescripcion.Text.Trim();
-            decimal precioVenta = Convert.ToDecimal(txtPrecioProduct.Text);
-            int stockInicial = Convert.ToInt32(txtStockInicial.Text);
-            int stockMinimo = Convert.ToInt32(txtStockMinimo.Text);
-            bool activo = checkBoxProductosActi.Checked;
-
-            string observacion = $"Alta producto nuevo por {usuarioSeleccionado["Nombre"]}";
-
-            int productoID = insertService.AgregarProductoConInventarioSP(
-                codigo, nombre, categoriaID, unidadID,
-                descripcion, precioVenta, activo,
-                stockInicial, stockMinimo,
-                empleadoID, observacion
-            );
-
-            if (productoID > 0)
-            {
-                MessageBox.Show("Producto insertado correctamente.");
-                this.DialogResult = DialogResult.OK; // 👉 marcar éxito
-                this.Close(); // 👉 cerrar formulario después de guardar
-            }
-            else
-            {
-                MessageBox.Show("No se pudo insertar el producto.");
-            }
+            // Delegar al presenter (el presenter verifica permisos y persiste)
+            GuardarClicked?.Invoke(this, EventArgs.Empty);
 
 
         }

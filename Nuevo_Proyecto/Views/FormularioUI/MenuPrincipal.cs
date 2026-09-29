@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Nuevo_Proyecto.Services;
+// using Nuevo_Proyecto.Services;  // eliminado: ya no existe la carpeta Services
 
 namespace Nuevo_Proyecto.Models.Views
 {

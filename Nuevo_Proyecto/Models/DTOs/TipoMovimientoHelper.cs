@@ -63,6 +63,8 @@ namespace Nuevo_Proyecto.Catalogos
             int minimoStockOriginal
         ) 
         {
+            // TODO: mantener lógica; revisar más tarde si estadoOriginal/nuevoEstado vienen de bool?
+            // Actualmente son bool; si cambian a bool? (nullable) ajustar las comprobaciones.
             if (!estadoOriginal && nuevoEstado)
             
                 return TipoMovimientoInventario.ReactivacionProducto;
