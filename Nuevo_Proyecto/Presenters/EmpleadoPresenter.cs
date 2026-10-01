@@ -39,10 +39,75 @@ namespace Nuevo_Proyecto.Presenters
         public string GetNextCodigoEmpleado()
         {
             using var db = new Dev_ComideriaDbContext();
-            var max = db.Empleado.AsNoTracking().Select(e => e.Codigo).OrderByDescending(c => c).FirstOrDefault();
-            if (string.IsNullOrEmpty(max)) return "0001";
-            if (int.TryParse(max, out int num)) return (num + 1).ToString("D4");
-            return max + "_1";
+            var codigos = db.Empleado.AsNoTracking().Select(e => e.Codigo).Where(c => !string.IsNullOrEmpty(c)).ToList();
+
+            long maxVal = 0;
+
+            foreach (var codigo in codigos)
+            {
+                if (string.IsNullOrWhiteSpace(codigo)) continue;
+                var txt = codigo.Trim();
+
+                // Formato esperado: EMP-000 o EMP-000-000-... (grupos de 3 dígitos)
+                var m = System.Text.RegularExpressions.Regex.Match(txt, "^(?i)emp-(\\d{3}(?:-\\d{3})*)$");
+                if (m.Success)
+                {
+                    var groups = m.Groups[1].Value.Split('-');
+                    long val = 0;
+                    bool ok = true;
+                    foreach (var g in groups)
+                    {
+                        if (!int.TryParse(g, out int gi)) { ok = false; break; }
+                        val = val * 1000 + gi;
+                    }
+                    if (ok && val > maxVal) maxVal = val;
+                    continue;
+                }
+
+                // Soportar códigos con solo grupos numéricos sin prefijo (ej. 000 o 000-000)
+                var m2 = System.Text.RegularExpressions.Regex.Match(txt, "^(\\d{3}(?:-\\d{3})*)$");
+                if (m2.Success)
+                {
+                    var groups = m2.Groups[1].Value.Split('-');
+                    long val = 0;
+                    bool ok = true;
+                    foreach (var g in groups)
+                    {
+                        if (!int.TryParse(g, out int gi)) { ok = false; break; }
+                        val = val * 1000 + gi;
+                    }
+                    if (ok && val > maxVal) maxVal = val;
+                    continue;
+                }
+
+                // Intentar extraer dígitos si hay otros formatos
+                var digits = new string(txt.Where(char.IsDigit).ToArray());
+                if (!string.IsNullOrEmpty(digits) && long.TryParse(digits, out var parsed))
+                {
+                    if (parsed > maxVal) maxVal = parsed;
+                }
+            }
+
+            if (maxVal == 0)
+            {
+                // Si no hay códigos previos, iniciar en EMP-000 según requerimiento
+                return "EMP-000";
+            }
+
+            long next = maxVal + 1;
+
+            // Convertir next a grupos de 3 dígitos (base 1000) y formatear como EMP-xxx[-xxx...]
+            var parts = new System.Collections.Generic.List<string>();
+            long temp = next;
+            while (temp > 0)
+            {
+                parts.Add(((int)(temp % 1000)).ToString("D3"));
+                temp /= 1000;
+            }
+            if (parts.Count == 0) parts.Add("000");
+            parts.Reverse();
+
+            return "EMP-" + string.Join("-", parts);
         }
 
         public System.Data.DataTable GetUsuariosAdministradores()
@@ -169,6 +234,15 @@ namespace Nuevo_Proyecto.Presenters
 
                     _view.showMessage("Empleado guardado exitosamente.", "Éxito", false);
                     _view.ResetFields();
+                    // Solicitar a la vista que se cierre al agregar desde formulario modal
+                    try
+                    {
+                        _view.CloseView();
+                    }
+                    catch
+                    {
+                        // Ignorar si la vista no implementa cierre
+                    }
 
 
 

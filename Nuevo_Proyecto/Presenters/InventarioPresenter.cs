@@ -89,6 +89,8 @@ namespace Nuevo_Proyecto.Presenters
             dt.Columns.Add("Stock", typeof(int));
             dt.Columns.Add("StockMinimo", typeof(int));
             dt.Columns.Add("Activo", typeof(bool));
+            // Columna para almacenar observaciones asociadas al producto (opcional)
+            dt.Columns.Add("Observacion", typeof(string));
             return dt;
         }
 
@@ -112,10 +114,10 @@ namespace Nuevo_Proyecto.Presenters
                              PrecioVenta = p.PrecioVenta,
                              i.Stock,
                              i.StockMinimo,
-                             Activo = (p.Activo ?? false)
+                             Activo = (p.Activo ?? false),
+                             Observacion = ""
                          }).AsNoTracking().ToList();
-
-            foreach (var it in items) dt.Rows.Add(it.ProductoID, it.Codigo, it.Nombre, it.CategoriaID, it.Categoria, it.UnidadID, it.Unidad, it.PrecioVenta, it.Stock, it.StockMinimo, it.Activo);
+            foreach (var it in items) dt.Rows.Add(it.ProductoID, it.Codigo, it.Nombre, it.CategoriaID, it.Categoria, it.UnidadID, it.Unidad, it.PrecioVenta, it.Stock, it.StockMinimo, it.Activo, it.Observacion);
             return dt;
         }
 
@@ -140,10 +142,11 @@ namespace Nuevo_Proyecto.Presenters
                              PrecioVenta = p.PrecioVenta,
                              i.Stock,
                              i.StockMinimo,
-                             Activo = (p.Activo ?? false)
+                             Activo = (p.Activo ?? false),
+                             Observacion = ""
                          }).AsNoTracking().ToList();
 
-            foreach (var it in items) dt.Rows.Add(it.ProductoID, it.Codigo, it.Nombre, it.CategoriaID, it.Categoria, it.UnidadID, it.Unidad, it.PrecioVenta, it.Stock, it.StockMinimo, it.Activo);
+            foreach (var it in items) dt.Rows.Add(it.ProductoID, it.Codigo, it.Nombre, it.CategoriaID, it.Categoria, it.UnidadID, it.Unidad, it.PrecioVenta, it.Stock, it.StockMinimo, it.Activo, it.Observacion);
             return dt;
         }
 
@@ -168,10 +171,11 @@ namespace Nuevo_Proyecto.Presenters
                              PrecioVenta = p.PrecioVenta,
                              i.Stock,
                              i.StockMinimo,
-                             Activo = (p.Activo ?? false)
+                             Activo = (p.Activo ?? false),
+                             Observacion = ""
                          }).AsNoTracking().ToList();
 
-            foreach (var it in items) dt.Rows.Add(it.ProductoID, it.Codigo, it.Nombre, it.CategoriaID, it.Categoria, it.UnidadID, it.Unidad, it.PrecioVenta, it.Stock, it.StockMinimo, it.Activo);
+            foreach (var it in items) dt.Rows.Add(it.ProductoID, it.Codigo, it.Nombre, it.CategoriaID, it.Categoria, it.UnidadID, it.Unidad, it.PrecioVenta, it.Stock, it.StockMinimo, it.Activo, it.Observacion);
             return dt;
         }
 

@@ -23,6 +23,31 @@ namespace Nuevo_Proyecto.Models.Views
             _presenter = new EmpleadoPresenter(this);
         }
 
+        protected override void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
+
+            // Suscribir eventos para actualizar estado del botón Guardar
+            txtCodigoEmple.TextChanged += (s, ev) => UpdateControlsState();
+            txtNombreEmple.TextChanged += (s, ev) => UpdateControlsState();
+            txtCedulaEmpl.TextChanged += (s, ev) => UpdateControlsState();
+            txtTelefonoEmple.TextChanged += (s, ev) => UpdateControlsState();
+            comboxCargoEmpleado.TextChanged += (s, ev) => UpdateControlsState();
+            txtSalarioEmpleado.TextChanged += (s, ev) => UpdateControlsState();
+            cmboxAutizadoEmple.SelectedIndexChanged += (s, ev) => UpdateControlsState();
+            checkEmpleadoAct.CheckedChanged += (s, ev) => UpdateControlsState();
+            UpdateControlsState();
+        }
+
+        private void UpdateControlsState()
+        {
+            bool codigoOk = !string.IsNullOrWhiteSpace(txtCodigoEmple.Text);
+            bool nombreOk = !string.IsNullOrWhiteSpace(txtNombreEmple.Text);
+            bool cedulaOk = !string.IsNullOrWhiteSpace(txtCedulaEmpl.Text);
+
+            btnGuardarEmple.Enabled = codigoOk && nombreOk && cedulaOk;
+        }
+
         // IEmpleadoView - mostrar mensaje
         public void showMessage(string message, string titulo, bool esError)
         {
@@ -73,6 +98,7 @@ namespace Nuevo_Proyecto.Models.Views
         {
             // Delegar la acción al presenter
             GuardarClicked?.Invoke(this, EventArgs.Empty);
+            // El presenter puede solicitar cerrar la vista mediante CloseView
         }
 
         private void NuevoEmpleado_Load(object sender, EventArgs e)
@@ -114,6 +140,12 @@ namespace Nuevo_Proyecto.Models.Views
                 e.Handled = true;
                 txtTelefonoEmple.Focus();
             }
+        }
+
+        // IEmpleadoView - cerrar la vista cuando el presentador lo solicite
+        public void CloseView()
+        {
+            this.Close();
         }
     }
 

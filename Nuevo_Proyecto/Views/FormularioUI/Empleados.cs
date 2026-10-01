@@ -38,6 +38,14 @@ namespace Nuevo_Proyecto.Models.Views
         {
             InitializeComponent();
             _presenter = new EmpleadoPresenter(this);
+            // Asegurar que el textbox de búsqueda ejecute el handler incluso si el diseñador no lo enlazó
+            txtBuscarEmpl.TextChanged += txtBuscarEmpleados_TextChanged;
+            // Volver a rellenar estado cuando termine el binding para asegurar visualización
+            dataGridEmpleados.DataBindingComplete += (s, e) => RellenarEstado();
+            // Convertir el valor bit (0/1) de la columna Activo en texto legible
+            dataGridEmpleados.CellFormatting += datagrewEmpleados_CellFormatting;
+            // Manejar errores de datos para evitar el dialogo predeterminado
+            dataGridEmpleados.DataError += DataGridEmpleados_DataError;
         }
 
         // IEmpleadoView implementation
@@ -65,28 +73,57 @@ namespace Nuevo_Proyecto.Models.Views
             LimpiarControles();
         }
 
+        // IEmpleadoView - cerrar la vista (no aplica para la vista principal, implementar como no-op)
+        public void CloseView()
+        {
+            // No cerrar la ventana principal desde el presentador
+        }
+
         private void RellenarEstado()
         {
-            // 👉 si no existe la columna Estado, la agregamos
-            if (!dataGridEmpleados.Columns.Contains("Estado"))
+            // Asegurar que solo exista una columna visible llamada "Estado"
+            // Ocultar la columna cruda 'Activo' y mostrar la columna derivada 'Estado' si existe
+            if (dataGridEmpleados.Columns.Contains("Activo"))
             {
-                DataGridViewTextBoxColumn colEstado = new DataGridViewTextBoxColumn();
-                colEstado.Name = "Estado";
-                colEstado.HeaderText = "Estado";
-                dataGridEmpleados.Columns.Add(colEstado);
+                dataGridEmpleados.Columns["Activo"].Visible = false;
             }
-
-            foreach (DataGridViewRow row in dataGridEmpleados.Rows)
+            if (dataGridEmpleados.Columns.Contains("Estado"))
             {
-                if (row.Cells["Activo"].Value != null && row.Cells["Activo"].Value != DBNull.Value)
-                {
-                    bool activo = (bool)row.Cells["Activo"].Value;
-                    row.Cells["Estado"].Value = activo ? "Trabajando" : "Despedido";
-                }
+                dataGridEmpleados.Columns["Estado"].Visible = true;
+                dataGridEmpleados.Columns["Estado"].HeaderText = "Estado";
             }
+            // Forzar refresco para que los cambios se reflejen
+            dataGridEmpleados.Refresh();
+        }
 
-            // 👉 ocultar columna Activo si no quieres mostrar 0/1
-            dataGridEmpleados.Columns["Activo"].Visible = false;
+        private void DataGridEmpleados_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            // Evitar el cuadro de diálogo predeterminado y suprimir la excepción de formato
+            e.ThrowException = false;
+            // Opcional: podríamos registrar o mostrar un mensaje corto si es necesario
+        }
+
+        // Helper para convertir valores devueltos por la BD (bit 0/1, byte, int, bool, string) a bool
+        private static bool ParseBoolDb(object? value)
+        {
+            if (value == null || value == DBNull.Value) return false;
+            try
+            {
+                if (value is bool b) return b;
+                if (value is byte by) return by != 0;
+                if (value is short s) return s != 0;
+                if (value is int i) return i != 0;
+                if (value is long l) return l != 0L;
+                var txt = value.ToString();
+                if (string.IsNullOrWhiteSpace(txt)) return false;
+                if (int.TryParse(txt, out var n)) return n != 0;
+                if (bool.TryParse(txt, out var bb)) return bb;
+            }
+            catch
+            {
+                // ignorar y retornar false
+            }
+            return false;
         }
 
 
@@ -102,11 +139,23 @@ namespace Nuevo_Proyecto.Models.Views
             dt.Columns.Add("Cedula");
             dt.Columns.Add("Telefono");
             dt.Columns.Add("Salario");
-            dt.Columns.Add("Activo", typeof(bool));
+            dt.Columns.Add("Activo", typeof(object)); // mantener el tipo original pero como object para evitar conversiones automáticas
+            // Columna visible con texto legible
+            dt.Columns.Add("Estado", typeof(string));
 
             foreach (var e in empleados)
             {
-                dt.Rows.Add(e.Codigo, e.Nombre, e.Cargo, e.Fechaingreso, e.Cedula, e.Telefono, e.Salario, e.Activo);
+                var row = dt.NewRow();
+                row["Codigo"] = e.Codigo;
+                row["Nombre"] = e.Nombre;
+                row["Cargo"] = e.Cargo;
+                row["FechaIngreso"] = e.Fechaingreso;
+                row["Cedula"] = e.Cedula;
+                row["Telefono"] = e.Telefono;
+                row["Salario"] = e.Salario;
+                row["Activo"] = e.Activo;
+                row["Estado"] = ParseBoolDb(e.Activo) ? "Trabajando" : "Despedido";
+                dt.Rows.Add(row);
             }
 
             dataGridEmpleados.DataSource = dt;
@@ -118,8 +167,17 @@ namespace Nuevo_Proyecto.Models.Views
             dataGridEmpleados.Columns["Cedula"].HeaderText = "Cédula";
             dataGridEmpleados.Columns["Telefono"].HeaderText = "Teléfono";
             dataGridEmpleados.Columns["Salario"].HeaderText = "Salario";
-            dataGridEmpleados.Columns["Activo"].HeaderText = "Estado"; // 👉 se renombra solo el encabezado
+            // Ajustar visual: ocultar la columna cruda Activo y mostrar la columna Estado
+            if (dataGridEmpleados.Columns.Contains("Activo"))
+            {
+                dataGridEmpleados.Columns["Activo"].Visible = false;
+            }
+            if (dataGridEmpleados.Columns.Contains("Estado"))
+            {
+                dataGridEmpleados.Columns["Estado"].HeaderText = "Estado";
+            }
 
+            // Estado ya fue calculado en la tabla, pero llamar a RellenarEstado para mantener compatibilidad
             RellenarEstado(); // 👉 recalcular columna Estado
         }
 
@@ -189,26 +247,11 @@ namespace Nuevo_Proyecto.Models.Views
             // 👉 cargar empleados activos al inicio
             CargarEmpleadosActivos();
 
-            // 👉 agregar columna Estado (texto) y ocultar Activo si quieres
-            if (!dataGridEmpleados.Columns.Contains("Estado"))
+            // Ocultar la columna Activo cruda (bit) y usar el formateo de celda para mostrar "Trabajando"/"Despedido"
+            if (dataGridEmpleados.Columns.Contains("Activo"))
             {
-                DataGridViewTextBoxColumn colEstado = new DataGridViewTextBoxColumn();
-                colEstado.Name = "Estado";
-                colEstado.HeaderText = "Estado";
-                dataGridEmpleados.Columns.Add(colEstado);
+                dataGridEmpleados.Columns["Activo"].Visible = false;
             }
-
-            foreach (DataGridViewRow row in dataGridEmpleados.Rows)
-            {
-                if (row.Cells["Activo"].Value != null && row.Cells["Activo"].Value != DBNull.Value)
-                {
-                    bool activo = (bool)row.Cells["Activo"].Value;
-                    row.Cells["Estado"].Value = activo ? "Trabajando" : "Despedido";
-                }
-            }
-
-            // 👉 si no quieres mostrar el 0/1, oculta la columna Activo
-            dataGridEmpleados.Columns["Activo"].Visible = false;
 
             LimpiarControles();
         }
@@ -228,9 +271,21 @@ namespace Nuevo_Proyecto.Models.Views
 
             DataTable empleado = _presenter.BuscarEmpleadoPorCodigo(codigo);
 
+            // Añadir columna Estado legible y ocultar Activo crudo
+            if (!empleado.Columns.Contains("Estado"))
+            {
+                empleado.Columns.Add("Estado", typeof(string));
+                foreach (DataRow r in empleado.Rows)
+                {
+                    r["Estado"] = ParseBoolDb(r["Activo"]) ? "Trabajando" : "Despedido";
+                }
+            }
+
             if (empleado.Rows.Count > 0)
             {
                 dataGridEmpleados.DataSource = empleado;
+                if (dataGridEmpleados.Columns.Contains("Activo")) dataGridEmpleados.Columns["Activo"].Visible = false;
+                if (dataGridEmpleados.Columns.Contains("Estado")) dataGridEmpleados.Columns["Estado"].HeaderText = "Estado";
 
                 DataRow row = empleado.Rows[0];
                 CodigoOriginal = row["Codigo"].ToString();
@@ -240,7 +295,7 @@ namespace Nuevo_Proyecto.Models.Views
                 TelefonoOriginal = row["Telefono"].ToString();
                 SalarioOriginal = Convert.ToDecimal(row["Salario"]);
                 FechaIngresoOriginal = Convert.ToDateTime(row["FechaIngreso"]);
-                EstadoOriginal = Convert.ToBoolean(row["Activo"]);
+                EstadoOriginal = ParseBoolDb(row["Activo"]);
 
                 txtCodigoEmpl.Text = CodigoOriginal;
                 txtNombreEmpl.Text = NombreOriginal;
@@ -360,14 +415,19 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void datagrewEmpleados_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
-            if (dataGridEmpleados.Columns[e.ColumnIndex].Name == "Activo")
+            try
             {
-                if (e.Value != null && e.Value != DBNull.Value && e.Value is bool)
+                if (dataGridEmpleados.Columns[e.ColumnIndex].Name == "Activo")
                 {
-                    bool activo = (bool)e.Value;
+                    var val = e.Value;
+                    bool activo = ParseBoolDb(val);
                     e.Value = activo ? "Trabajando" : "Despedido";
                     e.FormattingApplied = true;
                 }
+            }
+            catch
+            {
+                // No permitir que el formateo rompa la UI
             }
         }
 
@@ -378,7 +438,8 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void Empleados_Load(object sender, EventArgs e)
         {
-
+            // Llamar al inicializador existente para mantener compatibilidad con el código anterior
+            Frm_Empleados_Load(sender, e);
         }
     }
 }

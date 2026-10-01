@@ -37,6 +37,46 @@ namespace Nuevo_Proyecto.Models.Views
         {
             InitializeComponent();
             _presenter = new InventarioPresenter(this);
+            // Suscribir formateo y manejo de errores para la columna Activo
+            dataGridInventario.CellFormatting += dataGridInventario_CellFormatting;
+            dataGridInventario.DataError += DataGridInventario_DataError;
+            dataGridInventario.DataBindingComplete += (s, e) => { if (dataGridInventario.Columns.Contains("Activo")) dataGridInventario.Columns["Activo"].HeaderText = "Estado"; };
+            // Suscribir textbox de búsqueda (nombre en diseñador: txtBucarInvet)
+            txtBucarInvet.TextChanged += txtBuscarInventario_TextChanged;
+            // Suscribir cambio de categoría de filtro (cmboxCategoriaInve) para mostrar por categoría sin filtrar por stock
+            cmboxCategoriaInve.SelectedIndexChanged += CmboxCategoriaInve_SelectedIndexChanged;
+        }
+
+        // Devuelve una tabla con sólo filas cuyo Stock > 0 (mantiene esquema)
+        private DataTable FilterOnlyWithStock(DataTable? source)
+        {
+            if (source == null) return new DataTable();
+            var dt = source.Clone(); // clona las columnas
+            if (!dt.Columns.Contains("Stock")) return dt;
+            foreach (DataRow r in source.Rows)
+            {
+                try
+                {
+                    var val = r["Stock"];
+                    if (val != null && val != DBNull.Value && int.TryParse(val.ToString(), out int stock))
+                    {
+                        if (stock > 0)
+                        {
+                            dt.ImportRow(r);
+                        }
+                    }
+                    else
+                    {
+                        // Si no se puede parsear, conservar la fila para evitar ocultar datos por error
+                        dt.ImportRow(r);
+                    }
+                }
+                catch
+                {
+                    // En caso de error, ignorar esta fila
+                }
+            }
+            return dt;
         }
 
         public void showMessage(string message, string titulo, bool esError)
@@ -110,6 +150,14 @@ namespace Nuevo_Proyecto.Models.Views
                 Name = "Activo",
                 HeaderText = "Estado",
                 DataPropertyName = "Activo"
+            });
+
+            // Columna para observaciones/nota sobre el producto
+            dataGridInventario.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Observacion",
+                HeaderText = "Observación",
+                DataPropertyName = "Observacion"
             });
         }
         private bool HayCambios()
@@ -255,7 +303,7 @@ namespace Nuevo_Proyecto.Models.Views
                 if (frm_NuevoProducto.ShowDialog() == DialogResult.OK)
                 {
                     // 👉 refrescar inventario solo si se insertó algo
-                    dataGridInventario.DataSource = _presenter.ObtenerInventarioActivo();
+                    dataGridInventario.DataSource = FilterOnlyWithStock(_presenter.ObtenerInventarioActivo());
                 }
             }
         }
@@ -272,6 +320,11 @@ namespace Nuevo_Proyecto.Models.Views
             cmboxUnidad.ValueMember = "UnidadID";
             cmboxUnidad.DataSource = _presenter.GetUnidades();
 
+            // 👉 Llenar combo de categorías para edición también
+            cmboxCategorias.DisplayMember = "Nombre";
+            cmboxCategorias.ValueMember = "CategoriaID";
+            cmboxCategorias.DataSource = _presenter.GetCategoriasActivas();
+
             // 👉 Llenar combo de categorías solo con activas
             cmboxCategoriaInve.DisplayMember = "Nombre";
             cmboxCategoriaInve.ValueMember = "CategoriaID";
@@ -285,8 +338,8 @@ namespace Nuevo_Proyecto.Models.Views
             dt.Rows.InsertAt(row, 0);
             cmboxCategoriaInve.SelectedIndex = 0;
 
-            // 👉 Mostrar inventario solo activo al inicio
-            dataGridInventario.DataSource = _presenter.ObtenerInventarioActivo();
+            // 👉 Mostrar inventario solo activo y con stock al inicio
+            dataGridInventario.DataSource = FilterOnlyWithStock(_presenter.ObtenerInventarioActivo());
 
             // 👉 Opciones de selección
             dataGridInventario.ReadOnly = true;
@@ -302,7 +355,7 @@ namespace Nuevo_Proyecto.Models.Views
 
             if (string.IsNullOrEmpty(texto))
             {
-                dataGridInventario.DataSource = _presenter.ObtenerInventarioActivo(); // 👉 solo activos
+                dataGridInventario.DataSource = FilterOnlyWithStock(_presenter.ObtenerInventarioActivo()); // 👉 solo activos y con stock
                 LimpiarDespuesDeAccion();
                 return;
             }
@@ -351,7 +404,7 @@ namespace Nuevo_Proyecto.Models.Views
             {
                 MessageBox.Show("Producto no encontrado.");
                 LimpiarDespuesDeAccion();
-                dataGridInventario.DataSource = _presenter.ObtenerInventarioActivo(); // 👉 solo activos
+                dataGridInventario.DataSource = FilterOnlyWithStock(_presenter.ObtenerInventarioActivo()); // 👉 solo activos y con stock
             }
         }
 
@@ -466,6 +519,25 @@ namespace Nuevo_Proyecto.Models.Views
     );
 
             MessageBox.Show(filasUpdate > 0 ? "Producto actualizado correctamente." : "No se pudo actualizar.");
+            if (filasUpdate > 0)
+            {
+                // Actualizar la fila visible en el grid para reflejar la observación
+                foreach (DataGridViewRow r in dataGridInventario.Rows)
+                {
+                    try
+                    {
+                        if (r.Cells["ProductoID"].Value != null && Convert.ToInt32(r.Cells["ProductoID"].Value) == ProductoIDOriginal)
+                        {
+                            if (r.Cells["Observacion"] != null)
+                                r.Cells["Observacion"].Value = observacion;
+                        }
+                    }
+                    catch
+                    {
+                        // ignorar errores de actualización de celda
+                    }
+                }
+            }
             LimpiarDespuesDeAccion();
         }
 
@@ -517,23 +589,31 @@ namespace Nuevo_Proyecto.Models.Views
 
             // 👉 Evitar que el diseñador ejecute este código
             if (this.DesignMode) return;
+            // Este manejador corresponde al combo cmboxCategorias (edición de producto)
+            // No debe filtrar el grid de inventario: sólo se usa para seleccionar la categoría del producto en el formulario de edición.
+            // Si necesitas alguna acción al cambiar la categoría en el editor, implementarla aquí.
+        }
 
-            if (cmboxCategorias.SelectedValue != null && cmboxCategorias.SelectedValue is int)
+        private void CmboxCategoriaInve_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            if (this.DesignMode) return;
+
+            if (cmboxCategoriaInve.SelectedValue != null && cmboxCategoriaInve.SelectedValue is int)
             {
-                int categoriaID = (int)cmboxCategorias.SelectedValue;
+                int categoriaID = (int)cmboxCategoriaInve.SelectedValue;
 
                 if (categoriaID == 0)
                 {
-                    // 👉 Mostrar solo inventario activo
-                    dataGridInventario.DataSource = _presenter.ObtenerInventarioActivo();
+                    // Mostrar sólo activos con stock por defecto
+                    dataGridInventario.DataSource = FilterOnlyWithStock(_presenter.ObtenerInventarioActivo());
                 }
                 else
                 {
-                    // 👉 Mostrar inventario filtrado por categoría pero solo activos
+                    // Mostrar inventario filtrado por categoría SIN filtrar por stock (incluye agotados)
                     dataGridInventario.DataSource = _presenter.GetInventarioActivoPorCategoria(categoriaID);
                 }
 
-                // 👉 Formatear columna Activo
+                // Ajustar apariencia de la columna Estado/Activo
                 if (dataGridInventario.Columns.Contains("Activo"))
                 {
                     dataGridInventario.Columns["Activo"].HeaderText = "Estado";
@@ -545,17 +625,68 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void dataGridInventario_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e) 
         {
-            if (dataGridInventario.Columns[e.ColumnIndex].Name == "Activo")
+            try
             {
-                if (e.Value != null && e.Value != DBNull.Value)
+                if (dataGridInventario.Columns[e.ColumnIndex].Name == "Activo")
                 {
-                    // 👉 Ya es texto, no convertir
-                    string estado = e.Value.ToString();
-                    e.Value = estado; // "Activo" o "Inactivo"
+                    // Priorizar el Stock: si Stock existe y es 0 -> Agotado, si >0 -> Activo
+                    string estado = "";
+                    if (dataGridInventario.Columns.Contains("Stock") && e.RowIndex >= 0 && e.RowIndex < dataGridInventario.Rows.Count)
+                    {
+                        var stockVal = dataGridInventario.Rows[e.RowIndex].Cells["Stock"].Value;
+                        if (stockVal != null && stockVal != DBNull.Value)
+                        {
+                            if (int.TryParse(stockVal.ToString(), out int stock))
+                            {
+                                estado = stock <= 0 ? "Agotado" : "Activo";
+                            }
+                        }
+                    }
+
+                    // Si no se pudo deducir por Stock, caer a Activo/Agotado según Activo booleano
+                    if (string.IsNullOrEmpty(estado))
+                    {
+                        bool activo = ParseBoolDb(e.Value);
+                        estado = activo ? "Activo" : "Agotado";
+                    }
+
+                    // Solo asignar estado si hay datos
+                    e.Value = estado;
                     e.FormattingApplied = true;
                 }
             }
+            catch
+            {
+                // no propagar excepción de formateo
+            }
 
+        }
+
+        private void DataGridInventario_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            e.ThrowException = false;
+        }
+
+        // Helper para convertir valores devueltos por la BD (bit 0/1, byte, int, bool, string) a bool
+        private static bool ParseBoolDb(object? value)
+        {
+            if (value == null || value == DBNull.Value) return false;
+            try
+            {
+                if (value is bool b) return b;
+                if (value is byte by) return by != 0;
+                if (value is short s) return s != 0;
+                if (value is int i) return i != 0;
+                if (value is long l) return l != 0L;
+                var txt = value.ToString();
+                if (string.IsNullOrWhiteSpace(txt)) return false;
+                if (int.TryParse(txt, out var n)) return n != 0;
+                if (bool.TryParse(txt, out var bb)) return bb;
+            }
+            catch
+            {
+            }
+            return false;
         }
 
     }

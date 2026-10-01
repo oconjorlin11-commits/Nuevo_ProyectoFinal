@@ -152,6 +152,12 @@ namespace Nuevo_Proyecto.Models.Views
             LimpiarControles();
         }
 
+        // IClienteView - cerrar la vista (no aplica para la vista principal, implementar como no-op)
+        public void CloseView()
+        {
+            // No cerrar la ventana principal desde el presentador
+        }
+
 
 
 

@@ -35,6 +35,21 @@ namespace Nuevo_Proyecto.Models.Views
             _presenter = new ClientePresenter(this);
         }
 
+        // Suscribir eventos de cambio para actualizar el estado del botón Guardar
+        protected override void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
+
+            // Suscripciones seguras (control existirá tras InitializeComponent)
+            txtCodigoClient.TextChanged += (s, ev) => UpdateControlsState();
+            txtNombreClient.TextChanged += (s, ev) => UpdateControlsState();
+            txtTelefonoClient.TextChanged += (s, ev) => UpdateControlsState();
+            txtDireccionClient.TextChanged += (s, ev) => UpdateControlsState();
+            cmboxNota.TextChanged += (s, ev) => UpdateControlsState();
+            cmboxAutizado.SelectedIndexChanged += (s, ev) => UpdateControlsState();
+            checboxActico.CheckedChanged += (s, ev) => UpdateControlsState();
+        }
+
 
 
         private void btnCancelarClient_Click(object sender, EventArgs e)
@@ -48,7 +63,7 @@ namespace Nuevo_Proyecto.Models.Views
         {
             // Delegar al presenter
             GuardarClicked?.Invoke(this, EventArgs.Empty);
-            // El presenter mostrará mensajes y limpiará campos si procede
+            // El presenter mostrará mensajes y, si procede, la vista se cerrará mediante CloseView
 
         }
 
@@ -106,6 +121,12 @@ namespace Nuevo_Proyecto.Models.Views
             Nota = string.Empty;
             Activo = true;
             cmboxAutizado.SelectedIndex = -1;
+        }
+
+        // IClienteView - cerrar la vista (cuando el presentador lo solicite)
+        public void CloseView()
+        {
+            this.Close();
         }
     }
 }

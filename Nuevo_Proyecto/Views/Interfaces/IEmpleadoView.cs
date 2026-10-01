@@ -38,6 +38,9 @@ namespace Nuevo_Proyecto.Views.Interfaces
 
         void ResetFields();
 
+        // Permitir al presentador solicitar que la vista se cierre
+        void CloseView();
+
 
 
 

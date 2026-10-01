@@ -63,9 +63,10 @@
             btnEditarEmpl.ForeColor = Color.FromArgb(250, 247, 241);
             btnEditarEmpl.Image = (Image)resources.GetObject("btnEditarEmpl.Image");
             btnEditarEmpl.ImageAlign = ContentAlignment.MiddleLeft;
-            btnEditarEmpl.Location = new Point(673, 782);
+            btnEditarEmpl.Location = new Point(875, 1001);
+            btnEditarEmpl.Margin = new Padding(4, 4, 4, 4);
             btnEditarEmpl.Name = "btnEditarEmpl";
-            btnEditarEmpl.Size = new Size(189, 65);
+            btnEditarEmpl.Size = new Size(246, 83);
             btnEditarEmpl.TabIndex = 21;
             btnEditarEmpl.Text = "Editar";
             btnEditarEmpl.UseVisualStyleBackColor = false;
@@ -80,9 +81,10 @@
             btnEliminarEmpl.ForeColor = Color.FromArgb(250, 247, 241);
             btnEliminarEmpl.Image = (Image)resources.GetObject("btnEliminarEmpl.Image");
             btnEliminarEmpl.ImageAlign = ContentAlignment.MiddleLeft;
-            btnEliminarEmpl.Location = new Point(918, 782);
+            btnEliminarEmpl.Location = new Point(1193, 1001);
+            btnEliminarEmpl.Margin = new Padding(4, 4, 4, 4);
             btnEliminarEmpl.Name = "btnEliminarEmpl";
-            btnEliminarEmpl.Size = new Size(189, 65);
+            btnEliminarEmpl.Size = new Size(246, 83);
             btnEliminarEmpl.TabIndex = 20;
             btnEliminarEmpl.Text = "Eliminar";
             btnEliminarEmpl.UseVisualStyleBackColor = false;
@@ -97,9 +99,10 @@
             btnNuevoEmpleado.ForeColor = Color.FromArgb(250, 247, 241);
             btnNuevoEmpleado.Image = Properties.Resources.new_add_user_16734__1_;
             btnNuevoEmpleado.ImageAlign = ContentAlignment.MiddleLeft;
-            btnNuevoEmpleado.Location = new Point(1158, 782);
+            btnNuevoEmpleado.Location = new Point(1505, 1001);
+            btnNuevoEmpleado.Margin = new Padding(4, 4, 4, 4);
             btnNuevoEmpleado.Name = "btnNuevoEmpleado";
-            btnNuevoEmpleado.Size = new Size(189, 65);
+            btnNuevoEmpleado.Size = new Size(246, 83);
             btnNuevoEmpleado.TabIndex = 19;
             btnNuevoEmpleado.Text = "Nuevo Emple";
             btnNuevoEmpleado.TextAlign = ContentAlignment.MiddleRight;
@@ -109,11 +112,14 @@
             // dataGridEmpleados
             // 
             dataGridEmpleados.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            dataGridEmpleados.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dataGridEmpleados.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
             dataGridEmpleados.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridEmpleados.Location = new Point(26, 313);
+            dataGridEmpleados.Location = new Point(34, 401);
+            dataGridEmpleados.Margin = new Padding(4, 4, 4, 4);
             dataGridEmpleados.Name = "dataGridEmpleados";
             dataGridEmpleados.RowHeadersWidth = 62;
-            dataGridEmpleados.Size = new Size(1321, 425);
+            dataGridEmpleados.Size = new Size(1717, 544);
             dataGridEmpleados.TabIndex = 18;
             // 
             // txtBuscarEmpl
@@ -121,9 +127,10 @@
             txtBuscarEmpl.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             txtBuscarEmpl.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtBuscarEmpl.ForeColor = Color.FromArgb(38, 38, 38);
-            txtBuscarEmpl.Location = new Point(1017, 38);
+            txtBuscarEmpl.Location = new Point(1322, 49);
+            txtBuscarEmpl.Margin = new Padding(4, 4, 4, 4);
             txtBuscarEmpl.Name = "txtBuscarEmpl";
-            txtBuscarEmpl.Size = new Size(330, 39);
+            txtBuscarEmpl.Size = new Size(428, 50);
             txtBuscarEmpl.TabIndex = 17;
             // 
             // label4
@@ -132,9 +139,10 @@
             label4.AutoSize = true;
             label4.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label4.ForeColor = Color.FromArgb(38, 38, 38);
-            label4.Location = new Point(918, 41);
+            label4.Location = new Point(1193, 52);
+            label4.Margin = new Padding(4, 0, 4, 0);
             label4.Name = "label4";
-            label4.Size = new Size(93, 32);
+            label4.Size = new Size(125, 45);
             label4.TabIndex = 16;
             label4.Text = "Buscar:";
             // 
@@ -144,9 +152,10 @@
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI", 14F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label1.ForeColor = Color.FromArgb(153, 40, 35);
-            label1.Location = new Point(26, 38);
+            label1.Location = new Point(34, 49);
+            label1.Margin = new Padding(4, 0, 4, 0);
             label1.Name = "label1";
-            label1.Size = new Size(167, 38);
+            label1.Size = new Size(227, 51);
             label1.TabIndex = 15;
             label1.Text = " Empleados";
             // 
@@ -154,9 +163,10 @@
             // 
             txtCodigoEmpl.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtCodigoEmpl.ForeColor = Color.FromArgb(38, 38, 38);
-            txtCodigoEmpl.Location = new Point(80, 138);
+            txtCodigoEmpl.Location = new Point(104, 177);
+            txtCodigoEmpl.Margin = new Padding(4, 4, 4, 4);
             txtCodigoEmpl.Name = "txtCodigoEmpl";
-            txtCodigoEmpl.Size = new Size(209, 39);
+            txtCodigoEmpl.Size = new Size(270, 50);
             txtCodigoEmpl.TabIndex = 23;
             // 
             // label2
@@ -164,9 +174,10 @@
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label2.ForeColor = Color.FromArgb(38, 38, 38);
-            label2.Location = new Point(136, 103);
+            label2.Location = new Point(177, 132);
+            label2.Margin = new Padding(4, 0, 4, 0);
             label2.Name = "label2";
-            label2.Size = new Size(91, 32);
+            label2.Size = new Size(124, 45);
             label2.TabIndex = 22;
             label2.Text = "Codigo";
             // 
@@ -174,9 +185,10 @@
             // 
             txtCedulaEmpl.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtCedulaEmpl.ForeColor = Color.FromArgb(38, 38, 38);
-            txtCedulaEmpl.Location = new Point(80, 240);
+            txtCedulaEmpl.Location = new Point(104, 307);
+            txtCedulaEmpl.Margin = new Padding(4, 4, 4, 4);
             txtCedulaEmpl.Name = "txtCedulaEmpl";
-            txtCedulaEmpl.Size = new Size(209, 39);
+            txtCedulaEmpl.Size = new Size(270, 50);
             txtCedulaEmpl.TabIndex = 25;
             // 
             // label3
@@ -184,9 +196,10 @@
             label3.AutoSize = true;
             label3.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label3.ForeColor = Color.FromArgb(38, 38, 38);
-            label3.Location = new Point(136, 205);
+            label3.Location = new Point(177, 262);
+            label3.Margin = new Padding(4, 0, 4, 0);
             label3.Name = "label3";
-            label3.Size = new Size(89, 32);
+            label3.Size = new Size(120, 45);
             label3.TabIndex = 24;
             label3.Text = "Cedula";
             // 
@@ -194,9 +207,10 @@
             // 
             txtNombreEmpl.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtNombreEmpl.ForeColor = Color.FromArgb(38, 38, 38);
-            txtNombreEmpl.Location = new Point(342, 138);
+            txtNombreEmpl.Location = new Point(445, 177);
+            txtNombreEmpl.Margin = new Padding(4, 4, 4, 4);
             txtNombreEmpl.Name = "txtNombreEmpl";
-            txtNombreEmpl.Size = new Size(209, 39);
+            txtNombreEmpl.Size = new Size(270, 50);
             txtNombreEmpl.TabIndex = 27;
             // 
             // label5
@@ -204,9 +218,10 @@
             label5.AutoSize = true;
             label5.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label5.ForeColor = Color.FromArgb(38, 38, 38);
-            label5.Location = new Point(398, 103);
+            label5.Location = new Point(517, 132);
+            label5.Margin = new Padding(4, 0, 4, 0);
             label5.Name = "label5";
-            label5.Size = new Size(103, 32);
+            label5.Size = new Size(140, 45);
             label5.TabIndex = 26;
             label5.Text = "Nombre";
             // 
@@ -214,9 +229,10 @@
             // 
             txtTelefonoEmpl.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtTelefonoEmpl.ForeColor = Color.FromArgb(38, 38, 38);
-            txtTelefonoEmpl.Location = new Point(342, 240);
+            txtTelefonoEmpl.Location = new Point(445, 307);
+            txtTelefonoEmpl.Margin = new Padding(4, 4, 4, 4);
             txtTelefonoEmpl.Name = "txtTelefonoEmpl";
-            txtTelefonoEmpl.Size = new Size(209, 39);
+            txtTelefonoEmpl.Size = new Size(270, 50);
             txtTelefonoEmpl.TabIndex = 29;
             // 
             // label6
@@ -224,9 +240,10 @@
             label6.AutoSize = true;
             label6.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label6.ForeColor = Color.FromArgb(38, 38, 38);
-            label6.Location = new Point(398, 205);
+            label6.Location = new Point(517, 262);
+            label6.Margin = new Padding(4, 0, 4, 0);
             label6.Name = "label6";
-            label6.Size = new Size(107, 32);
+            label6.Size = new Size(145, 45);
             label6.TabIndex = 28;
             label6.Text = "Telefono";
             // 
@@ -234,9 +251,10 @@
             // 
             txtSalarioEmpl.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtSalarioEmpl.ForeColor = Color.FromArgb(38, 38, 38);
-            txtSalarioEmpl.Location = new Point(594, 240);
+            txtSalarioEmpl.Location = new Point(772, 307);
+            txtSalarioEmpl.Margin = new Padding(4, 4, 4, 4);
             txtSalarioEmpl.Name = "txtSalarioEmpl";
-            txtSalarioEmpl.Size = new Size(209, 39);
+            txtSalarioEmpl.Size = new Size(270, 50);
             txtSalarioEmpl.TabIndex = 31;
             // 
             // label7
@@ -244,9 +262,10 @@
             label7.AutoSize = true;
             label7.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label7.ForeColor = Color.FromArgb(38, 38, 38);
-            label7.Location = new Point(650, 205);
+            label7.Location = new Point(845, 262);
+            label7.Margin = new Padding(4, 0, 4, 0);
             label7.Name = "label7";
-            label7.Size = new Size(88, 32);
+            label7.Size = new Size(118, 45);
             label7.TabIndex = 30;
             label7.Text = "Salario";
             // 
@@ -255,9 +274,10 @@
             label8.AutoSize = true;
             label8.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label8.ForeColor = Color.FromArgb(38, 38, 38);
-            label8.Location = new Point(650, 103);
+            label8.Location = new Point(845, 132);
+            label8.Margin = new Padding(4, 0, 4, 0);
             label8.Name = "label8";
-            label8.Size = new Size(79, 32);
+            label8.Size = new Size(107, 45);
             label8.TabIndex = 32;
             label8.Text = "Cargo";
             // 
@@ -266,9 +286,10 @@
             cmboxCargoEmpl.Font = new Font("Segoe UI", 12F);
             cmboxCargoEmpl.ForeColor = Color.FromArgb(38, 38, 38);
             cmboxCargoEmpl.FormattingEnabled = true;
-            cmboxCargoEmpl.Location = new Point(594, 138);
+            cmboxCargoEmpl.Location = new Point(772, 177);
+            cmboxCargoEmpl.Margin = new Padding(4, 4, 4, 4);
             cmboxCargoEmpl.Name = "cmboxCargoEmpl";
-            cmboxCargoEmpl.Size = new Size(209, 40);
+            cmboxCargoEmpl.Size = new Size(270, 53);
             cmboxCargoEmpl.TabIndex = 34;
             // 
             // label9
@@ -276,9 +297,10 @@
             label9.AutoSize = true;
             label9.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label9.ForeColor = Color.FromArgb(38, 38, 38);
-            label9.Location = new Point(877, 103);
+            label9.Location = new Point(1140, 132);
+            label9.Margin = new Padding(4, 0, 4, 0);
             label9.Name = "label9";
-            label9.Size = new Size(165, 32);
+            label9.Size = new Size(222, 45);
             label9.TabIndex = 35;
             label9.Text = "Fecha Ingreso";
             // 
@@ -286,9 +308,10 @@
             // 
             dateTimePickerEmpleado.CalendarTitleForeColor = Color.FromArgb(38, 38, 38);
             dateTimePickerEmpleado.Font = new Font("Segoe UI", 12F);
-            dateTimePickerEmpleado.Location = new Point(851, 138);
+            dateTimePickerEmpleado.Location = new Point(1106, 177);
+            dateTimePickerEmpleado.Margin = new Padding(4, 4, 4, 4);
             dateTimePickerEmpleado.Name = "dateTimePickerEmpleado";
-            dateTimePickerEmpleado.Size = new Size(209, 39);
+            dateTimePickerEmpleado.Size = new Size(270, 50);
             dateTimePickerEmpleado.TabIndex = 37;
             dateTimePickerEmpleado.ValueChanged += dateTimePickerEmpleado_ValueChanged;
             // 
@@ -296,19 +319,20 @@
             // 
             checkBoxEmpleado.AutoSize = true;
             checkBoxEmpleado.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
-            checkBoxEmpleado.Location = new Point(877, 240);
+            checkBoxEmpleado.Location = new Point(1140, 307);
+            checkBoxEmpleado.Margin = new Padding(4, 4, 4, 4);
             checkBoxEmpleado.Name = "checkBoxEmpleado";
-            checkBoxEmpleado.Size = new Size(108, 36);
+            checkBoxEmpleado.Size = new Size(143, 49);
             checkBoxEmpleado.TabIndex = 38;
             checkBoxEmpleado.Text = "Activo";
             checkBoxEmpleado.UseVisualStyleBackColor = true;
             // 
             // Empleados
             // 
-            AutoScaleDimensions = new SizeF(10F, 25F);
+            AutoScaleDimensions = new SizeF(13F, 32F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(232, 221, 206);
-            ClientSize = new Size(1373, 885);
+            ClientSize = new Size(1785, 1133);
             Controls.Add(checkBoxEmpleado);
             Controls.Add(dateTimePickerEmpleado);
             Controls.Add(label9);
@@ -332,6 +356,7 @@
             Controls.Add(label4);
             Controls.Add(label1);
             FormBorderStyle = FormBorderStyle.None;
+            Margin = new Padding(4, 4, 4, 4);
             Name = "Empleados";
             Text = "Empleados";
             Load += Empleados_Load;

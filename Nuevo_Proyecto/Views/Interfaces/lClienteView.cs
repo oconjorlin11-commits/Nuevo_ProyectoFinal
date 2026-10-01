@@ -35,6 +35,9 @@ namespace Nuevo_Proyecto.Views.Interfaces
 
         void ResetFields();
 
+        // Pedir a la vista que se cierre (usado por formularios modales como NuevoCliente)
+        void CloseView();
+
 
 
     }

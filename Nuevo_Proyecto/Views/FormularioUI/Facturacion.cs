@@ -4,8 +4,6 @@ using Nuevo_Proyecto.Models.Entities;
 using Nuevo_Proyecto.Presenters;
 using Nuevo_Proyecto.Views.Interfaces;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.DirectoryServices.ActiveDirectory;
 using System.Drawing;
@@ -52,6 +50,23 @@ namespace Nuevo_Proyecto.Models.Views
             cmboxCategorias.SelectedIndex = -1;
 
             cmboxProductos.DataSource = null;
+
+            // Asegurar que el combo de categorías cargue los productos al cambiar
+            cmboxCategorias.SelectedIndexChanged += (s, ev) =>
+            {
+                if (cmboxCategorias.SelectedValue != null && int.TryParse(cmboxCategorias.SelectedValue.ToString(), out int catId))
+                {
+                    var productos = _presenter.ObtenerProductosPorCategoria(catId);
+                    cmboxProductos.DataSource = productos;
+                    cmboxProductos.DisplayMember = "Nombre";
+                    cmboxProductos.ValueMember = "ProductoID";
+                    cmboxProductos.SelectedIndex = -1;
+                }
+                else
+                {
+                    cmboxProductos.DataSource = null;
+                }
+            };
 
             cmboxAtendidoPor.DataSource = _presenter.ObtenerEmpleados();
             cmboxAtendidoPor.DisplayMember = "Nombre";
@@ -103,6 +118,13 @@ namespace Nuevo_Proyecto.Models.Views
         {
             try
             {
+                // Validar que exista al menos una línea de detalle
+                bool hayLineas = dataGridDetallesFacturas.Rows.Cast<DataGridViewRow>().Any(r => !r.IsNewRow);
+                if (!hayLineas)
+                {
+                    MessageBox.Show("No has agregado productos. No puedes guardar la factura. Primero agrega al menos un producto.");
+                    return;
+                }
                 string codigoFactura = _presenter.GenerarCodigoFacturaSiguiente();
                 var clienteId = string.IsNullOrEmpty(cmboxClientes.SelectedValue?.ToString()) ? (int?)null : Convert.ToInt32(cmboxClientes.SelectedValue);
                 var empleadoId = cmboxAtendidoPor.SelectedValue == null ? 0 : Convert.ToInt32(cmboxAtendidoPor.SelectedValue);
@@ -154,7 +176,26 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void btnQuitarLinea_Click(object sender, EventArgs e)
         {
-
+            // Quitar la(s) filas seleccionadas del detalle
+            try
+            {
+                if (dataGridDetallesFacturas.SelectedRows != null && dataGridDetallesFacturas.SelectedRows.Count > 0)
+                {
+                    foreach (DataGridViewRow r in dataGridDetallesFacturas.SelectedRows)
+                    {
+                        if (!r.IsNewRow) dataGridDetallesFacturas.Rows.Remove(r);
+                    }
+                    CalcularTotales();
+                }
+                else
+                {
+                    MessageBox.Show("Debe seleccionar la línea que desea quitar.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al quitar línea: " + ex.Message);
+            }
         }
 
         private void btnLimpiarAll_Click(object sender, EventArgs e)
@@ -167,7 +208,7 @@ namespace Nuevo_Proyecto.Models.Views
             txtObseravciones.Clear();
           
 
-            txtTotal.Text = "$0.00";
+            txtTotal.Text = "0.00";
 
         }
 
@@ -207,10 +248,14 @@ namespace Nuevo_Proyecto.Models.Views
             // Código actual de factura (se mantiene mientras agregás productos)
             string codigoFactura = _presenter.ObtenerCodigoFacturaActual();
 
-            // Insertar en el DataGridView
-            dataGridDetallesFacturas.Rows.Add(codigoFactura, productoID, nombreProducto, cantidad, precioUnitario, subtotal);
+            // Insertar en el DataGridView (incluye Estado)
+            dataGridDetallesFacturas.Rows.Add(codigoFactura, productoID, nombreProducto, cantidad, precioUnitario, subtotal, "Normal");
 
             CalcularTotales();
+
+            // Limpiar selección de producto y cantidad
+            cmboxProductos.SelectedIndex = -1;
+            numericUpCantidad.Value = 0;
         }
 
         

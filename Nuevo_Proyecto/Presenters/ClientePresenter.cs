@@ -33,15 +33,69 @@ namespace Nuevo_Proyecto.Presenters
         public string GetNextCodigoCliente()
         {
             using var db = new Dev_ComideriaDbContext();
-            // Asume que Codigo es texto con formato numérico o incremental; intentar obtener máximo y sumar 1
-            var maxCodigo = db.Clientes.AsNoTracking().Select(c => c.Codigo).OrderByDescending(c => c).FirstOrDefault();
-            if (string.IsNullOrEmpty(maxCodigo)) return "0001";
-            // intentar parse, si falla devolver maxCodigo+1 concatenado
-            if (int.TryParse(maxCodigo, out int num))
+            var codigos = db.Clientes.AsNoTracking().Select(c => c.Codigo).Where(c => !string.IsNullOrEmpty(c)).ToList();
+
+            long maxVal = 0;
+
+            foreach (var codigo in codigos)
             {
-                return (num + 1).ToString("D4");
+                if (string.IsNullOrWhiteSpace(codigo)) continue;
+                var txt = codigo.Trim();
+
+                // Formato esperado: CLI-000 o CLI-000-000-... (grupos de 3 dígitos)
+                var m = System.Text.RegularExpressions.Regex.Match(txt, "^(?i)cli-(\\d{3}(?:-\\d{3})*)$");
+                if (m.Success)
+                {
+                    var groups = m.Groups[1].Value.Split('-');
+                    long val = 0;
+                    bool ok = true;
+                    foreach (var g in groups)
+                    {
+                        if (!int.TryParse(g, out int gi)) { ok = false; break; }
+                        val = val * 1000 + gi;
+                    }
+                    if (ok && val > maxVal) maxVal = val;
+                    continue;
+                }
+
+                // Soportar códigos con solo grupos numéricos sin prefijo (ej. 000 o 000-000)
+                var m2 = System.Text.RegularExpressions.Regex.Match(txt, "^(\\d{3}(?:-\\d{3})*)$");
+                if (m2.Success)
+                {
+                    var groups = m2.Groups[1].Value.Split('-');
+                    long val = 0;
+                    bool ok = true;
+                    foreach (var g in groups)
+                    {
+                        if (!int.TryParse(g, out int gi)) { ok = false; break; }
+                        val = val * 1000 + gi;
+                    }
+                    if (ok && val > maxVal) maxVal = val;
+                    continue;
+                }
+
+                // Intentar extraer dígitos si hay otros formatos
+                var digits = new string(txt.Where(char.IsDigit).ToArray());
+                if (!string.IsNullOrEmpty(digits) && long.TryParse(digits, out var parsed))
+                {
+                    if (parsed > maxVal) maxVal = parsed;
+                }
             }
-            return maxCodigo + "_1";
+
+            long next = maxVal + 1;
+
+            // Convertir next a grupos de 3 dígitos (base 1000) y formatear como CLI-xxx[-xxx...]
+            var parts = new System.Collections.Generic.List<string>();
+            long temp = next;
+            while (temp > 0)
+            {
+                parts.Add(((int)(temp % 1000)).ToString("D3"));
+                temp /= 1000;
+            }
+            if (parts.Count == 0) parts.Add("000");
+            parts.Reverse();
+
+            return "CLI-" + string.Join("-", parts);
         }
 
         public System.Data.DataTable GetNotas()
@@ -166,6 +220,15 @@ namespace Nuevo_Proyecto.Presenters
 
                     _view.showMessage("Cliente guardado exitosamente.", "Éxito", false);
                     _view.ResetFields();
+                    // Después de guardar correctamente, pedir a la vista que se cierre (si corresponde)
+                    try
+                    {
+                        _view.CloseView();
+                    }
+                    catch
+                    {
+                        // Si la vista no puede cerrarse o implementa CloseView como no-op, ignorar
+                    }
 
                 }
 
