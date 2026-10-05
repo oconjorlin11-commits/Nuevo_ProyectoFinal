@@ -49,20 +49,7 @@ namespace Nuevo_Proyecto.Models.Views
                 CargarTodasLasFacturas();
                 btnVerComprob.Enabled = false;
             }
-
-
         }
-
-        private void FiltrarFacturasPorFecha()
-        {
-            DateTime desde = dateTimeDesde.Value.Date;
-            DateTime hasta = dateTimeHasta.Value.Date;
-
-            dataGridFacturasEmitidas.DataSource = _presenter.FiltrarFacturasPorFecha(desde, hasta);
-            btnVerComprob.Enabled = false;
-        }
-
-
 
         private void btnVerComprob_Click(object sender, EventArgs e)
         {
@@ -148,14 +135,9 @@ namespace Nuevo_Proyecto.Models.Views
             }
         }
 
-        private void txtBuscar_TextChanged(object sender, EventArgs e)
+        private void txtBuscarFact_TextChanged(object sender, EventArgs e)
         {
             BuscarFacturaPorCodigo();
-        }
-
-        private void btnBucarFacturas_Click(object sender, EventArgs e)
-        {
-            FiltrarFacturasPorFecha();
         }
 
         public void showMessage(string message, string titulo, bool esError)

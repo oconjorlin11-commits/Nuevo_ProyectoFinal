@@ -35,6 +35,8 @@
             label2 = new Label();
             btnVerComprob = new Button();
             button2 = new Button();
+            label1 = new Label();
+            label4 = new Label();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridFacturasEmitidas).BeginInit();
             SuspendLayout();
@@ -68,6 +70,7 @@
             txtBuscarFact.Name = "txtBuscarFact";
             txtBuscarFact.Size = new Size(237, 39);
             txtBuscarFact.TabIndex = 26;
+            txtBuscarFact.TextChanged += txtBuscarFact_TextChanged;
             // 
             // label2
             // 
@@ -80,23 +83,6 @@
             label2.Size = new Size(93, 32);
             label2.TabIndex = 25;
             label2.Text = "Buscar:";
-            // 
-            // btnBucarFacturas
-            // 
-            btnBucarFacturas.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnBucarFacturas.BackColor = Color.SlateGray;
-            btnBucarFacturas.FlatStyle = FlatStyle.Flat;
-            btnBucarFacturas.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnBucarFacturas.ForeColor = Color.FromArgb(250, 247, 241);
-            // btnBucarFacturas.Image = (Image)resources.GetObject("btnBucarFacturas.Image");
-            btnBucarFacturas.ImageAlign = ContentAlignment.MiddleLeft;
-            btnBucarFacturas.Location = new Point(1083, 25);
-            btnBucarFacturas.Name = "btnBucarFacturas";
-            btnBucarFacturas.Size = new Size(189, 65);
-            btnBucarFacturas.TabIndex = 32;
-            btnBucarFacturas.Text = "Buscar";
-            btnBucarFacturas.UseVisualStyleBackColor = false;
-            btnBucarFacturas.Click += btnBucarFacturas_Click;
             // 
             // btnVerComprob
             // 
@@ -134,37 +120,14 @@
             button2.UseVisualStyleBackColor = false;
             button2.Click += button2_Click;
             // 
-            // dateTimeDesde
-            // 
-            dateTimeDesde.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            dateTimeDesde.CalendarForeColor = Color.FromArgb(38, 38, 38);
-            dateTimeDesde.Font = new Font("Segoe UI", 12F);
-            dateTimeDesde.Location = new Point(203, 35);
-            dateTimeDesde.Name = "dateTimeDesde";
-            dateTimeDesde.Size = new Size(203, 39);
-            dateTimeDesde.TabIndex = 35;
-            // 
-            // dateTimeHasta
-            // 
-            dateTimeHasta.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            dateTimeHasta.CalendarForeColor = Color.FromArgb(38, 38, 38);
-            dateTimeHasta.Font = new Font("Segoe UI", 12F);
-            dateTimeHasta.Location = new Point(501, 35);
-            dateTimeHasta.Name = "dateTimeHasta";
-            dateTimeHasta.Size = new Size(203, 39);
-            dateTimeHasta.TabIndex = 36;
-            // 
             // FacturasEmitidas
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(232, 221, 206);
             ClientSize = new Size(1351, 829);
-            Controls.Add(dateTimeHasta);
-            Controls.Add(dateTimeDesde);
             Controls.Add(button2);
             Controls.Add(btnVerComprob);
-            Controls.Add(btnBucarFacturas);
             Controls.Add(txtBuscarFact);
             Controls.Add(label2);
             Controls.Add(label1);
@@ -188,10 +151,7 @@
         private Label label1;
         private TextBox txtBuscarFact;
         private Label label2;
-        private Button btnBucarFacturas;
         private Button btnVerComprob;
         private Button button2;
-        private DateTimePicker dateTimeDesde;
-        private DateTimePicker dateTimeHasta;
     }
 }
