@@ -1,4 +1,4 @@
-﻿using Nuevo_Proyecto.Presenters;
+using Nuevo_Proyecto.Presenters;
 using Nuevo_Proyecto.Views.Interfaces;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
@@ -40,6 +40,34 @@ namespace Nuevo_Proyecto.Models.Views
         {
             // No aplica para comprobante; método requerido por la interfaz
         }
+
+        // Implementación de métodos de la interfaz IFacturacionView requeridos
+        public void LoadCategorias(DataTable categorias) { }
+        public void LoadProductosPorCategoria(DataTable productos) { }
+        public void LoadEmpleados(DataTable empleados) { }
+        public void LoadClientes(DataTable clientes) { }
+        public void LoadFormasPago(DataTable formasPago) { }
+        public void AgregarLineaDetalle(int productoId, string nombreProducto, int cantidad, decimal precioUnitario, decimal subtotal) { }
+        public void LimpiarDetalles() { }
+        public int ObtenerFilasDetalles() => 0;
+
+        // Propiedades de la interfaz
+        public int? ClienteSeleccionado => null;
+        public int? EmpleadoSeleccionado => null;
+        public int? FormaPagoSeleccionado => null;
+        public int? CategoriaSeleccionada => null;
+        public int? ProductoSeleccionado => null;
+        public int CantidadProducto => 0;
+        public string Observacion => string.Empty;
+        public decimal Total { get => 0; set { } }
+
+        // Eventos de la interfaz
+        public event EventHandler NuevoClienteClick;
+        public event EventHandler AgregarProductoClick;
+        public event EventHandler QuitarLineaClick;
+        public event EventHandler LimpiarTodoClick;
+        public event EventHandler VerImprimirClick;
+        public event EventHandler GuardarFacturaClick;
 
         public Comprobante(string facturaCodigo)
         {
@@ -222,7 +250,7 @@ namespace Nuevo_Proyecto.Models.Views
         cardCell.BackgroundColor = BaseColor.White;
 
         // 1. ENCABEZADO DEL COMEDOR
-        Paragraph pTitulo = new Paragraph("ASADOS LA FLACA", fontTitulo) { Alignment = Element.ALIGN_CENTER, SpacingAfter = 2f };
+        Paragraph pTitulo = new Paragraph(Nuevo_Proyecto.Services.Helpers.AppConfig.NombreNegocio, fontTitulo) { Alignment = Element.ALIGN_CENTER, SpacingAfter = 2f };
         Paragraph pSub = new Paragraph("Fritangas, asados y bebidas naturales", fontSubtitulo) { Alignment = Element.ALIGN_CENTER };
         Paragraph pDir = new Paragraph("Rivas, Nicaragua", fontSubtitulo) { Alignment = Element.ALIGN_CENTER };
         Paragraph pTel = new Paragraph("Tel: 8888-8888", fontSubtitulo) { Alignment = Element.ALIGN_CENTER, SpacingAfter = 6f };

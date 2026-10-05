@@ -474,7 +474,7 @@ namespace Nuevo_Proyecto.Models.Views
             }
 
             // 👉 Paso 6: pedir motivo y actualizar
-            var tipoCambio = TipoMovimientoHelper.DetecterTipoCambio(
+            var tipoCambio = TipoMovimientoHelper.DetectarTipoCambio(
                 txtProductosInven.Text,
                 Convert.ToInt32(cmboxCategoriaInve.SelectedValue),
                 Convert.ToInt32(cmboxUnidad.SelectedValue),
@@ -509,7 +509,7 @@ namespace Nuevo_Proyecto.Models.Views
         txtProductosInven.Text,
         Convert.ToInt32(cmboxCategorias.SelectedValue),
         Convert.ToInt32(cmboxUnidad.SelectedValue),
-        observacion,
+        null,   // descripción: se conserva la actual (antes se sobrescribía con el motivo del cambio)
         precioVenta,
         checkBoxInventario.Checked,
         stock,

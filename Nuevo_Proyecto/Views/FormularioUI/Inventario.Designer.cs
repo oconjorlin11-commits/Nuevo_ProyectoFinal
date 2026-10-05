@@ -63,7 +63,7 @@
             btnEliminarInvent.FlatStyle = FlatStyle.Flat;
             btnEliminarInvent.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnEliminarInvent.ForeColor = Color.FromArgb(250, 247, 241);
-            btnEliminarInvent.Image = (Image)resources.GetObject("btnEliminarInvent.Image");
+            // btnEliminarInvent.Image = (Image)resources.GetObject("btnEliminarInvent.Image");
             btnEliminarInvent.ImageAlign = ContentAlignment.MiddleLeft;
             btnEliminarInvent.Location = new Point(1158, 782);
             btnEliminarInvent.Name = "btnEliminarInvent";
@@ -147,7 +147,7 @@
             btnEditarInventar.FlatStyle = FlatStyle.Flat;
             btnEditarInventar.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnEditarInventar.ForeColor = Color.FromArgb(250, 247, 241);
-            btnEditarInventar.Image = (Image)resources.GetObject("btnEditarInventar.Image");
+            // btnEditarInventar.Image = (Image)resources.GetObject("btnEditarInventar.Image");
             btnEditarInventar.ImageAlign = ContentAlignment.MiddleLeft;
             btnEditarInventar.Location = new Point(257, 782);
             btnEditarInventar.Name = "btnEditarInventar";
@@ -164,7 +164,7 @@
             btnNuevoProduct.FlatStyle = FlatStyle.Flat;
             btnNuevoProduct.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnNuevoProduct.ForeColor = Color.FromArgb(250, 247, 241);
-            btnNuevoProduct.Image = (Image)resources.GetObject("btnNuevoProduct.Image");
+            // btnNuevoProduct.Image = (Image)resources.GetObject("btnNuevoProduct.Image");
             btnNuevoProduct.ImageAlign = ContentAlignment.MiddleLeft;
             btnNuevoProduct.Location = new Point(26, 782);
             btnNuevoProduct.Name = "btnNuevoProduct";

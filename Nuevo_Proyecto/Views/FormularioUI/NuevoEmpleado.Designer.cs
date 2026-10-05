@@ -191,7 +191,7 @@
             btnGuardarEmple.FlatStyle = FlatStyle.Flat;
             btnGuardarEmple.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnGuardarEmple.ForeColor = Color.FromArgb(250, 247, 241);
-            btnGuardarEmple.Image = (Image)resources.GetObject("btnGuardarEmple.Image");
+            // btnGuardarEmple.Image = (Image)resources.GetObject("btnGuardarEmple.Image");
             btnGuardarEmple.ImageAlign = ContentAlignment.MiddleLeft;
             btnGuardarEmple.Location = new Point(69, 741);
             btnGuardarEmple.Name = "btnGuardarEmple";
@@ -207,7 +207,7 @@
             btnCancelarEmple.FlatStyle = FlatStyle.Flat;
             btnCancelarEmple.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnCancelarEmple.ForeColor = Color.FromArgb(250, 247, 241);
-            btnCancelarEmple.Image = (Image)resources.GetObject("btnCancelarEmple.Image");
+            // btnCancelarEmple.Image = (Image)resources.GetObject("btnCancelarEmple.Image");
             btnCancelarEmple.ImageAlign = ContentAlignment.MiddleLeft;
             btnCancelarEmple.Location = new Point(486, 741);
             btnCancelarEmple.Name = "btnCancelarEmple";

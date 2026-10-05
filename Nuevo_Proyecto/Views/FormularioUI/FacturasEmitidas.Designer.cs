@@ -31,15 +31,10 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FacturasEmitidas));
             panel1 = new Panel();
             dataGridFacturasEmitidas = new DataGridView();
-            label4 = new Label();
-            label1 = new Label();
             txtBuscarFact = new TextBox();
             label2 = new Label();
-            btnBucarFacturas = new Button();
             btnVerComprob = new Button();
             button2 = new Button();
-            dateTimeDesde = new DateTimePicker();
-            dateTimeHasta = new DateTimePicker();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridFacturasEmitidas).BeginInit();
             SuspendLayout();
@@ -63,30 +58,6 @@
             dataGridFacturasEmitidas.RowHeadersWidth = 62;
             dataGridFacturasEmitidas.Size = new Size(1327, 651);
             dataGridFacturasEmitidas.TabIndex = 0;
-            // 
-            // label4
-            // 
-            label4.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            label4.AutoSize = true;
-            label4.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label4.ForeColor = Color.FromArgb(38, 38, 38);
-            label4.Location = new Point(110, 40);
-            label4.Name = "label4";
-            label4.Size = new Size(87, 32);
-            label4.TabIndex = 25;
-            label4.Text = "Desde:";
-            // 
-            // label1
-            // 
-            label1.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            label1.AutoSize = true;
-            label1.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label1.ForeColor = Color.FromArgb(38, 38, 38);
-            label1.Location = new Point(412, 40);
-            label1.Name = "label1";
-            label1.Size = new Size(83, 32);
-            label1.TabIndex = 25;
-            label1.Text = "Hasta:";
             // 
             // txtBuscarFact
             // 
@@ -117,7 +88,7 @@
             btnBucarFacturas.FlatStyle = FlatStyle.Flat;
             btnBucarFacturas.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnBucarFacturas.ForeColor = Color.FromArgb(250, 247, 241);
-            btnBucarFacturas.Image = (Image)resources.GetObject("btnBucarFacturas.Image");
+            // btnBucarFacturas.Image = (Image)resources.GetObject("btnBucarFacturas.Image");
             btnBucarFacturas.ImageAlign = ContentAlignment.MiddleLeft;
             btnBucarFacturas.Location = new Point(1083, 25);
             btnBucarFacturas.Name = "btnBucarFacturas";
@@ -134,7 +105,7 @@
             btnVerComprob.FlatStyle = FlatStyle.Flat;
             btnVerComprob.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnVerComprob.ForeColor = Color.FromArgb(250, 247, 241);
-            btnVerComprob.Image = (Image)resources.GetObject("btnVerComprob.Image");
+            // btnVerComprob.Image = (Image)resources.GetObject("btnVerComprob.Image");
             btnVerComprob.ImageAlign = ContentAlignment.MiddleLeft;
             btnVerComprob.Location = new Point(12, 760);
             btnVerComprob.Name = "btnVerComprob";
@@ -152,7 +123,7 @@
             button2.FlatStyle = FlatStyle.Flat;
             button2.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             button2.ForeColor = Color.FromArgb(250, 247, 241);
-            button2.Image = (Image)resources.GetObject("button2.Image");
+            // button2.Image = (Image)resources.GetObject("button2.Image");
             button2.ImageAlign = ContentAlignment.MiddleLeft;
             button2.Location = new Point(251, 760);
             button2.Name = "button2";

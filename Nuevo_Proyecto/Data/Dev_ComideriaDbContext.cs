@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Nuevo_Proyecto.Models.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using Nuevo_Proyecto.Services.Helpers;
 
 
 namespace Nuevo_Proyecto.Data;
@@ -28,9 +28,7 @@ public partial class Dev_ComideriaDbContext : DbContext
 
     public virtual DbSet<Empleado> Empleados { get; set; }
 
-    public virtual DbSet<Empleado> Empleado { get => Empleados; set => Empleados = value; }
-
-    public virtual DbSet<Estado> EmpleadoEstado { get; private set; }
+    public virtual DbSet<Estado> Estados { get; set; }
 
     public virtual DbSet<Facturas> Facturas { get; set; }
 
@@ -53,24 +51,8 @@ public partial class Dev_ComideriaDbContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
-        { 
-            IConfigurationRoot configuration = new ConfigurationBuilder()
-                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .Build();
-
-            // Unificar clave de conexión: preferir Dev_ComideriaDbConnection y caer
-            // a ConexionDB por compatibilidad.
-            string? connectionString = configuration.GetConnectionString("Dev_ComideriaDbConnection")
-                                      ?? configuration.GetConnectionString("ConexionDB");
-
-            if (string.IsNullOrEmpty(connectionString))
-            {
-                throw new InvalidOperationException("No se encontró la cadena de conexión 'Dev_ComideriaDbConnection' ni 'ConexionDB' en appsettings.json.");
-            }
-
-            optionsBuilder.UseSqlServer(connectionString);
-        
+        {
+            optionsBuilder.UseSqlServer(AppConfig.ConnectionString);
         }
     }
 
@@ -146,6 +128,8 @@ public partial class Dev_ComideriaDbContext : DbContext
 
         modelBuilder.Entity<Estado>(entity =>
         {
+            entity.ToTable("Estados");
+
             entity.HasKey(e => e.EstadoId).HasName("PK__Estados__FEF86B60B9D51A96");
 
             entity.Property(e => e.EstadoId).HasColumnName("EstadoID");
@@ -232,7 +216,7 @@ public partial class Dev_ComideriaDbContext : DbContext
                 .HasColumnType("datetime");
             entity.Property(e => e.Observacion).HasMaxLength(200);
             entity.Property(e => e.ProductoId).HasColumnName("ProductoID");
-            entity.Property(e => e.TipoMovimiento).HasMaxLength(50);
+            entity.Property(e => e.TipoMovimiento).HasColumnName("Tipo").HasMaxLength(50);
 
             entity.HasOne(d => d.Empleado).WithMany(p => p.MovimientoInventarios)
                 .HasForeignKey(d => d.EmpleadoId)

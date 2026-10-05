@@ -60,7 +60,7 @@
             btnCancelarProduct.FlatStyle = FlatStyle.Flat;
             btnCancelarProduct.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnCancelarProduct.ForeColor = Color.FromArgb(250, 247, 241);
-            btnCancelarProduct.Image = (Image)resources.GetObject("btnCancelarProduct.Image");
+            // btnCancelarProduct.Image = (Image)resources.GetObject("btnCancelarProduct.Image");
             btnCancelarProduct.ImageAlign = ContentAlignment.MiddleLeft;
             btnCancelarProduct.Location = new Point(484, 928);
             btnCancelarProduct.Name = "btnCancelarProduct";
@@ -76,7 +76,7 @@
             btnGuardarProduc.FlatStyle = FlatStyle.Flat;
             btnGuardarProduc.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnGuardarProduc.ForeColor = Color.FromArgb(250, 247, 241);
-            btnGuardarProduc.Image = (Image)resources.GetObject("btnGuardarProduc.Image");
+            // btnGuardarProduc.Image = (Image)resources.GetObject("btnGuardarProduc.Image");
             btnGuardarProduc.ImageAlign = ContentAlignment.MiddleLeft;
             btnGuardarProduc.Location = new Point(67, 928);
             btnGuardarProduc.Name = "btnGuardarProduc";

@@ -110,7 +110,7 @@
             // 
             button1.BackColor = Color.FromArgb(245, 237, 225);
             button1.FlatStyle = FlatStyle.Flat;
-            button1.Image = (Image)resources.GetObject("button1.Image");
+            // button1.Image = (Image)resources.GetObject("button1.Image");
             button1.Location = new Point(515, 457);
             button1.Name = "button1";
             button1.Size = new Size(47, 45);
@@ -119,7 +119,7 @@
             // 
             // pictureBox3
             // 
-            pictureBox3.Image = (Image)resources.GetObject("pictureBox3.Image");
+            // pictureBox3.Image = (Image)resources.GetObject("pictureBox3.Image");
             pictureBox3.Location = new Point(142, 457);
             pictureBox3.Name = "pictureBox3";
             pictureBox3.Size = new Size(54, 45);
@@ -129,7 +129,7 @@
             // 
             // pictureBox2
             // 
-            pictureBox2.Image = (Image)resources.GetObject("pictureBox2.Image");
+            // pictureBox2.Image = (Image)resources.GetObject("pictureBox2.Image");
             pictureBox2.Location = new Point(142, 348);
             pictureBox2.Name = "pictureBox2";
             pictureBox2.Size = new Size(54, 45);
@@ -187,7 +187,7 @@
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(232, 221, 206);
-            BackgroundImage = (Image)resources.GetObject("$this.BackgroundImage");
+            // BackgroundImage = (Image)resources.GetObject("$this.BackgroundImage");
             ClientSize = new Size(1531, 1026);
             Controls.Add(panel1);
             FormBorderStyle = FormBorderStyle.FixedSingle;

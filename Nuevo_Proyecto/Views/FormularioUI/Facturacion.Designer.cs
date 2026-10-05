@@ -114,7 +114,7 @@
             btnGuardarfact.FlatStyle = FlatStyle.Flat;
             btnGuardarfact.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnGuardarfact.ForeColor = Color.FromArgb(250, 247, 241);
-            btnGuardarfact.Image = (Image)resources.GetObject("btnGuardarfact.Image");
+            // btnGuardarfact.Image = (Image)resources.GetObject("btnGuardarfact.Image");
             btnGuardarfact.ImageAlign = ContentAlignment.MiddleLeft;
             btnGuardarfact.Location = new Point(1478, 1005);
             btnGuardarfact.Margin = new Padding(4, 4, 4, 4);
@@ -132,7 +132,7 @@
             btnLimpiarAll.FlatStyle = FlatStyle.Flat;
             btnLimpiarAll.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnLimpiarAll.ForeColor = Color.FromArgb(250, 247, 241);
-            btnLimpiarAll.Image = (Image)resources.GetObject("btnLimpiarAll.Image");
+            // btnLimpiarAll.Image = (Image)resources.GetObject("btnLimpiarAll.Image");
             btnLimpiarAll.ImageAlign = ContentAlignment.MiddleLeft;
             btnLimpiarAll.Location = new Point(1030, 1005);
             btnLimpiarAll.Margin = new Padding(4, 4, 4, 4);
@@ -150,7 +150,7 @@
             btnImprimir.FlatStyle = FlatStyle.Flat;
             btnImprimir.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnImprimir.ForeColor = Color.FromArgb(250, 247, 241);
-            btnImprimir.Image = (Image)resources.GetObject("btnImprimir.Image");
+            // btnImprimir.Image = (Image)resources.GetObject("btnImprimir.Image");
             btnImprimir.ImageAlign = ContentAlignment.MiddleLeft;
             btnImprimir.Location = new Point(555, 1005);
             btnImprimir.Margin = new Padding(4, 4, 4, 4);
@@ -168,7 +168,7 @@
             btnQuitarLinea.FlatStyle = FlatStyle.Flat;
             btnQuitarLinea.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnQuitarLinea.ForeColor = Color.FromArgb(250, 247, 241);
-            btnQuitarLinea.Image = (Image)resources.GetObject("btnQuitarLinea.Image");
+            // btnQuitarLinea.Image = (Image)resources.GetObject("btnQuitarLinea.Image");
             btnQuitarLinea.ImageAlign = ContentAlignment.MiddleLeft;
             btnQuitarLinea.Location = new Point(99, 1005);
             btnQuitarLinea.Margin = new Padding(4, 4, 4, 4);
@@ -235,7 +235,7 @@
             btnAgregarProduc.FlatStyle = FlatStyle.Flat;
             btnAgregarProduc.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnAgregarProduc.ForeColor = Color.FromArgb(250, 247, 241);
-            btnAgregarProduc.Image = (Image)resources.GetObject("btnAgregarProduc.Image");
+            // btnAgregarProduc.Image = (Image)resources.GetObject("btnAgregarProduc.Image");
             btnAgregarProduc.ImageAlign = ContentAlignment.MiddleLeft;
             btnAgregarProduc.Location = new Point(1444, 51);
             btnAgregarProduc.Margin = new Padding(4, 4, 4, 4);
@@ -459,6 +459,7 @@
             Margin = new Padding(4, 4, 4, 4);
             Name = "Facturacion";
             Text = "Facturacion";
+            Load += Detalle_Factura_Load;
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
             groupBox2.ResumeLayout(false);

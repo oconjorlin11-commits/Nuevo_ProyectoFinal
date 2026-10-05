@@ -54,7 +54,7 @@
             btnCancelarClient.FlatStyle = FlatStyle.Flat;
             btnCancelarClient.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnCancelarClient.ForeColor = Color.FromArgb(250, 247, 241);
-            btnCancelarClient.Image = (Image)resources.GetObject("btnCancelarClient.Image");
+            // btnCancelarClient.Image = (Image)resources.GetObject("btnCancelarClient.Image");
             btnCancelarClient.ImageAlign = ContentAlignment.MiddleLeft;
             btnCancelarClient.Location = new Point(486, 726);
             btnCancelarClient.Name = "btnCancelarClient";
@@ -70,7 +70,7 @@
             btnGuardarClient.FlatStyle = FlatStyle.Flat;
             btnGuardarClient.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnGuardarClient.ForeColor = Color.FromArgb(250, 247, 241);
-            btnGuardarClient.Image = (Image)resources.GetObject("btnGuardarClient.Image");
+            // btnGuardarClient.Image = (Image)resources.GetObject("btnGuardarClient.Image");
             btnGuardarClient.ImageAlign = ContentAlignment.MiddleLeft;
             btnGuardarClient.Location = new Point(69, 726);
             btnGuardarClient.Name = "btnGuardarClient";

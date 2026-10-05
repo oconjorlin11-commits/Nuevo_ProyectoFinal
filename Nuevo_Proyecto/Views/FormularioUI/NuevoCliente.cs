@@ -1,4 +1,4 @@
-﻿using Nuevo_Proyecto.Presenters;
+using Nuevo_Proyecto.Presenters;
 using Nuevo_Proyecto.Views.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -23,9 +23,13 @@ namespace Nuevo_Proyecto.Models.Views
         public string Nota { get => cmboxNota.Text; set => cmboxNota.Text = value; }
         public bool Activo { get => checboxActico.Checked; set => checboxActico.Checked = value; }
         public string AutorizadoPor { get => cmboxAutizado.Text; set => cmboxAutizado.Text = value; }
+        public string BuscarTexto { get => string.Empty; set { } }
 
         public event EventHandler GuardarClicked;
         public event EventHandler CancelarClicked;
+        public event EventHandler? EditarClicked;
+        public event EventHandler? EliminarClicked;
+        public event EventHandler? BuscarChanged;
 
         private readonly ClientePresenter _presenter;
 
@@ -127,6 +131,21 @@ namespace Nuevo_Proyecto.Models.Views
         public void CloseView()
         {
             this.Close();
+        }
+
+        public void MostrarClientes(DataTable dt) { }
+
+        public void CargarNotas(DataTable notas)
+        {
+            cmboxNota.DataSource = notas;
+            cmboxNota.DisplayMember = "Nota";
+            cmboxNota.ValueMember = "Nota";
+            cmboxNota.DropDownStyle = ComboBoxStyle.DropDown;
+        }
+
+        public void SetActivoEnabled(bool enabled)
+        {
+            checboxActico.Enabled = enabled;
         }
     }
 }

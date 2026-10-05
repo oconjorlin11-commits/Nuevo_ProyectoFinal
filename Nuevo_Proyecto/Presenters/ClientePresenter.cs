@@ -1,258 +1,287 @@
-using System;
-using System.Linq;
-using Nuevo_Proyecto.Data;
-using Nuevo_Proyecto.Models.Entities;
-using Nuevo_Proyecto.Views.Interfaces;
+using System.Data;
 using Microsoft.EntityFrameworkCore;
-
-
+using Nuevo_Proyecto.Models.DTOs;
+using Nuevo_Proyecto.Services;
+using Nuevo_Proyecto.Services.Interfaz_service;
+using Nuevo_Proyecto.Views.Interfaces;
 
 namespace Nuevo_Proyecto.Presenters
 {
     public class ClientePresenter
     {
         private readonly IClienteView _view;
+        private readonly IClienteRepository _clientes;
+        private readonly IEmpleadoRepository _empleados;
 
-        // constructor existente
+        // Estado original seleccionado para control de cambios y reactivación
+        private string? _codigoOriginal;
+        private string? _nombreOriginal;
+        private string? _telefonoOriginal;
+        private string? _direccionOriginal;
+        private string? _notaOriginal;
+        private bool _estadoOriginal;
 
-        public ClientePresenter(IClienteView view)
+        public ClientePresenter(IClienteView view,
+                                IClienteRepository? clientes = null,
+                                IEmpleadoRepository? empleados = null)
         {
             _view = view ?? throw new ArgumentNullException(nameof(view));
+            _clientes = clientes ?? new ClienteRepository();
+            _empleados = empleados ?? new EmpleadoRepository();
 
             _view.GuardarClicked += OnGuardarClicked;
             _view.CancelarClicked += OnCancelarClicked;
+            _view.EditarClicked += OnEditarClicked;
+            _view.EliminarClicked += OnEliminarClicked;
+            _view.BuscarChanged += OnBuscarChanged;
         }
 
-        // Nuevos métodos públicos para CRUD y carga de datos usados por las vistas
-        public System.Collections.Generic.List<Models.Entities.Cliente> GetClientesActivos()
+        // ---------------------------------------------------------------- control de la vista
+
+        public void InicializarVista()
         {
-            using var db = new Dev_ComideriaDbContext();
-            return db.Clientes.AsNoTracking().Where(c => c.Activo == true).OrderBy(c => c.Nombre).ToList();
+            CargarClientesActivos();
+            LimpiarCampos();
         }
 
-        public string GetNextCodigoCliente()
+        public void CargarClientesActivos()
         {
-            using var db = new Dev_ComideriaDbContext();
-            var codigos = db.Clientes.AsNoTracking().Select(c => c.Codigo).Where(c => !string.IsNullOrEmpty(c)).ToList();
-
-            long maxVal = 0;
-
-            foreach (var codigo in codigos)
-            {
-                if (string.IsNullOrWhiteSpace(codigo)) continue;
-                var txt = codigo.Trim();
-
-                // Formato esperado: CLI-000 o CLI-000-000-... (grupos de 3 dígitos)
-                var m = System.Text.RegularExpressions.Regex.Match(txt, "^(?i)cli-(\\d{3}(?:-\\d{3})*)$");
-                if (m.Success)
-                {
-                    var groups = m.Groups[1].Value.Split('-');
-                    long val = 0;
-                    bool ok = true;
-                    foreach (var g in groups)
-                    {
-                        if (!int.TryParse(g, out int gi)) { ok = false; break; }
-                        val = val * 1000 + gi;
-                    }
-                    if (ok && val > maxVal) maxVal = val;
-                    continue;
-                }
-
-                // Soportar códigos con solo grupos numéricos sin prefijo (ej. 000 o 000-000)
-                var m2 = System.Text.RegularExpressions.Regex.Match(txt, "^(\\d{3}(?:-\\d{3})*)$");
-                if (m2.Success)
-                {
-                    var groups = m2.Groups[1].Value.Split('-');
-                    long val = 0;
-                    bool ok = true;
-                    foreach (var g in groups)
-                    {
-                        if (!int.TryParse(g, out int gi)) { ok = false; break; }
-                        val = val * 1000 + gi;
-                    }
-                    if (ok && val > maxVal) maxVal = val;
-                    continue;
-                }
-
-                // Intentar extraer dígitos si hay otros formatos
-                var digits = new string(txt.Where(char.IsDigit).ToArray());
-                if (!string.IsNullOrEmpty(digits) && long.TryParse(digits, out var parsed))
-                {
-                    if (parsed > maxVal) maxVal = parsed;
-                }
-            }
-
-            long next = maxVal + 1;
-
-            // Convertir next a grupos de 3 dígitos (base 1000) y formatear como CLI-xxx[-xxx...]
-            var parts = new System.Collections.Generic.List<string>();
-            long temp = next;
-            while (temp > 0)
-            {
-                parts.Add(((int)(temp % 1000)).ToString("D3"));
-                temp /= 1000;
-            }
-            if (parts.Count == 0) parts.Add("000");
-            parts.Reverse();
-
-            return "CLI-" + string.Join("-", parts);
+            var clientes = _clientes.GetActivos();
+            _view.MostrarClientes(DataTableMapper.Clientes(clientes));
+            _view.CargarNotas(GetNotas());
         }
 
-        public System.Data.DataTable GetNotas()
+        public void SeleccionarCliente(string codigo, string nombre, string? telefono, string direccion, string? nota, bool activo)
         {
-            // Ejemplo: extraer notas únicas desde Clientes
-            var dt = new System.Data.DataTable();
-            dt.Columns.Add("Nota", typeof(string));
-            using var db = new Dev_ComideriaDbContext();
-            var notas = db.Clientes.AsNoTracking().Select(c => c.Nota).Where(n => n != null).Distinct().ToList();
-            foreach (var n in notas) dt.Rows.Add(n);
-            return dt;
+            _codigoOriginal = codigo;
+            _nombreOriginal = nombre;
+            _telefonoOriginal = telefono;
+            _direccionOriginal = direccion;
+            _notaOriginal = nota;
+            _estadoOriginal = activo;
+
+            _view.Codigo = codigo;
+            _view.Nombre = nombre;
+            _view.Telefono = telefono ?? string.Empty;
+            _view.Direccion = direccion;
+            _view.Nota = nota ?? string.Empty;
+            _view.Activo = activo;
+            _view.SetActivoEnabled(!activo);
+            _view.CargarNotas(GetNotas());
         }
 
-        public System.Data.DataTable BuscarClientePorCodigo(string codigo)
+        public void LimpiarCampos()
         {
-            var dt = new System.Data.DataTable();
-            dt.Columns.Add("Codigo");
-            dt.Columns.Add("Nombre");
-            dt.Columns.Add("Telefono");
-            dt.Columns.Add("Direccion");
-            dt.Columns.Add("Nota");
-            dt.Columns.Add("Activo", typeof(bool));
+            _codigoOriginal = null;
+            _nombreOriginal = null;
+            _telefonoOriginal = null;
+            _direccionOriginal = null;
+            _notaOriginal = null;
+            _estadoOriginal = false;
 
-            using var db = new Dev_ComideriaDbContext();
-            var items = db.Clientes.AsNoTracking().Where(c => c.Codigo.StartsWith(codigo)).ToList();
-            foreach (var it in items)
-            {
-                dt.Rows.Add(it.Codigo, it.Nombre, it.Telefono, it.Direccion, it.Nota, it.Activo ?? false);
-            }
-            return dt;
-        }
-
-        public System.Data.DataTable GetUsuariosCajerosAdmins()
-        {
-            // Si existe entidad Empleado y campos para distinguir roles
-            var dt = new System.Data.DataTable();
-            dt.Columns.Add("Codigo", typeof(string));
-            dt.Columns.Add("Nombre", typeof(string));
-            using var db = new Dev_ComideriaDbContext();
-            var usuarios = db.Empleados.AsNoTracking().Where(e => e.Cargo == "Cajero" || e.Cargo == "Administrador").Select(e => new { e.Codigo, e.Nombre }).ToList();
-            foreach (var u in usuarios) dt.Rows.Add(u.Codigo, u.Nombre);
-            return dt;
-        }
-
-        public bool ActualizarCliente(string codigo, string nombre, string telefono, string direccion, string nota)
-        {
-            using var db = new Dev_ComideriaDbContext();
-            var cliente = db.Clientes.FirstOrDefault(c => c.Codigo == codigo);
-            if (cliente == null) return false;
-            cliente.Nombre = nombre;
-            cliente.Telefono = telefono;
-            cliente.Direccion = direccion;
-            cliente.Nota = nota;
-            db.SaveChanges();
-            return true;
-        }
-
-        public bool EliminarCliente(string codigo)
-        {
-            using var db = new Dev_ComideriaDbContext();
-            var cliente = db.Clientes.FirstOrDefault(c => c.Codigo == codigo);
-            if (cliente == null) return false;
-            cliente.Activo = false; // inactivar
-            db.SaveChanges();
-            return true;
-        }
-
-        public bool ReactivarCliente(string codigo)
-        {
-            using var db = new Dev_ComideriaDbContext();
-            var cliente = db.Clientes.FirstOrDefault(c => c.Codigo == codigo);
-            if (cliente == null) return false;
-            cliente.Activo = true;
-            db.SaveChanges();
-            return true;
-        }
-
-        private void OnCancelarClicked(object? sender, EventArgs e)
-        {
             _view.ResetFields();
-
+            _view.SetActivoEnabled(false);
         }
+
+        // ---------------------------------------------------------------- consultas para la vista
+
+        public List<ClienteDto> GetClientesActivos() => _clientes.GetActivos().ToList();
+
+        public string GetNextCodigoCliente() => _clientes.GetSiguienteCodigo();
+
+        public DataTable GetNotas() => DataTableMapper.Notas(_clientes.GetNotas());
+
+        public DataTable BuscarClientePorCodigo(string codigo) =>
+            DataTableMapper.Clientes(_clientes.BuscarPorCodigo(codigo));
+
+        public DataTable GetUsuariosCajerosAdmins() =>
+            DataTableMapper.EmpleadosCodigoNombre(_empleados.GetPorCargos("Cajero", "Administrador"));
+
+        // ---------------------------------------------------------------- comandos
+
+        public bool ActualizarCliente(string codigo, string nombre, string? telefono, string direccion, string? nota) =>
+            _clientes.Actualizar(codigo, nombre, telefono, direccion, nota);
+
+        public bool EliminarCliente(string codigo) => _clientes.Desactivar(codigo);
+
+        public bool ReactivarCliente(string codigo) => _clientes.Reactivar(codigo);
+
+        // ---------------------------------------------------------------- lógica de negocio en métodos privados
+
+        private void OnCancelarClicked(object? sender, EventArgs e) => LimpiarCampos();
 
         private void OnGuardarClicked(object? sender, EventArgs e)
         {
             string codigo = _view.Codigo?.Trim() ?? string.Empty;
             string nombre = _view.Nombre?.Trim() ?? string.Empty;
             string? telefono = string.IsNullOrWhiteSpace(_view.Telefono) ? null : _view.Telefono.Trim();
-            string? direccion = string.IsNullOrWhiteSpace(_view.Direccion) ? null : _view.Direccion.Trim();
+            string direccion = _view.Direccion?.Trim() ?? string.Empty;
             string? nota = string.IsNullOrWhiteSpace(_view.Nota) ? null : _view.Nota.Trim();
-            bool activo = _view.Activo;
 
-            if (string.IsNullOrWhiteSpace(codigo) || string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(direccion))
+            if (codigo.Length == 0 || nombre.Length == 0 || direccion.Length == 0)
             {
                 _view.showMessage("El código, el nombre y la dirección son obligatorios.", "Error", true);
                 return;
             }
 
-            try
+            // Largos máximos de las columnas (evita errores de truncamiento al guardar)
+            if (codigo.Length > 10 || nombre.Length > 100 || direccion.Length > 200 ||
+                (telefono?.Length ?? 0) > 20 || (nota?.Length ?? 0) > 200)
             {
-                using (var db = new Dev_ComideriaDbContext())
-                {
-                    bool codigoExiste = db.Clientes.AsNoTracking().Any(x => x.Codigo == codigo);
-                    if (codigoExiste)
-                    {
-                        _view.showMessage($"El código '{codigo}' ya existe. Por favor, ingrese un código único.", "Error", true);
-                        return;
-                    }
-
-                    var nuevoCliente = new Cliente
-                    {
-                        Codigo = codigo,
-                        Nombre = nombre,
-                        Telefono = telefono,
-                        Direccion = direccion,
-                        Nota = nota,
-                        Activo = activo
-                    };
-
-                    db.Clientes.Add(nuevoCliente);
-                    db.SaveChanges();
-
-                    _view.showMessage("Cliente guardado exitosamente.", "Éxito", false);
-                    _view.ResetFields();
-                    // Después de guardar correctamente, pedir a la vista que se cierre (si corresponde)
-                    try
-                    {
-                        _view.CloseView();
-                    }
-                    catch
-                    {
-                        // Si la vista no puede cerrarse o implementa CloseView como no-op, ignorar
-                    }
-
-                }
-
+                _view.showMessage("Algún campo excede el largo permitido (código 10, nombre 100, teléfono 20, dirección 200, nota 200).",
+                                  "Validación", true);
+                return;
             }
 
+            try
+            {
+                if (_clientes.CodigoExiste(codigo))
+                {
+                    _view.showMessage($"El código '{codigo}' ya existe. Por favor, ingrese un código único.", "Error", true);
+                    return;
+                }
+
+                _clientes.Crear(new ClienteDto
+                {
+                    Codigo = codigo,
+                    Nombre = nombre,
+                    Telefono = telefono,
+                    Direccion = direccion,
+                    Nota = nota,
+                    Activo = _view.Activo
+                });
+
+                _view.showMessage("Cliente guardado exitosamente.", "Éxito", false);
+                _view.ResetFields();
+                try { _view.CloseView(); } catch { /* la vista puede no ser modal */ }
+            }
             catch (DbUpdateException ex)
             {
-                _view.showMessage($"Error de base de datos: {ex.InnerException?.Message}", "Error BD", true);
+                _view.showMessage($"Error de base de datos: {ex.InnerException?.Message ?? ex.Message}", "Error BD", true);
             }
             catch (Exception ex)
             {
                 _view.showMessage($"Ocurrió un error inesperado: {ex.Message}", "Error", true);
-
-
             }
-
-
-
-
-
-
-
         }
 
+        private void OnEditarClicked(object? sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(_codigoOriginal))
+            {
+                _view.showMessage("Debe seleccionar un cliente primero.", "Aviso", true);
+                return;
+            }
+
+            // Si estaba inactivo y el usuario marcó el CheckBox para reactivarlo
+            if (!_estadoOriginal && _view.Activo)
+            {
+                bool okReactivar = _clientes.Reactivar(_codigoOriginal);
+                if (okReactivar)
+                {
+                    _view.showMessage("Cliente reactivado correctamente.", "Éxito", false);
+                    InicializarVista();
+                }
+                else
+                {
+                    _view.showMessage("No se pudo reactivar el cliente.", "Error", true);
+                }
+                return;
+            }
+
+            // Si estaba activo, validar cambios
+            bool huboCambios =
+                _view.Nombre?.Trim() != _nombreOriginal ||
+                (_view.Telefono?.Trim() ?? string.Empty) != (_telefonoOriginal ?? string.Empty) ||
+                _view.Direccion?.Trim() != _direccionOriginal ||
+                (_view.Nota?.Trim() ?? string.Empty) != (_notaOriginal ?? string.Empty);
+
+            if (!huboCambios)
+            {
+                _view.showMessage("No se ha hecho ningún cambio.", "Aviso", false);
+                return;
+            }
+
+            string nombre = _view.Nombre?.Trim() ?? string.Empty;
+            string direccion = _view.Direccion?.Trim() ?? string.Empty;
+            string? telefono = string.IsNullOrWhiteSpace(_view.Telefono) ? null : _view.Telefono.Trim();
+            string? nota = string.IsNullOrWhiteSpace(_view.Nota) ? null : _view.Nota.Trim();
+
+            if (string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(direccion))
+            {
+                _view.showMessage("El nombre y la dirección son obligatorios.", "Validación", true);
+                return;
+            }
+
+            if (nombre.Length > 100 || direccion.Length > 200 || (telefono?.Length ?? 0) > 20 || (nota?.Length ?? 0) > 200)
+            {
+                _view.showMessage("Algún campo excede el largo permitido.", "Validación", true);
+                return;
+            }
+
+            bool okUpdate = _clientes.Actualizar(_codigoOriginal, nombre, telefono, direccion, nota);
+            if (okUpdate)
+            {
+                _view.showMessage("Cliente actualizado correctamente.", "Éxito", false);
+                InicializarVista();
+            }
+            else
+            {
+                _view.showMessage("No se pudo actualizar el cliente.", "Error", true);
+            }
+        }
+
+        private void OnEliminarClicked(object? sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(_codigoOriginal))
+            {
+                _view.showMessage("Debe seleccionar un cliente primero.", "Aviso", true);
+                return;
+            }
+
+            bool ok = _clientes.Desactivar(_codigoOriginal);
+            if (ok)
+            {
+                _view.showMessage("Cliente eliminado (inactivado) correctamente.", "Éxito", false);
+                InicializarVista();
+            }
+            else
+            {
+                _view.showMessage("No se pudo eliminar el cliente.", "Error", true);
+            }
+        }
+
+        private void OnBuscarChanged(object? sender, EventArgs e)
+        {
+            string codigo = _view.BuscarTexto?.Trim() ?? string.Empty;
+
+            if (string.IsNullOrEmpty(codigo))
+            {
+                InicializarVista();
+                return;
+            }
+
+            var resultados = _clientes.BuscarPorCodigo(codigo);
+            var dt = DataTableMapper.Clientes(resultados);
+
+            if (dt.Rows.Count > 0)
+            {
+                _view.MostrarClientes(dt);
+                var row = dt.Rows[0];
+                SeleccionarCliente(
+                    row["Codigo"]?.ToString() ?? string.Empty,
+                    row["Nombre"]?.ToString() ?? string.Empty,
+                    row["Telefono"]?.ToString(),
+                    row["Direccion"]?.ToString() ?? string.Empty,
+                    row["Nota"]?.ToString(),
+                    row["Activo"] != null && row["Activo"] != DBNull.Value && Convert.ToBoolean(row["Activo"])
+                );
+            }
+            else
+            {
+                InicializarVista();
+            }
+        }
     }
 }
 

@@ -71,7 +71,7 @@
             btnExportar.FlatStyle = FlatStyle.Flat;
             btnExportar.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnExportar.ForeColor = Color.FromArgb(250, 247, 241);
-            btnExportar.Image = (Image)resources.GetObject("btnExportar.Image");
+            // btnExportar.Image = (Image)resources.GetObject("btnExportar.Image");
             btnExportar.ImageAlign = ContentAlignment.MiddleLeft;
             btnExportar.Location = new Point(529, 940);
             btnExportar.Name = "btnExportar";
@@ -87,7 +87,7 @@
             btnImprimir.FlatStyle = FlatStyle.Flat;
             btnImprimir.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnImprimir.ForeColor = Color.FromArgb(250, 247, 241);
-            btnImprimir.Image = (Image)resources.GetObject("btnImprimir.Image");
+            // btnImprimir.Image = (Image)resources.GetObject("btnImprimir.Image");
             btnImprimir.ImageAlign = ContentAlignment.MiddleLeft;
             btnImprimir.Location = new Point(30, 940);
             btnImprimir.Name = "btnImprimir";
@@ -421,7 +421,7 @@
             button1.FlatStyle = FlatStyle.Flat;
             button1.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             button1.ForeColor = Color.FromArgb(250, 247, 241);
-            button1.Image = (Image)resources.GetObject("button1.Image");
+            // button1.Image = (Image)resources.GetObject("button1.Image");
             button1.ImageAlign = ContentAlignment.MiddleLeft;
             button1.Location = new Point(291, 940);
             button1.Name = "button1";

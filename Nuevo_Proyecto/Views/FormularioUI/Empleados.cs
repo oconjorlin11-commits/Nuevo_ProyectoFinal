@@ -149,7 +149,7 @@ namespace Nuevo_Proyecto.Models.Views
                 row["Codigo"] = e.Codigo;
                 row["Nombre"] = e.Nombre;
                 row["Cargo"] = e.Cargo;
-                row["FechaIngreso"] = e.Fechaingreso;
+                row["FechaIngreso"] = e.FechaIngreso;
                 row["Cedula"] = e.Cedula;
                 row["Telefono"] = e.Telefono;
                 row["Salario"] = e.Salario;
@@ -214,12 +214,14 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void btnNuevoEmpleado_Click(object sender, EventArgs e)
         {
+            // Abrir el formulario de nuevo empleado en modo modal y refrescar la lista al cerrar
+            using (var frm = new NuevoEmpleado())
+            {
+                frm.ShowDialog();
+            }
 
-            // Crear instancia del formulario Facturacion
-            NuevoEmpleado frm = new NuevoEmpleado();
-
-            // Mostrar el formulario embebido
-            frm.Show();
+            // Refrescar la lista de empleados tras cerrar el diálogo
+            CargarEmpleadosActivos();
         }
 
         private void Frm_Empleados_Load(object sender, EventArgs e)

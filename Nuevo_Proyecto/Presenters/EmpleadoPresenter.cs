@@ -1,271 +1,113 @@
-﻿using System;
-using System.Linq;
-using Nuevo_Proyecto.Data;
-using Nuevo_Proyecto.Models.Entities;
-using Nuevo_Proyecto.Views.Interfaces;
+using System.Data;
 using Microsoft.EntityFrameworkCore;
+using Nuevo_Proyecto.Models.DTOs;
+using Nuevo_Proyecto.Services;
+using Nuevo_Proyecto.Services.Interfaz_service;
+using Nuevo_Proyecto.Views.Interfaces;
 
 namespace Nuevo_Proyecto.Presenters
 {
     public class EmpleadoPresenter
     {
         private readonly IEmpleadoView _view;
+        private readonly IEmpleadoRepository _empleados;
 
-        public EmpleadoPresenter(IEmpleadoView view)
+        public EmpleadoPresenter(IEmpleadoView view, IEmpleadoRepository? empleados = null)
         {
-            // suscripcion a eventos de la vista
             _view = view ?? throw new ArgumentNullException(nameof(view));
+            _empleados = empleados ?? new EmpleadoRepository();
+
             _view.GuardarClicked += OnGuardarClicked;
             _view.CancelarClicked += OnCancelarClicked;
         }
 
-        // Métodos auxiliares para uso por la vista
-        public System.Collections.Generic.List<Models.Entities.Empleado> GetEmpleadosActivos()
-        {
-            using var db = new Dev_ComideriaDbContext();
-            return db.Empleado.AsNoTracking().Where(e => e.Activo == true).OrderBy(e => e.Nombre).ToList();
-        }
+        // ---------------------------------------------------------------- consultas para la vista
 
-        public System.Data.DataTable GetCargos()
-        {
-            var dt = new System.Data.DataTable();
-            dt.Columns.Add("Cargo", typeof(string));
-            using var db = new Dev_ComideriaDbContext();
-            var cargos = db.Empleado.AsNoTracking().Select(e => e.Cargo).Where(c => c != null).Distinct().ToList();
-            foreach (var c in cargos) dt.Rows.Add(c);
-            return dt;
-        }
+        public List<EmpleadoDto> GetEmpleadosActivos() => _empleados.GetActivos().ToList();
 
-        public string GetNextCodigoEmpleado()
-        {
-            using var db = new Dev_ComideriaDbContext();
-            var codigos = db.Empleado.AsNoTracking().Select(e => e.Codigo).Where(c => !string.IsNullOrEmpty(c)).ToList();
+        public DataTable GetCargos() => DataTableMapper.Cargos(_empleados.GetCargos());
 
-            long maxVal = 0;
+        public string GetNextCodigoEmpleado() => _empleados.GetSiguienteCodigo();
 
-            foreach (var codigo in codigos)
-            {
-                if (string.IsNullOrWhiteSpace(codigo)) continue;
-                var txt = codigo.Trim();
+        public DataTable GetUsuariosAdministradores() =>
+            DataTableMapper.EmpleadosCodigoNombre(_empleados.GetPorCargos("Administrador", "Admin"));
 
-                // Formato esperado: EMP-000 o EMP-000-000-... (grupos de 3 dígitos)
-                var m = System.Text.RegularExpressions.Regex.Match(txt, "^(?i)emp-(\\d{3}(?:-\\d{3})*)$");
-                if (m.Success)
-                {
-                    var groups = m.Groups[1].Value.Split('-');
-                    long val = 0;
-                    bool ok = true;
-                    foreach (var g in groups)
-                    {
-                        if (!int.TryParse(g, out int gi)) { ok = false; break; }
-                        val = val * 1000 + gi;
-                    }
-                    if (ok && val > maxVal) maxVal = val;
-                    continue;
-                }
+        public DataTable BuscarEmpleadoPorCodigo(string codigo) =>
+            DataTableMapper.Empleados(_empleados.BuscarPorCodigo(codigo));
 
-                // Soportar códigos con solo grupos numéricos sin prefijo (ej. 000 o 000-000)
-                var m2 = System.Text.RegularExpressions.Regex.Match(txt, "^(\\d{3}(?:-\\d{3})*)$");
-                if (m2.Success)
-                {
-                    var groups = m2.Groups[1].Value.Split('-');
-                    long val = 0;
-                    bool ok = true;
-                    foreach (var g in groups)
-                    {
-                        if (!int.TryParse(g, out int gi)) { ok = false; break; }
-                        val = val * 1000 + gi;
-                    }
-                    if (ok && val > maxVal) maxVal = val;
-                    continue;
-                }
+        // ---------------------------------------------------------------- comandos
 
-                // Intentar extraer dígitos si hay otros formatos
-                var digits = new string(txt.Where(char.IsDigit).ToArray());
-                if (!string.IsNullOrEmpty(digits) && long.TryParse(digits, out var parsed))
-                {
-                    if (parsed > maxVal) maxVal = parsed;
-                }
-            }
+        public bool ActualizarEmpleado(string codigo, string nombre, string cargo, string cedula, string telefono, decimal salario) =>
+            _empleados.Actualizar(codigo, nombre, cargo, cedula, telefono, salario);
 
-            if (maxVal == 0)
-            {
-                // Si no hay códigos previos, iniciar en EMP-000 según requerimiento
-                return "EMP-000";
-            }
+        public bool EliminarEmpleado(string codigo) => _empleados.Desactivar(codigo);
 
-            long next = maxVal + 1;
+        public bool ReactivarEmpleado(string codigo) => _empleados.Reactivar(codigo);
 
-            // Convertir next a grupos de 3 dígitos (base 1000) y formatear como EMP-xxx[-xxx...]
-            var parts = new System.Collections.Generic.List<string>();
-            long temp = next;
-            while (temp > 0)
-            {
-                parts.Add(((int)(temp % 1000)).ToString("D3"));
-                temp /= 1000;
-            }
-            if (parts.Count == 0) parts.Add("000");
-            parts.Reverse();
+        // ---------------------------------------------------------------- eventos de la vista
 
-            return "EMP-" + string.Join("-", parts);
-        }
-
-        public System.Data.DataTable GetUsuariosAdministradores()
-        {
-            var dt = new System.Data.DataTable();
-            dt.Columns.Add("Codigo", typeof(string));
-            dt.Columns.Add("Nombre", typeof(string));
-            using var db = new Dev_ComideriaDbContext();
-            var admins = db.Empleado.AsNoTracking().Where(e => (e.Cargo ?? "") == "Administrador").Select(e => new { e.Codigo, e.Nombre }).ToList();
-            foreach (var a in admins) dt.Rows.Add(a.Codigo, a.Nombre);
-            return dt;
-        }
-
-        public System.Data.DataTable BuscarEmpleadoPorCodigo(string codigo)
-        {
-            var dt = new System.Data.DataTable();
-            dt.Columns.Add("Codigo");
-            dt.Columns.Add("Nombre");
-            dt.Columns.Add("Cargo");
-            dt.Columns.Add("FechaIngreso");
-            dt.Columns.Add("Cedula");
-            dt.Columns.Add("Telefono");
-            dt.Columns.Add("Salario");
-            dt.Columns.Add("Activo", typeof(bool));
-
-            using var db = new Dev_ComideriaDbContext();
-            var items = db.Empleado.AsNoTracking().Where(e => e.Codigo.StartsWith(codigo)).ToList();
-            foreach (var it in items)
-            {
-                dt.Rows.Add(it.Codigo, it.Nombre, it.Cargo, it.Fechaingreso, it.Cedula, it.Telefono, it.Salario, it.Activo);
-            }
-            return dt;
-        }
-
-        public bool ActualizarEmpleado(string codigo, string nombre, string cargo, string cedula, string telefono, decimal salario)
-        {
-            using var db = new Dev_ComideriaDbContext();
-            var emp = db.Empleado.FirstOrDefault(e => e.Codigo == codigo);
-            if (emp == null) return false;
-            emp.Nombre = nombre;
-            emp.Cargo = cargo;
-            emp.Cedula = cedula;
-            emp.Telefono = telefono;
-            emp.Salario = salario;
-            db.SaveChanges();
-            return true;
-        }
-
-        public bool EliminarEmpleado(string codigo)
-        {
-            using var db = new Dev_ComideriaDbContext();
-            var emp = db.Empleado.FirstOrDefault(e => e.Codigo == codigo);
-            if (emp == null) return false;
-            emp.Activo = false;
-            db.SaveChanges();
-            return true;
-        }
-
-        public bool ReactivarEmpleado(string codigo)
-        {
-            using var db = new Dev_ComideriaDbContext();
-            var emp = db.Empleado.FirstOrDefault(e => e.Codigo == codigo);
-            if (emp == null) return false;
-            emp.Activo = true;
-            db.SaveChanges();
-            return true;
-        }
-
-        private void OnCancelarClicked(object? sender, EventArgs e)
-        {
-            _view.ResetFields();
-        }
+        private void OnCancelarClicked(object? sender, EventArgs e) => _view.ResetFields();
 
         private void OnGuardarClicked(object? sender, EventArgs e)
         {
-            // 1. Extraer y limpiar los datos de la vista
             string codigo = _view.Codigo?.Trim() ?? string.Empty;
             string nombre = _view.Nombre?.Trim() ?? string.Empty;
             string cedula = _view.Cedula?.Trim() ?? string.Empty;
-            string telefono = string.IsNullOrWhiteSpace(_view.Telefono) ? null : _view.Telefono.Trim();
-            string cargo = string.IsNullOrWhiteSpace(_view.Cargo) ? null : _view.Cargo.Trim();
-            decimal salario = _view.Salario;
-            DateTime? fechaIngreso = _view.FechaIngreso;
-            bool activo = _view.Activo;
+            string? telefono = string.IsNullOrWhiteSpace(_view.Telefono) ? null : _view.Telefono.Trim();
+            string? cargo = string.IsNullOrWhiteSpace(_view.Cargo) ? null : _view.Cargo.Trim();
 
-            // 2. validaciones de negocio / presentacion
-            if (string.IsNullOrWhiteSpace(codigo) || string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(cedula))
+            if (codigo.Length == 0 || nombre.Length == 0 || cedula.Length == 0)
             {
                 _view.showMessage("El código, el nombre y la cédula son obligatorios.", "Validacion", true);
                 return;
             }
-            if (salario < 0)
+
+            if (_view.Salario < 0)
             {
                 _view.showMessage("El salario no puede ser negativo.", "Validacion", true);
                 return;
             }
 
-
-            // 3. persistencia con EF core
+            if (codigo.Length > 10 || nombre.Length > 100 || cedula.Length > 20 ||
+                (telefono?.Length ?? 0) > 20 || (cargo?.Length ?? 0) > 50)
+            {
+                _view.showMessage("Algún campo excede el largo permitido (código 10, nombre 100, cédula 20, teléfono 20, cargo 50).",
+                                  "Validacion", true);
+                return;
+            }
 
             try
             {
-                using (var db = new Dev_ComideriaDbContext())
+                if (_empleados.CodigoExiste(codigo))
                 {
-                    bool codigoExiste = db.Empleado.AsNoTracking().Any(x => x.Codigo == codigo);
-                    if (codigoExiste)
-                    {
-                        _view.showMessage($"El código '{codigo}' ya existe. Por favor, ingrese un código único.", "Error", true);
-                        return;
-                    }
-                    var nuevoEmpleado = new Empleado
-                    {
-                        Codigo = codigo,
-                        Nombre = nombre,
-                        Cedula = cedula,
-                        Telefono = telefono,
-                        Cargo = cargo,
-                        Salario = salario,
-                        Fechaingreso = fechaIngreso,
-                        Activo = activo,
-                    };
-                    db.Empleado.Add(nuevoEmpleado);
-                    db.SaveChanges();
-
-                    _view.showMessage("Empleado guardado exitosamente.", "Éxito", false);
-                    _view.ResetFields();
-                    // Solicitar a la vista que se cierre al agregar desde formulario modal
-                    try
-                    {
-                        _view.CloseView();
-                    }
-                    catch
-                    {
-                        // Ignorar si la vista no implementa cierre
-                    }
-
-
-
+                    _view.showMessage($"El código '{codigo}' ya existe. Por favor, ingrese un código único.", "Error", true);
+                    return;
                 }
 
+                _empleados.Crear(new EmpleadoDto
+                {
+                    Codigo = codigo,
+                    Nombre = nombre,
+                    Cedula = cedula,
+                    Telefono = telefono,
+                    Cargo = cargo,
+                    Salario = _view.Salario,
+                    FechaIngreso = _view.FechaIngreso,
+                    Activo = _view.Activo
+                });
 
-
-
-             
+                _view.showMessage("Empleado guardado exitosamente.", "Éxito", false);
+                _view.ResetFields();
+                try { _view.CloseView(); } catch { /* la vista puede no ser modal */ }
             }
             catch (DbUpdateException ex)
             {
-                // Manejo de errores de base de datos
                 _view.showMessage($"Error al guardar el empleado en la base de datos: {ex.InnerException?.Message ?? ex.Message}", "Error BD", true);
             }
             catch (Exception ex)
             {
-                // Manejo de errores generales
                 _view.showMessage($"Ocurrió un error inesperado: {ex.Message}", "Error", true);
             }
-
-
         }
-
     }
 }

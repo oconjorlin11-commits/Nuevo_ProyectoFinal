@@ -1,6 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Nuevo_Proyecto.Presenters;
+using Nuevo_Proyecto.Services.Helpers;
+using Nuevo_Proyecto.Views.Helpers;
 using Nuevo_Proyecto.Views.Interfaces;
 using System.ComponentModel;
 using System.Data;
@@ -91,6 +93,59 @@ namespace Nuevo_Proyecto.Models.Views
         private void FacturasEmitidas_Load(object sender, EventArgs e)
         {
             CargarTodasLasFacturas(); // 👉 al abrir, carga todas las facturas con detalles
+            ConfigurarMenuAnular();
+        }
+
+        // Clic derecho sobre una factura -> "Anular factura" (solo administradores).
+        // Se arma por código para no tocar el diseñador ni el layout existente.
+        private void ConfigurarMenuAnular()
+        {
+            if (!SesionActual.EsAdministrador) return;
+
+            var menu = new ContextMenuStrip();
+            var item = new ToolStripMenuItem("Anular factura...");
+            item.Click += (s, ev) => AnularFacturaSeleccionada();
+            menu.Items.Add(item);
+            dataGridFacturasEmitidas.ContextMenuStrip = menu;
+
+            // el clic derecho también selecciona la fila bajo el cursor
+            dataGridFacturasEmitidas.CellMouseDown += (s, ev) =>
+            {
+                if (ev.Button == MouseButtons.Right && ev.RowIndex >= 0)
+                {
+                    dataGridFacturasEmitidas.ClearSelection();
+                    dataGridFacturasEmitidas.Rows[ev.RowIndex].Selected = true;
+                    dataGridFacturasEmitidas.CurrentCell = dataGridFacturasEmitidas.Rows[ev.RowIndex].Cells[0];
+                }
+            };
+        }
+
+        private void AnularFacturaSeleccionada()
+        {
+            var fila = dataGridFacturasEmitidas.CurrentRow;
+            var numero = fila?.Cells["Numero"].Value?.ToString();
+            if (string.IsNullOrWhiteSpace(numero))
+            {
+                MessageBox.Show("Seleccione una factura.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            var motivo = PromptDialog.Pedir("Anular factura", $"Motivo de la anulación de {numero}:");
+            if (motivo == null) return;
+
+            if (MessageBox.Show($"¿Anular la factura {numero}? Se devolverá el stock al inventario.",
+                    "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes) return;
+
+            try
+            {
+                _presenter.AnularFactura(numero, motivo);
+                MessageBox.Show($"Factura {numero} anulada.", "Listo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                CargarTodasLasFacturas();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "No se pudo anular", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         private void txtBuscar_TextChanged(object sender, EventArgs e)
@@ -113,5 +168,33 @@ namespace Nuevo_Proyecto.Models.Views
         {
             dataGridFacturasEmitidas.DataSource = null;
         }
+
+        // Implementación de métodos de la interfaz IFacturacionView requeridos
+        public void LoadCategorias(DataTable categorias) { }
+        public void LoadProductosPorCategoria(DataTable productos) { }
+        public void LoadEmpleados(DataTable empleados) { }
+        public void LoadClientes(DataTable clientes) { }
+        public void LoadFormasPago(DataTable formasPago) { }
+        public void AgregarLineaDetalle(int productoId, string nombreProducto, int cantidad, decimal precioUnitario, decimal subtotal) { }
+        public void LimpiarDetalles() { }
+        public int ObtenerFilasDetalles() => 0;
+
+        // Propiedades de la interfaz
+        public int? ClienteSeleccionado => null;
+        public int? EmpleadoSeleccionado => null;
+        public int? FormaPagoSeleccionado => null;
+        public int? CategoriaSeleccionada => null;
+        public int? ProductoSeleccionado => null;
+        public int CantidadProducto => 0;
+        public string Observacion => string.Empty;
+        public decimal Total { get => 0; set { } }
+
+        // Eventos de la interfaz
+        public event EventHandler NuevoClienteClick;
+        public event EventHandler AgregarProductoClick;
+        public event EventHandler QuitarLineaClick;
+        public event EventHandler LimpiarTodoClick;
+        public event EventHandler VerImprimirClick;
+        public event EventHandler GuardarFacturaClick;
     }
 }

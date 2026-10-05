@@ -61,7 +61,7 @@
             btnEditarEmpl.FlatStyle = FlatStyle.Flat;
             btnEditarEmpl.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnEditarEmpl.ForeColor = Color.FromArgb(250, 247, 241);
-            btnEditarEmpl.Image = (Image)resources.GetObject("btnEditarEmpl.Image");
+            // btnEditarEmpl.Image = (Image)resources.GetObject("btnEditarEmpl.Image");
             btnEditarEmpl.ImageAlign = ContentAlignment.MiddleLeft;
             btnEditarEmpl.Location = new Point(875, 1001);
             btnEditarEmpl.Margin = new Padding(4, 4, 4, 4);
@@ -79,7 +79,7 @@
             btnEliminarEmpl.FlatStyle = FlatStyle.Flat;
             btnEliminarEmpl.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnEliminarEmpl.ForeColor = Color.FromArgb(250, 247, 241);
-            btnEliminarEmpl.Image = (Image)resources.GetObject("btnEliminarEmpl.Image");
+            // btnEliminarEmpl.Image = (Image)resources.GetObject("btnEliminarEmpl.Image");
             btnEliminarEmpl.ImageAlign = ContentAlignment.MiddleLeft;
             btnEliminarEmpl.Location = new Point(1193, 1001);
             btnEliminarEmpl.Margin = new Padding(4, 4, 4, 4);

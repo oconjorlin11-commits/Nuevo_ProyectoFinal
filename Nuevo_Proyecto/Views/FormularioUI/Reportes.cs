@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -12,7 +12,6 @@ using iTextSharp.text;
 using iTextSharp.text.pdf;
 using System.Diagnostics;
 using System.IO;
-using Excel = Microsoft.Office.Interop.Excel;
 
 
 
@@ -224,7 +223,7 @@ namespace Nuevo_Proyecto.Models.Views
                         var fontHeader = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 8, BaseColor.White);
                         var fontData = FontFactory.GetFont(FontFactory.HELVETICA, 8);
 
-                        doc.Add(new iTextSharp.text.Paragraph("ASADOS LA FLACA", fontTitulo) { Alignment = iTextSharp.text.Element.ALIGN_CENTER });
+                        doc.Add(new iTextSharp.text.Paragraph(Nuevo_Proyecto.Services.Helpers.AppConfig.NombreNegocio, fontTitulo) { Alignment = iTextSharp.text.Element.ALIGN_CENTER });
                         doc.Add(new iTextSharp.text.Paragraph("Reporte de Movimientos de Inventario", fontSub) { Alignment = iTextSharp.text.Element.ALIGN_CENTER, SpacingAfter = 10f });
 
                         PdfPTable table = new PdfPTable(dataGridReportes.Columns.Count)

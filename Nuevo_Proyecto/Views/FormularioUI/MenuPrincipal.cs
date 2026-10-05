@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-// using Nuevo_Proyecto.Services;  // eliminado: ya no existe la carpeta Services
+using Nuevo_Proyecto.Services.Helpers;
 
 namespace Nuevo_Proyecto.Models.Views
 {
@@ -23,7 +23,14 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void MenuPrincipal_Load(object sender, EventArgs e)
         {
+            // Datos de la sesión y permisos según el rol
+            lblUsuario.Text = SesionActual.NombreEmpleado;
+            // Desbloquear acceso para todos los usuarios a Empleados y Reportes
+            btnEmpleados.Enabled = true; // SesionActual.EsAdministrador;
+            btnReportes.Enabled = true; // SesionActual.EsAdministrador;
 
+            // Pantalla de inicio al abrir
+            CargarFormulario(new InicioMenu());
         }
 
         private void panel2_Paint(object sender, PaintEventArgs e)
@@ -36,131 +43,35 @@ namespace Nuevo_Proyecto.Models.Views
 
         }
 
-        private void btnInicio_Click(object sender, EventArgs e)
+        // Un solo lugar para mostrar un formulario dentro del panel principal
+        // (antes este bloque estaba copiado 6 veces).
+        private void CargarFormulario(Form formulario)
         {
+            foreach (Control actual in pnlPrincipal.Controls.OfType<Form>().ToList())
+            {
+                pnlPrincipal.Controls.Remove(actual);
+                actual.Dispose();
+            }
 
-            // Limpiar el panel antes de cargar un nuevo formulario
-            pnlPrincipal.Controls.Clear();
+            formulario.TopLevel = false;
+            formulario.FormBorderStyle = FormBorderStyle.None;
+            formulario.Dock = DockStyle.Fill;
 
-            // Crear instancia del formulario InicioMenu
-            InicioMenu frm = new InicioMenu();
-
-            // Configurar para que se comporte como control dentro del panel
-            frm.TopLevel = false;
-            frm.FormBorderStyle = FormBorderStyle.None;
-            frm.Dock = DockStyle.Fill;
-
-            // Agregar al panel
-            pnlPrincipal.Controls.Add(frm);
-
-            // Mostrar el formulario embebido
-            frm.Show();
+            pnlPrincipal.Controls.Add(formulario);
+            formulario.Show();
         }
 
-        private void btnFacturacion_Click(object sender, EventArgs e)
-        {
+        private void btnInicio_Click(object sender, EventArgs e) => CargarFormulario(new InicioMenu());
 
-            // Limpiar el panel antes de cargar un nuevo formulario
-            pnlPrincipal.Controls.Clear();
+        private void btnFacturacion_Click(object sender, EventArgs e) => CargarFormulario(new Facturacion());
 
-            // Crear instancia del formulario Facturacion
-            Facturacion frm = new Facturacion();
+        private void btnClientes_Click(object sender, EventArgs e) => CargarFormulario(new Clientescs());
 
-            // Configurar para que se comporte como control dentro del panel
-            frm.TopLevel = false;
-            frm.FormBorderStyle = FormBorderStyle.None;
-            frm.Dock = DockStyle.Fill;
+        private void btnEmpleados_Click(object sender, EventArgs e) => CargarFormulario(new Empleados());
 
-            // Agregar al panel
-            pnlPrincipal.Controls.Add(frm);
+        private void btnInventario_Click(object sender, EventArgs e) => CargarFormulario(new Inventario());
 
-            // Mostrar el formulario embebido
-            frm.Show();
-        }
-
-        private void btnClientes_Click(object sender, EventArgs e)
-        {
-
-            // Limpiar el panel antes de cargar un nuevo formulario
-            pnlPrincipal.Controls.Clear();
-
-            // Crear instancia del formulario Clientescs
-            Clientescs frm = new Clientescs();
-
-            // Configurar para que se comporte como control dentro del panel
-            frm.TopLevel = false;
-            frm.FormBorderStyle = FormBorderStyle.None;
-            frm.Dock = DockStyle.Fill;
-
-            // Agregar al panel
-            pnlPrincipal.Controls.Add(frm);
-
-            // Mostrar el formulario embebido
-            frm.Show();
-        }
-
-        private void btnEmpleados_Click(object sender, EventArgs e)
-        {
-
-            // Limpiar el panel antes de cargar un nuevo formulario
-            pnlPrincipal.Controls.Clear();
-
-            // Crear instancia del formulario Empleados
-            Empleados frm = new Empleados();
-
-            // Configurar para que se comporte como control dentro del panel
-            frm.TopLevel = false;
-            frm.FormBorderStyle = FormBorderStyle.None;
-            frm.Dock = DockStyle.Fill;
-
-            // Agregar al panel
-            pnlPrincipal.Controls.Add(frm);
-
-            // Mostrar el formulario embebido
-            frm.Show();
-        }
-
-        private void btnInventario_Click(object sender, EventArgs e)
-        {
-
-            // Limpiar el panel antes de cargar un nuevo formulario
-            pnlPrincipal.Controls.Clear();
-
-            // Crear instancia del formulario Inventario
-            Inventario frm = new Inventario();
-
-            // Configurar para que se comporte como control dentro del panel
-            frm.TopLevel = false;
-            frm.FormBorderStyle = FormBorderStyle.None;
-            frm.Dock = DockStyle.Fill;
-
-            // Agregar al panel
-            pnlPrincipal.Controls.Add(frm);
-
-            // Mostrar el formulario embebido
-            frm.Show();
-        }
-
-        private void btnReportes_Click(object sender, EventArgs e)
-        {
-
-            // Limpiar el panel antes de cargar un nuevo formulario
-            pnlPrincipal.Controls.Clear();
-
-            // Crear instancia del formulario Reportes
-            Reportes frm = new Reportes();
-
-            // Configurar para que se comporte como control dentro del panel
-            frm.TopLevel = false;
-            frm.FormBorderStyle = FormBorderStyle.None;
-            frm.Dock = DockStyle.Fill;
-
-            // Agregar al panel
-            pnlPrincipal.Controls.Add(frm);
-
-            // Mostrar el formulario embebido
-            frm.Show();
-        }
+        private void btnReportes_Click(object sender, EventArgs e) => CargarFormulario(new Reportes());
 
         private void btnSalir_Click(object sender, EventArgs e)
         {
@@ -173,6 +84,7 @@ namespace Nuevo_Proyecto.Models.Views
 
             if (result == DialogResult.Yes)
             {
+                SesionActual.Cerrar();
                 Application.Exit();
             }
         }

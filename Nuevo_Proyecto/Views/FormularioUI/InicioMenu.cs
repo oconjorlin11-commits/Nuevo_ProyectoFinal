@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -29,95 +29,73 @@ namespace Nuevo_Proyecto.Models.Views
 
         public void RefrescarMenu()
         {
-            // Configurar vistas
             ConfigurarDataGriProductosBajos();
             ConfigurarDataGriUltimasFacturas();
 
-            // Cargar productos con stock bajo
+            var ci = new CultureInfo("es-NI");   // C$ (córdoba)
+
+            // Productos con stock bajo (el cálculo vive en el presenter/repositorio)
             try
             {
-                var inventario = _inventarioPresenter.ObtenerInventarioActivo();
-                // Filtrar filas donde Stock <= StockMinimo
-                var bajos = inventario.AsEnumerable()
-                    .Where(r => r.Field<int>("Stock") <= r.Field<int>("StockMinimo"))
-                    .CopyToDataTable();
-                dataGriProductosBajos.DataSource = bajos;
+                dataGriProductosBajos.DataSource = _inventarioPresenter.GetProductosStockBajo();
             }
-            catch
+            catch (Exception ex)
             {
-                // Si no hay filas que cumplan la condición, poner vacío
                 dataGriProductosBajos.DataSource = new DataTable();
+                MostrarErrorTablero("productos con stock bajo", ex);
             }
 
-            // Cargar métricas: ventas hoy, ventas semanales, facturas semanales, valor inventario
+            // Métricas: ventas de hoy, ventas de la semana, facturas de la semana, valor del inventario.
+            // Las facturas anuladas NO cuentan como venta.
             try
             {
-                // Usar cultura de Nicaragua para mostrar C$ (Córdoba) si está disponible
-                var ci = new CultureInfo("es-NI");
+                DateTime hoy = DateTime.Today;
 
-                DateTime today = DateTime.Today;
-                DateTime todayEnd = today.AddDays(1).AddTicks(-1);
+                var ventasHoy = _facturacionPresenter.ObtenerResumenVentas(hoy, hoy);
+                LblVentasHoy.Text = ventasHoy.Total.ToString("C2", ci);
 
-                var dtHoy = _facturacionPresenter.FiltrarFacturasPorFecha(today, todayEnd);
-                decimal ventasHoy = 0m;
-                if (dtHoy != null && dtHoy.Rows.Count > 0)
-                {
-                    ventasHoy = dtHoy.AsEnumerable().Sum(r => r.Field<decimal?>("Total") ?? 0m);
-                }
-                LblVentasHoy.Text = ventasHoy.ToString("C2", ci);
+                var ventasSemana = _facturacionPresenter.ObtenerResumenVentas(hoy.AddDays(-6), hoy);
+                VentasSemanales.Text = ventasSemana.Total.ToString("C2", ci);
+                LblFacturasSemanales.Text = ventasSemana.CantidadFacturas.ToString();
 
-                DateTime weekStart = today.AddDays(-6);
-                DateTime weekEnd = todayEnd;
-                var dtSemana = _facturacionPresenter.FiltrarFacturasPorFecha(weekStart, weekEnd);
-                decimal ventasSemana = 0m;
-                int facturasSemana = 0;
-                if (dtSemana != null && dtSemana.Rows.Count > 0)
-                {
-                    ventasSemana = dtSemana.AsEnumerable().Sum(r => r.Field<decimal?>("Total") ?? 0m);
-                    facturasSemana = dtSemana.Rows.Count;
-                }
-                VentasSemanales.Text = ventasSemana.ToString("C2", ci);
-                LblFacturasSemanales.Text = facturasSemana.ToString();
-
-                // Valor inventario: sumar PrecioVenta * Stock sobre inventario activo
-                decimal valorInventario = 0m;
-                var dtInv = _inventarioPresenter.ObtenerInventarioActivo();
-                if (dtInv != null && dtInv.Rows.Count > 0)
-                {
-                    foreach (DataRow r in dtInv.Rows)
-                    {
-                        decimal precio = 0m;
-                        int stock = 0;
-                        try { precio = r["PrecioVenta"] != DBNull.Value ? Convert.ToDecimal(r["PrecioVenta"]) : 0m; } catch { precio = 0m; }
-                        try { stock = r["Stock"] != DBNull.Value ? Convert.ToInt32(r["Stock"]) : 0; } catch { stock = 0; }
-                        valorInventario += precio * stock;
-                    }
-                }
-                LblValorInventario.Text = valorInventario.ToString("C2", ci);
+                LblValorInventario.Text = _inventarioPresenter.GetValorInventarioActivo().ToString("C2", ci);
             }
-            catch
+            catch (Exception ex)
             {
-                var ci = new CultureInfo("es-NI");
-                LblVentasHoy.Text = (0m).ToString("C2", ci);
-                VentasSemanales.Text = (0m).ToString("C2", ci);
+                LblVentasHoy.Text = 0m.ToString("C2", ci);
+                VentasSemanales.Text = 0m.ToString("C2", ci);
                 LblFacturasSemanales.Text = "0";
-                LblValorInventario.Text = (0m).ToString("C2", ci);
+                LblValorInventario.Text = 0m.ToString("C2", ci);
+                MostrarErrorTablero("métricas", ex);
             }
 
-            // Cargar últimas facturas (ordenar por Fecha desc y tomar 10)
+            // Últimas 10 facturas
             try
             {
-                var todas = _facturacionPresenter.GetTodasLasFacturasConDetalles();
-                var view = todas.AsEnumerable()
-                    .OrderByDescending(r => r.Field<DateTime?>("Fecha"))
+                var ultimas = _facturacionPresenter.GetTodasLasFacturasConDetalles().AsEnumerable()
+                    .OrderByDescending(r => r.Field<DateTime>("Fecha"))
                     .Take(10)
-                    .CopyToDataTable();
-                dataGriUltimasFacturas.DataSource = view;
+                    .ToList();
+
+                dataGriUltimasFacturas.DataSource = ultimas.Count > 0
+                    ? ultimas.CopyToDataTable()
+                    : new DataTable();
             }
-            catch
+            catch (Exception ex)
             {
                 dataGriUltimasFacturas.DataSource = new DataTable();
+                MostrarErrorTablero("últimas facturas", ex);
             }
+        }
+
+        // Antes los errores del tablero se tragaban en silencio (catch vacío) y las métricas salían en 0 sin avisar.
+        private bool _errorTableroMostrado;
+        private void MostrarErrorTablero(string seccion, Exception ex)
+        {
+            if (_errorTableroMostrado) return;
+            _errorTableroMostrado = true;
+            MessageBox.Show($"No se pudo cargar {seccion}: {ex.Message}", "Tablero",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
         private void groupBox6_Enter(object sender, EventArgs e)

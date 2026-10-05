@@ -78,7 +78,7 @@
             btnConsultarReport.FlatStyle = FlatStyle.Flat;
             btnConsultarReport.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnConsultarReport.ForeColor = Color.FromArgb(250, 247, 241);
-            btnConsultarReport.Image = (Image)resources.GetObject("btnConsultarReport.Image");
+            // btnConsultarReport.Image = (Image)resources.GetObject("btnConsultarReport.Image");
             btnConsultarReport.ImageAlign = ContentAlignment.MiddleLeft;
             btnConsultarReport.Location = new Point(946, 26);
             btnConsultarReport.Name = "btnConsultarReport";
@@ -119,7 +119,7 @@
             btnExportaReportes.FlatStyle = FlatStyle.Flat;
             btnExportaReportes.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnExportaReportes.ForeColor = Color.FromArgb(250, 247, 241);
-            btnExportaReportes.Image = (Image)resources.GetObject("btnExportaReportes.Image");
+            // btnExportaReportes.Image = (Image)resources.GetObject("btnExportaReportes.Image");
             btnExportaReportes.ImageAlign = ContentAlignment.MiddleLeft;
             btnExportaReportes.Location = new Point(23, 790);
             btnExportaReportes.Name = "btnExportaReportes";
