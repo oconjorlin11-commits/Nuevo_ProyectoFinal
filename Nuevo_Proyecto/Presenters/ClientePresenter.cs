@@ -64,8 +64,8 @@ namespace Nuevo_Proyecto.Presenters
 
         public void InicializarVista()
         {
-            CargarClientesActivos();
             LimpiarCampos();
+            CargarClientesActivos();
         }
 
         public void CargarClientesActivos()
@@ -74,6 +74,16 @@ namespace Nuevo_Proyecto.Presenters
             var clientes = _clientes.GetActivos();
             _view.MostrarClientes(DataTableMapper.Clientes(clientes));
             _view.CargarNotas(GetNotas());
+        }
+
+        private void RefrescarYLimpiar()
+        {
+            if (_view != null)
+            {
+                _view.BuscarTexto = string.Empty;  // Limpiar el textbox de búsqueda
+            }
+            CargarClientesActivos();  // Recargar los clientes activos
+            LimpiarCampos();  // Limpiar los campos de edición
         }
 
         public void SeleccionarCliente(string codigo, string nombre, string? telefono, string direccion, string? nota, bool activo)
@@ -153,19 +163,27 @@ namespace Nuevo_Proyecto.Presenters
             string? telefono = string.IsNullOrWhiteSpace(_nuevoClienteView.Telefono) ? null : _nuevoClienteView.Telefono.Trim();
             string direccion = _nuevoClienteView.Direccion?.Trim() ?? string.Empty;
             string? nota = string.IsNullOrWhiteSpace(_nuevoClienteView.Nota) ? null : _nuevoClienteView.Nota.Trim();
+            string autorizadoPor = _nuevoClienteView.AutorizadoPor?.Trim() ?? string.Empty;
 
-            if (codigo.Length == 0 || nombre.Length == 0 || direccion.Length == 0)
+            // Validar campos básicos
+            if (string.IsNullOrEmpty(codigo))
             {
-                _nuevoClienteView.showMessage("El código, el nombre y la dirección son obligatorios.", "Error", true);
+                _nuevoClienteView.showMessage("⚠️ El código debe completarse.", "Falta llenar", true);
                 return;
             }
 
-            // Largos máximos de las columnas (evita errores de truncamiento al guardar)
-            if (codigo.Length > 10 || nombre.Length > 100 || direccion.Length > 200 ||
-                (telefono?.Length ?? 0) > 20 || (nota?.Length ?? 0) > 200)
+            // Validar con reglas de negocio desde ClienteRepository
+            string? errorValidacion = _clientes.ValidarNuevoCliente(codigo, nombre, telefono, direccion, nota);
+            if (errorValidacion != null)
             {
-                _nuevoClienteView.showMessage("Algún campo excede el largo permitido (código 10, nombre 100, teléfono 20, dirección 200, nota 200).",
-                                              "Validación", true);
+                _nuevoClienteView.showMessage($"⚠️ {errorValidacion}", "Validación", true);
+                return;
+            }
+
+            // Validar autorizado por (solo Admin y Cajero)
+            if (string.IsNullOrEmpty(autorizadoPor))
+            {
+                _nuevoClienteView.showMessage("⚠️ Debe seleccionar quién autoriza (Admin o Cajero).", "Falta llenar", true);
                 return;
             }
 
@@ -173,7 +191,7 @@ namespace Nuevo_Proyecto.Presenters
             {
                 if (_clientes.CodigoExiste(codigo))
                 {
-                    _nuevoClienteView.showMessage($"El código '{codigo}' ya existe. Por favor, ingrese un código único.", "Error", true);
+                    _nuevoClienteView.showMessage($"⚠️ El código '{codigo}' ya existe. Por favor, ingrese un código único.", "Error", true);
                     return;
                 }
 
@@ -184,20 +202,20 @@ namespace Nuevo_Proyecto.Presenters
                     Telefono = telefono,
                     Direccion = direccion,
                     Nota = nota,
-                    Activo = _nuevoClienteView.Activo
+                    Activo = true  // Siempre activo al crear
                 });
 
-                _nuevoClienteView.showMessage("Cliente guardado exitosamente.", "Éxito", false);
+                _nuevoClienteView.showMessage("✓ Cliente guardado exitosamente.", "Éxito", false);
                 _nuevoClienteView.ResetFields();
                 try { _nuevoClienteView.CloseView(); } catch { /* la vista puede no ser modal */ }
             }
             catch (DbUpdateException ex)
             {
-                _nuevoClienteView.showMessage($"Error de base de datos: {ex.InnerException?.Message ?? ex.Message}", "Error BD", true);
+                _nuevoClienteView.showMessage($"❌ Error de base de datos: {ex.InnerException?.Message ?? ex.Message}", "Error BD", true);
             }
             catch (Exception ex)
             {
-                _nuevoClienteView.showMessage($"Ocurrió un error inesperado: {ex.Message}", "Error", true);
+                _nuevoClienteView.showMessage($"❌ Error inesperado: {ex.Message}", "Error", true);
             }
         }
 
@@ -220,7 +238,7 @@ namespace Nuevo_Proyecto.Presenters
                 if (okReactivar)
                 {
                     _view.showMessage("Cliente reactivado correctamente.", "Éxito", false);
-                    InicializarVista();
+                    RefrescarYLimpiar();
                 }
                 else
                 {
@@ -263,7 +281,7 @@ namespace Nuevo_Proyecto.Presenters
             if (okUpdate)
             {
                 _view.showMessage("Cliente actualizado correctamente.", "Éxito", false);
-                InicializarVista();
+                RefrescarYLimpiar();
             }
             else
             {
@@ -285,7 +303,7 @@ namespace Nuevo_Proyecto.Presenters
             if (ok)
             {
                 _view.showMessage("Cliente eliminado (inactivado) correctamente.", "Éxito", false);
-                InicializarVista();
+                RefrescarYLimpiar();
             }
             else
             {
@@ -301,16 +319,22 @@ namespace Nuevo_Proyecto.Presenters
 
             if (string.IsNullOrEmpty(codigo))
             {
-                InicializarVista();
+                // Si el textbox está vacío, mostrar solo los activos y limpiar campos
+                CargarClientesActivos();
+                LimpiarCampos();
                 return;
             }
 
+            // Buscar código EXACTO en activos e inactivos
             var resultados = _clientes.BuscarPorCodigo(codigo);
             var dt = DataTableMapper.Clientes(resultados);
 
             if (dt.Rows.Count > 0)
             {
+                // Mostrar resultado exacto encontrado
                 _view.MostrarClientes(dt);
+
+                // Cargar el resultado en los campos de edición
                 var row = dt.Rows[0];
                 SeleccionarCliente(
                     row["Codigo"]?.ToString() ?? string.Empty,
@@ -323,7 +347,9 @@ namespace Nuevo_Proyecto.Presenters
             }
             else
             {
-                InicializarVista();
+                // Si no hay resultado exacto, mostrar solo los activos
+                CargarClientesActivos();
+                LimpiarCampos();
             }
         }
     }

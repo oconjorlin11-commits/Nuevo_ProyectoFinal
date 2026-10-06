@@ -164,29 +164,8 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void dataGridClientes_SelectionChanged(object sender, EventArgs e)
         {
-            if (dataGridClientes.SelectedRows == null || dataGridClientes.SelectedRows.Count == 0)
-                return;
-
-            var row = dataGridClientes.SelectedRows[0];
-            if (row.Cells[0].Value == null) return;
-
-            try
-            {
-                string codigo = row.Cells[0].Value?.ToString() ?? string.Empty;
-                string nombre = row.Cells[1].Value?.ToString() ?? string.Empty;
-                string? telefono = row.Cells[2].Value?.ToString();
-                string direccion = row.Cells[3].Value?.ToString() ?? string.Empty;
-                string? nota = row.Cells[4].Value?.ToString();
-                bool activo = row.Cells[5].Value != null &&
-                              row.Cells[5].Value != DBNull.Value &&
-                              Convert.ToBoolean(row.Cells[5].Value);
-
-                _presenter.SeleccionarCliente(codigo, nombre, telefono, direccion, nota, activo);
-            }
-            catch
-            {
-                // ignorar errores de formato al cambiar de fila
-            }
+            // El DataGrid es solo de observación, no tiene funcionalidad de búsqueda o filtro
+            // No se carga información en los campos de edición desde el grid
         }
 
         private void datagrewClientes_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)

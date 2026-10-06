@@ -108,6 +108,7 @@
             txtTelefonoClient.ForeColor = Color.FromArgb(38, 38, 38);
             txtTelefonoClient.Location = new Point(299, 320);
             txtTelefonoClient.Name = "txtTelefonoClient";
+            txtTelefonoClient.PlaceholderText = "Ej: 1234567890";
             txtTelefonoClient.Size = new Size(294, 39);
             txtTelefonoClient.TabIndex = 41;
             // 
@@ -128,6 +129,7 @@
             txtNombreClient.ForeColor = Color.FromArgb(38, 38, 38);
             txtNombreClient.Location = new Point(299, 246);
             txtNombreClient.Name = "txtNombreClient";
+            txtNombreClient.PlaceholderText = "Ej: Juan Pérez";
             txtNombreClient.Size = new Size(294, 39);
             txtNombreClient.TabIndex = 39;
             // 
@@ -138,7 +140,7 @@
             label1.ForeColor = Color.FromArgb(38, 38, 38);
             label1.Location = new Point(128, 249);
             label1.Name = "label1";
-            label1.Size = new Size(109, 32);
+            label1.Size = new Size(97, 32);
             label1.TabIndex = 38;
             label1.Text = "Nombre:";
             // 
@@ -168,6 +170,7 @@
             txtDireccionClient.ForeColor = Color.FromArgb(38, 38, 38);
             txtDireccionClient.Location = new Point(299, 396);
             txtDireccionClient.Name = "txtDireccionClient";
+            txtDireccionClient.PlaceholderText = "Ej: Calle Principal 123, Apto 4B";
             txtDireccionClient.Size = new Size(294, 39);
             txtDireccionClient.TabIndex = 51;
             // 

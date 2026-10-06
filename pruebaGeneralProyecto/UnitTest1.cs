@@ -366,5 +366,6 @@ namespace pruebaGeneralProyecto
         public bool Desactivar(string codigo) => true;
         public bool Reactivar(string codigo) => true;
         public ClienteDto ObtenerOCrearConsumidorFinal() => new ClienteDto { Codigo = "CF-001", Nombre = "Consumidor Final" };
+        public string? ValidarNuevoCliente(string codigo, string nombre, string? telefono, string? direccion, string? nota) => null; // Simulación: siempre válido
     }
 }

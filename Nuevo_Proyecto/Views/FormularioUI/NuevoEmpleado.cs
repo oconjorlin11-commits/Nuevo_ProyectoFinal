@@ -44,11 +44,10 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void UpdateControlsState()
         {
-            bool codigoOk = !string.IsNullOrWhiteSpace(txtCodigoEmple.Text);
-            bool nombreOk = !string.IsNullOrWhiteSpace(txtNombreEmple.Text);
-            bool cedulaOk = !string.IsNullOrWhiteSpace(txtCedulaEmpl.Text);
-
-            btnGuardarEmple.Enabled = codigoOk && nombreOk && cedulaOk;
+            // El botón Guardar siempre está habilitado
+            btnGuardarEmple.Enabled = true;
+            btnGuardarEmple.Text = "Guardar";
+            btnGuardarEmple.BackColor = Color.DarkGreen;
         }
 
         // IEmpleadoView - mostrar mensaje
@@ -65,9 +64,11 @@ namespace Nuevo_Proyecto.Models.Views
             txtNombreEmple.Text = string.Empty;
             txtCedulaEmpl.Text = string.Empty;
             txtTelefonoEmple.Text = string.Empty;
-            comboxCargoEmpleado.DataSource = null;
+            comboxCargoEmpleado.SelectedIndex = -1;
+            comboxCargoEmpleado.Text = "Selecciona un cargo";
             txtSalarioEmpleado.Text = "0";
-            cmboxAutizadoEmple.DataSource = null;
+            cmboxAutizadoEmple.SelectedIndex = -1;
+            cmboxAutizadoEmple.Text = "Seleccione un autorizado";
             checkEmpleadoAct.Checked = false;
         }
 
@@ -96,7 +97,65 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void btnGuardarEmple_Click(object sender, EventArgs e)
         {
-            // Delegar la acción al presenter
+            // Validar campos antes de guardar
+            if (string.IsNullOrWhiteSpace(txtCodigoEmple.Text))
+            {
+                MessageBox.Show("El código es obligatorio.", "Campo vacío", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtCodigoEmple.Focus();
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(txtNombreEmple.Text))
+            {
+                MessageBox.Show("El nombre es obligatorio. Formato: Mínimo 2 palabras (ej: Jose Alejandro Ordoñez Medina).", "Campo vacío", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtNombreEmple.Focus();
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(txtCedulaEmpl.Text))
+            {
+                MessageBox.Show("La cédula es obligatoria. Formato: xxx-xxxxxx-xxxxA (ej: 561-021007-1000A).", "Campo vacío", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtCedulaEmpl.Focus();
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(txtTelefonoEmple.Text))
+            {
+                MessageBox.Show("El teléfono es obligatorio. Formato: xxxx-xxxx (ej: 7635-7836).", "Campo vacío", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtTelefonoEmple.Focus();
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(comboxCargoEmpleado.Text))
+            {
+                MessageBox.Show("El cargo es obligatorio. Selecciona o ingresa un cargo.", "Campo vacío", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                comboxCargoEmpleado.Focus();
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(txtSalarioEmpleado.Text))
+            {
+                MessageBox.Show("El salario es obligatorio. Formato: números con separadores de miles usando coma (ej: 120,25 o 123,123,123).", "Campo vacío", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtSalarioEmpleado.Focus();
+                return;
+            }
+
+            // Validar que el salario sea mayor a 1
+            if (!decimal.TryParse(txtSalarioEmpleado.Text, out var salario) || salario <= 1)
+            {
+                MessageBox.Show("El salario debe ser mayor a 1. Formato: números con separadores de miles usando coma (ej: 120,25 o 123,123,123).", "Valor inválido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtSalarioEmpleado.Focus();
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(cmboxAutizadoEmple.Text) || cmboxAutizadoEmple.SelectedIndex == -1)
+            {
+                MessageBox.Show("Debes seleccionar un personal encargado (administrador).", "Campo vacío", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                cmboxAutizadoEmple.Focus();
+                return;
+            }
+
+            // Si todos los campos están completos, delegar al presenter
             GuardarClicked?.Invoke(this, EventArgs.Empty);
             // El presenter puede solicitar cerrar la vista mediante CloseView
         }
@@ -112,6 +171,7 @@ namespace Nuevo_Proyecto.Models.Views
             comboxCargoEmpleado.DisplayMember = "Cargo";
             comboxCargoEmpleado.ValueMember = "Cargo";
             comboxCargoEmpleado.SelectedIndex = -1;
+            comboxCargoEmpleado.Text = "Selecciona un cargo"; // Placeholder text
 
             // Permitir escribir uno nuevo además de elegir
             comboxCargoEmpleado.DropDownStyle = ComboBoxStyle.DropDown;
@@ -124,6 +184,7 @@ namespace Nuevo_Proyecto.Models.Views
             cmboxAutizadoEmple.DisplayMember = "Nombre";
             cmboxAutizadoEmple.ValueMember = "Codigo";
             cmboxAutizadoEmple.SelectedIndex = -1;
+            cmboxAutizadoEmple.Text = "Seleccione un autorizado"; // Placeholder text
 
             // Inicializar salario en 0
             txtSalarioEmpleado.Text = "0";

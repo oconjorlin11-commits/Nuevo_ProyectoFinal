@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Facturacion));
             panel1 = new Panel();
             txtTotal = new TextBox();
             label7 = new Label();
@@ -77,7 +76,7 @@
             panel1.Controls.Add(groupBoxDatosPedido);
             panel1.Dock = DockStyle.Fill;
             panel1.Location = new Point(0, 0);
-            panel1.Margin = new Padding(4, 4, 4, 4);
+            panel1.Margin = new Padding(4);
             panel1.Name = "panel1";
             panel1.Size = new Size(1791, 1133);
             panel1.TabIndex = 11;
@@ -89,7 +88,7 @@
             txtTotal.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             txtTotal.ForeColor = Color.FromArgb(153, 40, 35);
             txtTotal.Location = new Point(1544, 936);
-            txtTotal.Margin = new Padding(4, 4, 4, 4);
+            txtTotal.Margin = new Padding(4);
             txtTotal.Name = "txtTotal";
             txtTotal.Size = new Size(208, 50);
             txtTotal.TabIndex = 19;
@@ -114,10 +113,9 @@
             btnGuardarfact.FlatStyle = FlatStyle.Flat;
             btnGuardarfact.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnGuardarfact.ForeColor = Color.FromArgb(250, 247, 241);
-            // btnGuardarfact.Image = (Image)resources.GetObject("btnGuardarfact.Image");
             btnGuardarfact.ImageAlign = ContentAlignment.MiddleLeft;
             btnGuardarfact.Location = new Point(1478, 1005);
-            btnGuardarfact.Margin = new Padding(4, 4, 4, 4);
+            btnGuardarfact.Margin = new Padding(4);
             btnGuardarfact.Name = "btnGuardarfact";
             btnGuardarfact.Size = new Size(246, 83);
             btnGuardarfact.TabIndex = 17;
@@ -132,10 +130,9 @@
             btnLimpiarAll.FlatStyle = FlatStyle.Flat;
             btnLimpiarAll.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnLimpiarAll.ForeColor = Color.FromArgb(250, 247, 241);
-            // btnLimpiarAll.Image = (Image)resources.GetObject("btnLimpiarAll.Image");
             btnLimpiarAll.ImageAlign = ContentAlignment.MiddleLeft;
             btnLimpiarAll.Location = new Point(1030, 1005);
-            btnLimpiarAll.Margin = new Padding(4, 4, 4, 4);
+            btnLimpiarAll.Margin = new Padding(4);
             btnLimpiarAll.Name = "btnLimpiarAll";
             btnLimpiarAll.Size = new Size(246, 83);
             btnLimpiarAll.TabIndex = 16;
@@ -150,10 +147,9 @@
             btnImprimir.FlatStyle = FlatStyle.Flat;
             btnImprimir.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnImprimir.ForeColor = Color.FromArgb(250, 247, 241);
-            // btnImprimir.Image = (Image)resources.GetObject("btnImprimir.Image");
             btnImprimir.ImageAlign = ContentAlignment.MiddleLeft;
             btnImprimir.Location = new Point(555, 1005);
-            btnImprimir.Margin = new Padding(4, 4, 4, 4);
+            btnImprimir.Margin = new Padding(4);
             btnImprimir.Name = "btnImprimir";
             btnImprimir.Size = new Size(246, 83);
             btnImprimir.TabIndex = 15;
@@ -168,10 +164,9 @@
             btnQuitarLinea.FlatStyle = FlatStyle.Flat;
             btnQuitarLinea.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnQuitarLinea.ForeColor = Color.FromArgb(250, 247, 241);
-            // btnQuitarLinea.Image = (Image)resources.GetObject("btnQuitarLinea.Image");
             btnQuitarLinea.ImageAlign = ContentAlignment.MiddleLeft;
             btnQuitarLinea.Location = new Point(99, 1005);
-            btnQuitarLinea.Margin = new Padding(4, 4, 4, 4);
+            btnQuitarLinea.Margin = new Padding(4);
             btnQuitarLinea.Name = "btnQuitarLinea";
             btnQuitarLinea.Size = new Size(246, 83);
             btnQuitarLinea.TabIndex = 14;
@@ -187,9 +182,9 @@
             groupBox2.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             groupBox2.ForeColor = Color.FromArgb(153, 40, 35);
             groupBox2.Location = new Point(34, 497);
-            groupBox2.Margin = new Padding(4, 4, 4, 4);
+            groupBox2.Margin = new Padding(4);
             groupBox2.Name = "groupBox2";
-            groupBox2.Padding = new Padding(4, 4, 4, 4);
+            groupBox2.Padding = new Padding(4);
             groupBox2.Size = new Size(1720, 413);
             groupBox2.TabIndex = 13;
             groupBox2.TabStop = false;
@@ -199,9 +194,11 @@
             // dataGridDetallesFacturas
             // 
             dataGridDetallesFacturas.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            dataGridDetallesFacturas.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dataGridDetallesFacturas.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
             dataGridDetallesFacturas.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridDetallesFacturas.Location = new Point(8, 49);
-            dataGridDetallesFacturas.Margin = new Padding(4, 4, 4, 4);
+            dataGridDetallesFacturas.Margin = new Padding(4);
             dataGridDetallesFacturas.Name = "dataGridDetallesFacturas";
             dataGridDetallesFacturas.RowHeadersWidth = 62;
             dataGridDetallesFacturas.Size = new Size(1704, 339);
@@ -221,9 +218,9 @@
             groupBox1.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             groupBox1.ForeColor = Color.FromArgb(153, 40, 35);
             groupBox1.Location = new Point(34, 287);
-            groupBox1.Margin = new Padding(4, 4, 4, 4);
+            groupBox1.Margin = new Padding(4);
             groupBox1.Name = "groupBox1";
-            groupBox1.Padding = new Padding(4, 4, 4, 4);
+            groupBox1.Padding = new Padding(4);
             groupBox1.Size = new Size(1720, 179);
             groupBox1.TabIndex = 12;
             groupBox1.TabStop = false;
@@ -235,10 +232,9 @@
             btnAgregarProduc.FlatStyle = FlatStyle.Flat;
             btnAgregarProduc.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnAgregarProduc.ForeColor = Color.FromArgb(250, 247, 241);
-            // btnAgregarProduc.Image = (Image)resources.GetObject("btnAgregarProduc.Image");
             btnAgregarProduc.ImageAlign = ContentAlignment.MiddleLeft;
             btnAgregarProduc.Location = new Point(1444, 51);
-            btnAgregarProduc.Margin = new Padding(4, 4, 4, 4);
+            btnAgregarProduc.Margin = new Padding(4);
             btnAgregarProduc.Name = "btnAgregarProduc";
             btnAgregarProduc.Size = new Size(246, 83);
             btnAgregarProduc.TabIndex = 9;
@@ -250,7 +246,7 @@
             // 
             numericUpCantidad.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             numericUpCantidad.Location = new Point(1283, 68);
-            numericUpCantidad.Margin = new Padding(4, 4, 4, 4);
+            numericUpCantidad.Margin = new Padding(4);
             numericUpCantidad.Name = "numericUpCantidad";
             numericUpCantidad.Size = new Size(116, 50);
             numericUpCantidad.TabIndex = 8;
@@ -285,7 +281,7 @@
             cmboxProductos.ForeColor = Color.FromArgb(38, 38, 38);
             cmboxProductos.FormattingEnabled = true;
             cmboxProductos.Location = new Point(758, 67);
-            cmboxProductos.Margin = new Padding(4, 4, 4, 4);
+            cmboxProductos.Margin = new Padding(4);
             cmboxProductos.Name = "cmboxProductos";
             cmboxProductos.Size = new Size(329, 53);
             cmboxProductos.TabIndex = 3;
@@ -296,7 +292,7 @@
             cmboxCategorias.ForeColor = Color.FromArgb(38, 38, 38);
             cmboxCategorias.FormattingEnabled = true;
             cmboxCategorias.Location = new Point(226, 67);
-            cmboxCategorias.Margin = new Padding(4, 4, 4, 4);
+            cmboxCategorias.Margin = new Padding(4);
             cmboxCategorias.Name = "cmboxCategorias";
             cmboxCategorias.Size = new Size(329, 53);
             cmboxCategorias.TabIndex = 1;
@@ -330,9 +326,9 @@
             groupBoxDatosPedido.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             groupBoxDatosPedido.ForeColor = Color.FromArgb(153, 40, 35);
             groupBoxDatosPedido.Location = new Point(34, 15);
-            groupBoxDatosPedido.Margin = new Padding(4, 4, 4, 4);
+            groupBoxDatosPedido.Margin = new Padding(4);
             groupBoxDatosPedido.Name = "groupBoxDatosPedido";
-            groupBoxDatosPedido.Padding = new Padding(4, 4, 4, 4);
+            groupBoxDatosPedido.Padding = new Padding(4);
             groupBoxDatosPedido.Size = new Size(1720, 251);
             groupBoxDatosPedido.TabIndex = 11;
             groupBoxDatosPedido.TabStop = false;
@@ -343,7 +339,7 @@
             txtObseravciones.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtObseravciones.ForeColor = Color.FromArgb(38, 38, 38);
             txtObseravciones.Location = new Point(1228, 166);
-            txtObseravciones.Margin = new Padding(4, 4, 4, 4);
+            txtObseravciones.Margin = new Padding(4);
             txtObseravciones.Name = "txtObseravciones";
             txtObseravciones.Size = new Size(381, 50);
             txtObseravciones.TabIndex = 8;
@@ -366,7 +362,7 @@
             cmboxAtendidoPor.ForeColor = Color.FromArgb(38, 38, 38);
             cmboxAtendidoPor.FormattingEnabled = true;
             cmboxAtendidoPor.Location = new Point(1228, 67);
-            cmboxAtendidoPor.Margin = new Padding(4, 4, 4, 4);
+            cmboxAtendidoPor.Margin = new Padding(4);
             cmboxAtendidoPor.Name = "cmboxAtendidoPor";
             cmboxAtendidoPor.Size = new Size(381, 53);
             cmboxAtendidoPor.TabIndex = 6;
@@ -392,7 +388,7 @@
             btnNuevoCliente.Image = Properties.Resources.new_add_user_16734__1_;
             btnNuevoCliente.ImageAlign = ContentAlignment.MiddleLeft;
             btnNuevoCliente.Location = new Point(706, 51);
-            btnNuevoCliente.Margin = new Padding(4, 4, 4, 4);
+            btnNuevoCliente.Margin = new Padding(4);
             btnNuevoCliente.Name = "btnNuevoCliente";
             btnNuevoCliente.Size = new Size(246, 83);
             btnNuevoCliente.TabIndex = 4;
@@ -407,7 +403,7 @@
             comboBox2.ForeColor = Color.FromArgb(38, 38, 38);
             comboBox2.FormattingEnabled = true;
             comboBox2.Location = new Point(311, 156);
-            comboBox2.Margin = new Padding(4, 4, 4, 4);
+            comboBox2.Margin = new Padding(4);
             comboBox2.Name = "comboBox2";
             comboBox2.Size = new Size(329, 53);
             comboBox2.TabIndex = 3;
@@ -431,7 +427,7 @@
             cmboxClientes.ForeColor = Color.FromArgb(38, 38, 38);
             cmboxClientes.FormattingEnabled = true;
             cmboxClientes.Location = new Point(311, 67);
-            cmboxClientes.Margin = new Padding(4, 4, 4, 4);
+            cmboxClientes.Margin = new Padding(4);
             cmboxClientes.Name = "cmboxClientes";
             cmboxClientes.Size = new Size(329, 53);
             cmboxClientes.TabIndex = 1;
@@ -456,7 +452,7 @@
             ClientSize = new Size(1791, 1133);
             Controls.Add(panel1);
             FormBorderStyle = FormBorderStyle.None;
-            Margin = new Padding(4, 4, 4, 4);
+            Margin = new Padding(4);
             Name = "Facturacion";
             Text = "Facturacion";
             Load += Detalle_Factura_Load;

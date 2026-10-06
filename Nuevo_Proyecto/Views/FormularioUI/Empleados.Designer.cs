@@ -313,7 +313,6 @@
             dateTimePickerEmpleado.Name = "dateTimePickerEmpleado";
             dateTimePickerEmpleado.Size = new Size(270, 50);
             dateTimePickerEmpleado.TabIndex = 37;
-            dateTimePickerEmpleado.ValueChanged += dateTimePickerEmpleado_ValueChanged;
             // 
             // checkBoxEmpleado
             // 

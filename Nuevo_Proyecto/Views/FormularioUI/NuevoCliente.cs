@@ -60,10 +60,51 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void btnGuardarClient_Click(object sender, EventArgs e)
         {
-            // Delegar al presenter
-            GuardarClicked?.Invoke(this, EventArgs.Empty);
-            // El presenter mostrará mensajes y, si procede, la vista se cerrará mediante CloseView
+            // Validar campos antes de guardar
+            if (string.IsNullOrWhiteSpace(txtCodigoClient.Text))
+            {
+                MessageBox.Show("El código es obligatorio.", "Campo vacío", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtCodigoClient.Focus();
+                return;
+            }
 
+            if (string.IsNullOrWhiteSpace(txtNombreClient.Text))
+            {
+                MessageBox.Show("El nombre es obligatorio.", "Campo vacío", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtNombreClient.Focus();
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(txtTelefonoClient.Text))
+            {
+                MessageBox.Show("El teléfono es obligatorio.", "Campo vacío", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtTelefonoClient.Focus();
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(txtDireccionClient.Text))
+            {
+                MessageBox.Show("La dirección es obligatoria.", "Campo vacío", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtDireccionClient.Focus();
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(cmboxNota.Text) || cmboxNota.Text == "Selecciona una nota")
+            {
+                MessageBox.Show("Debes seleccionar una nota.", "Campo vacío", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                cmboxNota.Focus();
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(cmboxAutizado.Text) || cmboxAutizado.Text == "Selecciona un personal encargado")
+            {
+                MessageBox.Show("Debes seleccionar un personal encargado.", "Campo vacío", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                cmboxAutizado.Focus();
+                return;
+            }
+
+            // Si todos los campos están completos, delegar al presenter
+            GuardarClicked?.Invoke(this, EventArgs.Empty);
         }
 
         private void NuevoCliente_Load(object sender, EventArgs e)
@@ -76,6 +117,8 @@ namespace Nuevo_Proyecto.Models.Views
             cmboxNota.DisplayMember = "Nota";
             cmboxNota.ValueMember = "Nota";
             cmboxNota.DropDownStyle = ComboBoxStyle.DropDown;
+            cmboxNota.SelectedIndex = -1;
+            cmboxNota.Text = "Selecciona una nota";
 
             // Cargar autorizados (solo Cajeros y Admins)
             var autorizados = _presenter.GetUsuariosCajerosAdmins();
@@ -83,22 +126,20 @@ namespace Nuevo_Proyecto.Models.Views
             cmboxAutizado.DisplayMember = "Nombre";
             cmboxAutizado.ValueMember = "Codigo";
             cmboxAutizado.SelectedIndex = -1;
+            cmboxAutizado.Text = "Selecciona un personal encargado";
 
             checboxActico.Checked = true;
             // Inicializar estado de controles
             UpdateControlsState();
         }
 
-        // Habilita/deshabilita el botón Guardar según validaciones simples
+        // Habilita/deshabilita el botón Guardar y muestra avisos según validaciones
         private void UpdateControlsState()
         {
-            bool codigoOk = !string.IsNullOrWhiteSpace(txtCodigoClient.Text);
-            bool nombreOk = !string.IsNullOrWhiteSpace(txtNombreClient.Text);
-            bool direccionOk = !string.IsNullOrWhiteSpace(txtDireccionClient.Text);
-            bool telefonoOk = !string.IsNullOrWhiteSpace(txtTelefonoClient.Text);
-
-            // Requerir código, nombre, dirección y teléfono para habilitar guardar
-            btnGuardarClient.Enabled = codigoOk && nombreOk && direccionOk && telefonoOk;
+            // El botón Guardar siempre está habilitado
+            btnGuardarClient.Enabled = true;
+            btnGuardarClient.Text = "Guardar";
+            btnGuardarClient.BackColor = Color.DarkGreen;
         }
 
 
@@ -117,9 +158,11 @@ namespace Nuevo_Proyecto.Models.Views
             Nombre = string.Empty;
             Telefono = string.Empty;
             Direccion = string.Empty;
-            Nota = string.Empty;
-            Activo = true;
+            cmboxNota.SelectedIndex = -1;
+            cmboxNota.Text = "Selecciona una nota";
             cmboxAutizado.SelectedIndex = -1;
+            cmboxAutizado.Text = "Selecciona un personal encargado";
+            Activo = true;
         }
 
         // INuevoClienteView - cerrar la vista (cuando el presentador lo solicite)

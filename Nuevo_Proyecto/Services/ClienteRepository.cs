@@ -36,16 +36,16 @@ namespace Nuevo_Proyecto.Services
             using var db = _factory.CreateDbContext();
             return db.Clientes.AsNoTracking()
                 .Where(c => c.Activo == true && c.Codigo != CodigoConsumidorFinal)
-                .OrderBy(c => c.Nombre)
+                .OrderBy(c => c.Codigo)
                 .Select(ADto)
                 .ToList();
         }
 
-        public IReadOnlyList<ClienteDto> BuscarPorCodigo(string prefijoCodigo)
+        public IReadOnlyList<ClienteDto> BuscarPorCodigo(string codigoExacto)
         {
             using var db = _factory.CreateDbContext();
             return db.Clientes.AsNoTracking()
-                .Where(c => c.Codigo.StartsWith(prefijoCodigo))
+                .Where(c => c.Codigo == codigoExacto)
                 .OrderBy(c => c.Codigo)
                 .Select(ADto)
                 .ToList();
@@ -73,6 +73,60 @@ namespace Nuevo_Proyecto.Services
         {
             using var db = _factory.CreateDbContext();
             return db.Clientes.AsNoTracking().Any(c => c.Codigo == codigo);
+        }
+
+        public bool TelefonoExiste(string telefono)
+        {
+            using var db = _factory.CreateDbContext();
+            return db.Clientes.AsNoTracking().Any(c => c.Telefono == telefono);
+        }
+
+        /// <summary>
+        /// Valida las reglas de negocio para crear un nuevo cliente.
+        /// Devuelve null si es válido, o un mensaje de error si no.
+        /// </summary>
+        public string? ValidarNuevoCliente(string codigo, string nombre, string? telefono, string? direccion, string? nota)
+        {
+            // Validar nombre: debe ser "Nombre Apellido" (exactamente un espacio)
+            if (string.IsNullOrWhiteSpace(nombre))
+                return "El nombre es obligatorio.";
+
+            nombre = nombre.Trim();
+            var partes = nombre.Split(' ');
+
+            // Debe tener exactamente 2 partes (nombre y apellido)
+            if (partes.Length != 2)
+                return "El nombre debe contener exactamente un nombre y un apellido separados por espacio (ej: Jose Ordoz).";
+
+            // Cada parte debe tener al menos 1 carácter
+            if (partes[0].Length == 0 || partes[1].Length == 0)
+                return "El nombre y el apellido no pueden estar vacíos.";
+
+            // Validar teléfono: formato XXXX-XXXX (4 dígitos, guion, 4 dígitos)
+            if (string.IsNullOrWhiteSpace(telefono))
+                return "El teléfono es obligatorio.";
+
+            telefono = telefono.Trim();
+            if (!System.Text.RegularExpressions.Regex.IsMatch(telefono, @"^\d{4}-\d{4}$"))
+                return "El teléfono debe tener formato XXXX-XXXX (ej: 7777-1111).";
+
+            // Validar que el teléfono no sea duplicado
+            if (TelefonoExiste(telefono))
+                return $"El teléfono '{telefono}' ya está registrado en el sistema.";
+
+            // Validar dirección: no más de 50 caracteres
+            if (string.IsNullOrWhiteSpace(direccion))
+                return "La dirección es obligatoria.";
+
+            direccion = direccion.Trim();
+            if (direccion.Length > 50)
+                return "La dirección no puede exceder 50 caracteres.";
+
+            // Validar nota: obligatoria
+            if (string.IsNullOrWhiteSpace(nota))
+                return "Debe seleccionar una nota.";
+
+            return null;  // Todas las validaciones pasaron
         }
 
         public void Crear(ClienteDto dto)

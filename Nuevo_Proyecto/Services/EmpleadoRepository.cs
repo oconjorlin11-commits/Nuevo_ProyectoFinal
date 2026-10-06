@@ -50,11 +50,11 @@ namespace Nuevo_Proyecto.Services
                 .ToList();
         }
 
-        public IReadOnlyList<EmpleadoDto> BuscarPorCodigo(string prefijoCodigo)
+        public IReadOnlyList<EmpleadoDto> BuscarPorCodigo(string codigoExacto)
         {
             using var db = _factory.CreateDbContext();
             return db.Empleados.AsNoTracking()
-                .Where(e => e.Codigo.StartsWith(prefijoCodigo))
+                .Where(e => e.Codigo == codigoExacto)
                 .OrderBy(e => e.Codigo)
                 .Select(ADto)
                 .ToList();
@@ -82,6 +82,34 @@ namespace Nuevo_Proyecto.Services
         {
             using var db = _factory.CreateDbContext();
             return db.Empleados.AsNoTracking().Any(e => e.Codigo == codigo);
+        }
+
+        public bool CedulaExiste(string cedula, string? codigoExcluir = null)
+        {
+            using var db = _factory.CreateDbContext();
+            var query = db.Empleados.AsNoTracking().Where(e => e.Cedula == cedula);
+
+            // Si se proporciona un código a excluir (para edición), exclúyelo
+            if (!string.IsNullOrWhiteSpace(codigoExcluir))
+            {
+                query = query.Where(e => e.Codigo != codigoExcluir);
+            }
+
+            return query.Any();
+        }
+
+        public bool TelefonoExiste(string telefono, string? codigoExcluir = null)
+        {
+            using var db = _factory.CreateDbContext();
+            var query = db.Empleados.AsNoTracking().Where(e => e.Telefono == telefono);
+
+            // Si se proporciona un código a excluir (para edición), exclúyelo
+            if (!string.IsNullOrWhiteSpace(codigoExcluir))
+            {
+                query = query.Where(e => e.Codigo != codigoExcluir);
+            }
+
+            return query.Any();
         }
 
         public void Crear(EmpleadoDto dto)

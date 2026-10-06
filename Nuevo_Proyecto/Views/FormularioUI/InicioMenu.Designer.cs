@@ -75,10 +75,10 @@
             panel1.Controls.Add(grboxFacturaSemanales);
             panel1.Controls.Add(grboxVentasSemanales);
             panel1.Controls.Add(grboxVentasHoy);
-            panel1.Location = new Point(88, 138);
+            panel1.Location = new Point(13, 106);
             panel1.Margin = new Padding(4);
             panel1.Name = "panel1";
-            panel1.Size = new Size(1573, 886);
+            panel1.Size = new Size(1759, 1014);
             panel1.TabIndex = 1;
             // 
             // grboxUltimasFacturas
@@ -88,11 +88,11 @@
             grboxUltimasFacturas.Controls.Add(dataGriUltimasFacturas);
             grboxUltimasFacturas.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             grboxUltimasFacturas.ForeColor = Color.FromArgb(38, 38, 38);
-            grboxUltimasFacturas.Location = new Point(805, 374);
+            grboxUltimasFacturas.Location = new Point(915, 374);
             grboxUltimasFacturas.Margin = new Padding(4);
             grboxUltimasFacturas.Name = "grboxUltimasFacturas";
             grboxUltimasFacturas.Padding = new Padding(4);
-            grboxUltimasFacturas.Size = new Size(751, 508);
+            grboxUltimasFacturas.Size = new Size(827, 636);
             grboxUltimasFacturas.TabIndex = 3;
             grboxUltimasFacturas.TabStop = false;
             grboxUltimasFacturas.Text = "Ultimas Facturas";
@@ -107,7 +107,7 @@
             dataGriUltimasFacturas.Margin = new Padding(4);
             dataGriUltimasFacturas.Name = "dataGriUltimasFacturas";
             dataGriUltimasFacturas.RowHeadersWidth = 62;
-            dataGriUltimasFacturas.Size = new Size(751, 442);
+            dataGriUltimasFacturas.Size = new Size(827, 573);
             dataGriUltimasFacturas.TabIndex = 1;
             dataGriUltimasFacturas.CellContentClick += dataGriUltimasFacturas_CellContentClick;
             // 
@@ -122,7 +122,7 @@
             grboxProductosStockBajo.Margin = new Padding(4);
             grboxProductosStockBajo.Name = "grboxProductosStockBajo";
             grboxProductosStockBajo.Padding = new Padding(4);
-            grboxProductosStockBajo.Size = new Size(751, 508);
+            grboxProductosStockBajo.Size = new Size(856, 636);
             grboxProductosStockBajo.TabIndex = 2;
             grboxProductosStockBajo.TabStop = false;
             grboxProductosStockBajo.Text = "Productos Stock Bajos";
@@ -136,7 +136,7 @@
             dataGriProductosBajos.Margin = new Padding(4);
             dataGriProductosBajos.Name = "dataGriProductosBajos";
             dataGriProductosBajos.RowHeadersWidth = 62;
-            dataGriProductosBajos.Size = new Size(751, 445);
+            dataGriProductosBajos.Size = new Size(856, 569);
             dataGriProductosBajos.TabIndex = 0;
             dataGriProductosBajos.CellContentClick += dataGriProductosBajos_CellContentClick;
             // 
@@ -147,11 +147,11 @@
             grboxValorInventario.Controls.Add(LblValorInventario);
             grboxValorInventario.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             grboxValorInventario.ForeColor = Color.FromArgb(38, 38, 38);
-            grboxValorInventario.Location = new Point(1196, 33);
+            grboxValorInventario.Location = new Point(1382, 33);
             grboxValorInventario.Margin = new Padding(4);
             grboxValorInventario.Name = "grboxValorInventario";
             grboxValorInventario.Padding = new Padding(4);
-            grboxValorInventario.Size = new Size(360, 211);
+            grboxValorInventario.Size = new Size(360, 311);
             grboxValorInventario.TabIndex = 1;
             grboxValorInventario.TabStop = false;
             grboxValorInventario.Text = "Valor Inventario";
@@ -172,11 +172,11 @@
             grboxFacturaSemanales.Controls.Add(LblFacturasSemanales);
             grboxFacturaSemanales.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             grboxFacturaSemanales.ForeColor = Color.FromArgb(38, 38, 38);
-            grboxFacturaSemanales.Location = new Point(806, 33);
+            grboxFacturaSemanales.Location = new Point(992, 33);
             grboxFacturaSemanales.Margin = new Padding(4);
             grboxFacturaSemanales.Name = "grboxFacturaSemanales";
             grboxFacturaSemanales.Padding = new Padding(4);
-            grboxFacturaSemanales.Size = new Size(360, 211);
+            grboxFacturaSemanales.Size = new Size(360, 311);
             grboxFacturaSemanales.TabIndex = 1;
             grboxFacturaSemanales.TabStop = false;
             grboxFacturaSemanales.Text = "Facturas Semanales";
@@ -201,7 +201,7 @@
             grboxVentasSemanales.Margin = new Padding(4);
             grboxVentasSemanales.Name = "grboxVentasSemanales";
             grboxVentasSemanales.Padding = new Padding(4);
-            grboxVentasSemanales.Size = new Size(360, 211);
+            grboxVentasSemanales.Size = new Size(360, 311);
             grboxVentasSemanales.TabIndex = 1;
             grboxVentasSemanales.TabStop = false;
             grboxVentasSemanales.Text = "Ventas Semanales";
@@ -226,7 +226,7 @@
             grboxVentasHoy.Margin = new Padding(4);
             grboxVentasHoy.Name = "grboxVentasHoy";
             grboxVentasHoy.Padding = new Padding(4);
-            grboxVentasHoy.Size = new Size(360, 211);
+            grboxVentasHoy.Size = new Size(360, 311);
             grboxVentasHoy.TabIndex = 0;
             grboxVentasHoy.TabStop = false;
             grboxVentasHoy.Text = "Ventas de Hoy";

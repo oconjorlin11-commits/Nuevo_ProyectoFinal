@@ -10,6 +10,8 @@ namespace Nuevo_Proyecto.Services.Interfaz_service
         IReadOnlyList<string> GetCargos();
         string GetSiguienteCodigo();
         bool CodigoExiste(string codigo);
+        bool CedulaExiste(string cedula, string? codigoExcluir = null);
+        bool TelefonoExiste(string telefono, string? codigoExcluir = null);
         void Crear(EmpleadoDto empleado);
         bool Actualizar(string codigo, string nombre, string? cargo, string cedula, string? telefono, decimal salario);
         bool Desactivar(string codigo);

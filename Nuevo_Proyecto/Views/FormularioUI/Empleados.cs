@@ -18,12 +18,6 @@ namespace Nuevo_Proyecto.Models.Views
         {
             InitializeComponent();
             _presenter = new EmpleadoPresenter(this);
-
-            txtBuscarEmpl.TextChanged += (s, e) => BuscarChanged?.Invoke(this, EventArgs.Empty);
-            dataGridEmpleados.DataBindingComplete += (s, e) => RellenarEstado();
-            dataGridEmpleados.CellFormatting += datagrewEmpleados_CellFormatting;
-            dataGridEmpleados.DataError += DataGridEmpleados_DataError;
-            dataGridEmpleados.SelectionChanged += dataGridEmpleados_SelectionChanged;
         }
 
         // =========================================================================
@@ -83,8 +77,6 @@ namespace Nuevo_Proyecto.Models.Views
         public void MostrarEmpleados(DataTable dt)
         {
             dataGridEmpleados.DataSource = dt;
-            ConfigurarColumnasGrid();
-            RellenarEstado();
         }
 
         public void CargarCargos(DataTable cargos)
@@ -115,59 +107,79 @@ namespace Nuevo_Proyecto.Models.Views
             dataGridEmpleados.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dataGridEmpleados.MultiSelect = false;
 
+            ConfigurarDataGridView();
+            dataGridEmpleados.CellFormatting += datagrewEmpleados_CellFormatting;
+            txtBuscarEmpl.TextChanged += (s, e) => BuscarChanged?.Invoke(this, EventArgs.Empty);
+
             _presenter.InicializarVista();
         }
 
-        private void ConfigurarColumnasGrid()
+        private void ConfigurarDataGridView()
         {
-            if (dataGridEmpleados.Columns.Contains("Codigo")) dataGridEmpleados.Columns["Codigo"]!.HeaderText = "Código";
-            if (dataGridEmpleados.Columns.Contains("Nombre")) dataGridEmpleados.Columns["Nombre"]!.HeaderText = "Nombre";
-            if (dataGridEmpleados.Columns.Contains("Cargo")) dataGridEmpleados.Columns["Cargo"]!.HeaderText = "Cargo";
-            if (dataGridEmpleados.Columns.Contains("FechaIngreso")) dataGridEmpleados.Columns["FechaIngreso"]!.HeaderText = "Fecha Ingreso";
-            if (dataGridEmpleados.Columns.Contains("Cedula")) dataGridEmpleados.Columns["Cedula"]!.HeaderText = "Cédula";
-            if (dataGridEmpleados.Columns.Contains("Telefono")) dataGridEmpleados.Columns["Telefono"]!.HeaderText = "Teléfono";
-            if (dataGridEmpleados.Columns.Contains("Salario")) dataGridEmpleados.Columns["Salario"]!.HeaderText = "Salario";
+            dataGridEmpleados.AutoGenerateColumns = false;
+            dataGridEmpleados.Columns.Clear();
 
-            if (dataGridEmpleados.Columns.Contains("Activo")) dataGridEmpleados.Columns["Activo"]!.Visible = false;
-            if (dataGridEmpleados.Columns.Contains("Estado")) dataGridEmpleados.Columns["Estado"]!.HeaderText = "Estado";
-        }
+            dataGridEmpleados.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Codigo",
+                HeaderText = "Código",
+                DataPropertyName = "Codigo"
+            });
 
-        private void RellenarEstado()
-        {
-            if (dataGridEmpleados.Columns.Contains("Activo"))
+            dataGridEmpleados.Columns.Add(new DataGridViewTextBoxColumn
             {
-                dataGridEmpleados.Columns["Activo"]!.Visible = false;
-            }
-            if (dataGridEmpleados.Columns.Contains("Estado"))
+                Name = "Nombre",
+                HeaderText = "Nombre",
+                DataPropertyName = "Nombre"
+            });
+
+            dataGridEmpleados.Columns.Add(new DataGridViewTextBoxColumn
             {
-                dataGridEmpleados.Columns["Estado"]!.Visible = true;
-                dataGridEmpleados.Columns["Estado"]!.HeaderText = "Estado";
-            }
+                Name = "Cedula",
+                HeaderText = "Cédula",
+                DataPropertyName = "Cedula"
+            });
+
+            dataGridEmpleados.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Cargo",
+                HeaderText = "Cargo",
+                DataPropertyName = "Cargo"
+            });
+
+            dataGridEmpleados.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Telefono",
+                HeaderText = "Teléfono",
+                DataPropertyName = "Telefono"
+            });
+
+            dataGridEmpleados.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Salario",
+                HeaderText = "Salario",
+                DataPropertyName = "Salario"
+            });
+
+            dataGridEmpleados.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "FechaIngreso",
+                HeaderText = "Fecha Ingreso",
+                DataPropertyName = "FechaIngreso"
+            });
+
+            dataGridEmpleados.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Activo",
+                HeaderText = "Estado",
+                DataPropertyName = "Activo"
+            });
         }
 
         private void dataGridEmpleados_SelectionChanged(object? sender, EventArgs e)
         {
-            if (dataGridEmpleados.SelectedRows == null || dataGridEmpleados.SelectedRows.Count == 0) return;
-            var row = dataGridEmpleados.SelectedRows[0];
-            if (row.Cells[0].Value == null) return;
-
-            try
-            {
-                string codigo = row.Cells["Codigo"].Value?.ToString() ?? string.Empty;
-                string nombre = row.Cells["Nombre"].Value?.ToString() ?? string.Empty;
-                string cargo = row.Cells["Cargo"].Value?.ToString() ?? string.Empty;
-                string cedula = row.Cells["Cedula"].Value?.ToString() ?? string.Empty;
-                string? telefono = row.Cells["Telefono"].Value?.ToString();
-                decimal salario = decimal.TryParse(row.Cells["Salario"].Value?.ToString(), out var s) ? s : 0;
-                DateTime fecha = DateTime.TryParse(row.Cells["FechaIngreso"].Value?.ToString(), out var f) ? f : DateTime.Now;
-                bool activo = ParseBoolDb(row.Cells["Activo"].Value);
-
-                _presenter.SeleccionarEmpleado(codigo, nombre, cargo, cedula, telefono, salario, fecha, activo);
-            }
-            catch
-            {
-                // ignorar errores de formato al cambiar de fila
-            }
+            // El DataGrid es solo de observación, no tiene funcionalidad de búsqueda o filtro
+            // No se carga información en los campos de edición desde el grid
         }
 
         private void btnNuevoEmpleado_Click(object sender, EventArgs e)
@@ -187,43 +199,12 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void datagrewEmpleados_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
-            try
+            if (dataGridEmpleados.Columns[e.ColumnIndex].Name == "Activo" && e.Value is bool activo)
             {
-                if (dataGridEmpleados.Columns[e.ColumnIndex].Name == "Activo")
-                {
-                    bool activo = ParseBoolDb(e.Value);
-                    e.Value = activo ? "Trabajando" : "Despedido";
-                    e.FormattingApplied = true;
-                }
-            }
-            catch
-            {
+                e.Value = activo ? "Trabajando" : "Despedido";
+                e.FormattingApplied = true;
             }
         }
-
-        private void DataGridEmpleados_DataError(object? sender, DataGridViewDataErrorEventArgs e)
-        {
-            e.ThrowException = false;
-        }
-
-        private static bool ParseBoolDb(object? value)
-        {
-            if (value == null || value == DBNull.Value) return false;
-            try
-            {
-                if (value is bool b) return b;
-                var txt = value.ToString()?.Trim() ?? string.Empty;
-                if (txt == "1") return true;
-                if (txt == "0") return false;
-                if (bool.TryParse(txt, out var bb)) return bb;
-            }
-            catch
-            {
-            }
-            return false;
-        }
-
-        private void dateTimePickerEmpleado_ValueChanged(object sender, EventArgs e) { }
     }
 }
 

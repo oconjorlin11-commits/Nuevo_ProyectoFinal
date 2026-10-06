@@ -69,6 +69,16 @@ namespace Nuevo_Proyecto.Presenters
             _view.CargarCargos(GetCargos());
         }
 
+        private void RefrescarYLimpiar()
+        {
+            if (_view != null)
+            {
+                _view.BuscarTexto = string.Empty;  // Limpiar el textbox de búsqueda
+            }
+            CargarEmpleadosActivos();  // Recargar los empleados activos
+            LimpiarCampos();  // Limpiar los campos de edición
+        }
+
         public void SeleccionarEmpleado(string codigo, string nombre, string cargo, string cedula, string? telefono,
                                         decimal salario, DateTime fechaIngreso, bool activo)
         {
@@ -160,9 +170,9 @@ namespace Nuevo_Proyecto.Presenters
                 return;
             }
 
-            if (_nuevoEmpleadoView.Salario < 0)
+            if (_nuevoEmpleadoView.Salario <= 1)
             {
-                _nuevoEmpleadoView.showMessage("El salario no puede ser negativo.", "Validación", true);
+                _nuevoEmpleadoView.showMessage("El salario debe ser mayor a 1.", "Validación", true);
                 return;
             }
 
@@ -174,11 +184,42 @@ namespace Nuevo_Proyecto.Presenters
                 return;
             }
 
+            // Validar formatos específicos
+            if (!ValidarFormatoNombre(nombre))
+            {
+                _nuevoEmpleadoView.showMessage("El nombre debe contener al menos dos palabras (ej: Jose Alejandro Ordoñez Medina).", "Validación", true);
+                return;
+            }
+
+            if (!ValidarFormatoCedula(cedula))
+            {
+                _nuevoEmpleadoView.showMessage("El formato de cédula es incorrecto. Use el formato: xxx-xxxxxx-xxxxA (ej: 561-021007-1000A).", "Validación", true);
+                return;
+            }
+
+            if (telefono != null && !ValidarFormatoTelefono(telefono))
+            {
+                _nuevoEmpleadoView.showMessage("El formato de teléfono es incorrecto. Use el formato: xxxx-xxxx (ej: 7635-7836).", "Validación", true);
+                return;
+            }
+
             try
             {
                 if (_empleados.CodigoExiste(codigo))
                 {
                     _nuevoEmpleadoView.showMessage($"El código '{codigo}' ya existe. Por favor, ingrese un código único.", "Error", true);
+                    return;
+                }
+
+                if (_empleados.CedulaExiste(cedula))
+                {
+                    _nuevoEmpleadoView.showMessage($"La cédula '{cedula}' ya está registrada en el sistema. No se puede ingresar cédulas duplicadas.", "Error", true);
+                    return;
+                }
+
+                if (telefono != null && _empleados.TelefonoExiste(telefono))
+                {
+                    _nuevoEmpleadoView.showMessage($"El teléfono '{telefono}' ya está en uso por otro empleado. No se puede ingresar teléfonos duplicados.", "Error", true);
                     return;
                 }
 
@@ -227,7 +268,7 @@ namespace Nuevo_Proyecto.Presenters
                 if (ok)
                 {
                     _view.showMessage("Empleado reactivado correctamente.", "Éxito", false);
-                    InicializarVista();
+                    RefrescarYLimpiar();
                 }
                 else
                 {
@@ -261,9 +302,9 @@ namespace Nuevo_Proyecto.Presenters
                 return;
             }
 
-            if (_view.Salario < 0)
+            if (_view.Salario <= 1)
             {
-                _view.showMessage("El salario no puede ser negativo.", "Validación", true);
+                _view.showMessage("El salario debe ser mayor a 1.", "Validación", true);
                 return;
             }
 
@@ -273,11 +314,43 @@ namespace Nuevo_Proyecto.Presenters
                 return;
             }
 
+            // Validar formatos específicos
+            if (!ValidarFormatoNombre(nombre))
+            {
+                _view.showMessage("El nombre debe contener al menos dos palabras (ej: Jose Alejandro Ordoñez Medina).", "Validación", true);
+                return;
+            }
+
+            if (!ValidarFormatoCedula(cedula))
+            {
+                _view.showMessage("El formato de cédula es incorrecto. Use el formato: xxx-xxxxxx-xxxxA (ej: 561-021007-1000A).", "Validación", true);
+                return;
+            }
+
+            if (telefono != null && !ValidarFormatoTelefono(telefono))
+            {
+                _view.showMessage("El formato de teléfono es incorrecto. Use el formato: xxxx-xxxx (ej: 7635-7836).", "Validación", true);
+                return;
+            }
+
+            // Validar que cédula y teléfono no estén duplicados (excluyendo el empleado actual)
+            if (_empleados.CedulaExiste(cedula, _codigoOriginal))
+            {
+                _view.showMessage($"La cédula '{cedula}' ya está registrada en otro empleado. No se puede ingresar cédulas duplicadas.", "Error", true);
+                return;
+            }
+
+            if (telefono != null && _empleados.TelefonoExiste(telefono, _codigoOriginal))
+            {
+                _view.showMessage($"El teléfono '{telefono}' ya está en uso por otro empleado. No se puede ingresar teléfonos duplicados.", "Error", true);
+                return;
+            }
+
             bool okUpdate = _empleados.Actualizar(_codigoOriginal, nombre, cargo, cedula, telefono, _view.Salario);
             if (okUpdate)
             {
                 _view.showMessage("Empleado actualizado correctamente.", "Éxito", false);
-                InicializarVista();
+                RefrescarYLimpiar();
             }
             else
             {
@@ -299,7 +372,7 @@ namespace Nuevo_Proyecto.Presenters
             if (ok)
             {
                 _view.showMessage("Empleado despedido (inactivado) correctamente.", "Éxito", false);
-                InicializarVista();
+                RefrescarYLimpiar();
             }
             else
             {
@@ -315,16 +388,22 @@ namespace Nuevo_Proyecto.Presenters
 
             if (string.IsNullOrEmpty(codigo))
             {
-                InicializarVista();
+                // Si el textbox está vacío, mostrar solo los activos y limpiar campos
+                CargarEmpleadosActivos();
+                LimpiarCampos();
                 return;
             }
 
+            // Buscar código EXACTO en activos e inactivos
             var resultados = _empleados.BuscarPorCodigo(codigo);
             var dt = DataTableMapper.Empleados(resultados);
 
             if (dt.Rows.Count > 0)
             {
+                // Mostrar resultado exacto encontrado
                 _view.MostrarEmpleados(dt);
+
+                // Cargar el resultado en los campos de edición
                 var row = dt.Rows[0];
                 SeleccionarEmpleado(
                     row["Codigo"]?.ToString() ?? string.Empty,
@@ -339,9 +418,51 @@ namespace Nuevo_Proyecto.Presenters
             }
             else
             {
-                _view.showMessage("Empleado no encontrado.", "Búsqueda", false);
-                InicializarVista();
+                // Si no hay resultado exacto, mostrar solo los activos
+                CargarEmpleadosActivos();
+                LimpiarCampos();
             }
+        }
+
+        // ---------------------------------------------------------------- validaciones de formato
+
+        private bool ValidarFormatoNombre(string nombre)
+        {
+            // Validar que tenga mínimo 2 palabras (separadas por espacios)
+            // Ejemplo: "Jose Alejandro Ordoñez Medina"
+            if (string.IsNullOrWhiteSpace(nombre)) return false;
+
+            var palabras = nombre.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            return palabras.Length >= 2;
+        }
+
+        private bool ValidarFormatoCedula(string cedula)
+        {
+            // Validar formato: xxx-xxxxxx-xxxxA
+            // Ejemplo: "561-021007-1000A"
+            // Patrón: 3 dígitos - 6 dígitos - 4 dígitos/letras
+            if (string.IsNullOrWhiteSpace(cedula)) return false;
+
+            System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(@"^\d{3}-\d{6}-\d{4}[A-Z]?$", 
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            return regex.IsMatch(cedula.Trim());
+        }
+
+        private bool ValidarFormatoTelefono(string telefono)
+        {
+            // Validar formato: xxxx-xxxx
+            // Ejemplo: "7635-7836" (4 dígitos - 4 dígitos)
+            if (string.IsNullOrWhiteSpace(telefono)) return true; // Teléfono es opcional
+
+            System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex(@"^\d{4}-\d{4}$");
+            return regex.IsMatch(telefono.Trim());
+        }
+
+        private bool ValidarFormatoSalario(decimal salario)
+        {
+            // Validar que sea mayor a 1
+            // El formato con comas se maneja automáticamente en la conversión
+            return salario > 1;
         }
     }
 }
