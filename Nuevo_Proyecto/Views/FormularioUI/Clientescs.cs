@@ -27,19 +27,15 @@ namespace Nuevo_Proyecto.Models.Views
         public string Direccion { get => txtDireccionClient.Text; set => txtDireccionClient.Text = value; }
         public string Nota { get => cmboxNotasClient.Text; set => cmboxNotasClient.Text = value; }
         public bool Activo { get => checboxClient.Checked; set => checboxClient.Checked = value; }
-        public string AutorizadoPor { get => string.Empty; set { } }
         public string BuscarTexto { get => txtBuscarClient.Text; set => txtBuscarClient.Text = value; }
 
         // =========================================================================
         // Eventos que la vista UI notifica al presentador
         // =========================================================================
 
-        // Eventos que pueden ser suscritos por el presentador
-        public event EventHandler GuardarClicked;
-        public event EventHandler CancelarClicked;
-        public event EventHandler EditarClicked;
-        public event EventHandler EliminarClicked;
-        public event EventHandler BuscarChanged;
+        public event EventHandler? EditarClicked;
+        public event EventHandler? EliminarClicked;
+        public event EventHandler? BuscarChanged;
 
         // =========================================================================
         // Métodos de control visual ordenados por el presentador
@@ -62,8 +58,6 @@ namespace Nuevo_Proyecto.Models.Views
             checboxClient.Checked = false;
             checboxClient.Enabled = false;
         }
-
-        public void CloseView() { }
 
         public void MostrarClientes(DataTable dt)
         {
@@ -195,7 +189,7 @@ namespace Nuevo_Proyecto.Models.Views
             }
         }
 
-        private void datagrewClientes_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        private void datagrewClientes_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
             if (dataGridClientes.Columns[e.ColumnIndex].Name == "Activo" && e.Value is bool activo)
             {
@@ -204,6 +198,6 @@ namespace Nuevo_Proyecto.Models.Views
             }
         }
 
-        private void label1_Click(object sender, EventArgs e) { }
+        private void label1_Click(object? sender, EventArgs e) { }
     }
 }

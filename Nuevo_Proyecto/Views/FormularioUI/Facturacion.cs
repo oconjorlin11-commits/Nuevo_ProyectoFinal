@@ -20,14 +20,6 @@ namespace Nuevo_Proyecto.Models.Views
     {
         private readonly FacturacionPresenter _presenter;
 
-        // Eventos
-        public event EventHandler NuevoClienteClick;
-        public event EventHandler AgregarProductoClick;
-        public event EventHandler QuitarLineaClick;
-        public event EventHandler LimpiarTodoClick;
-        public event EventHandler VerImprimirClick;
-        public event EventHandler GuardarFacturaClick;
-
         public Facturacion()
         {
             InitializeComponent();
@@ -173,8 +165,8 @@ namespace Nuevo_Proyecto.Models.Views
             dataGridDetallesFacturas.Columns.Add("Subtotal", "Subtotal");
             dataGridDetallesFacturas.Columns.Add("Estado", "Estado");
 
-            dataGridDetallesFacturas.Columns["PrecioUnitario"].DefaultCellStyle.Format = "C2";
-            dataGridDetallesFacturas.Columns["Subtotal"].DefaultCellStyle.Format = "C2";
+            dataGridDetallesFacturas.Columns["PrecioUnitario"]!.DefaultCellStyle.Format = "C2";
+            dataGridDetallesFacturas.Columns["Subtotal"]!.DefaultCellStyle.Format = "C2";
         }
 
         private void BtnNuevoCliente_Click(object sender, EventArgs e)
@@ -182,9 +174,6 @@ namespace Nuevo_Proyecto.Models.Views
             // Crear instancia del formulario NuevoCliente
             NuevoCliente frm = new NuevoCliente();
             frm.Show();
-
-            // Raizar evento si está suscrito
-            NuevoClienteClick?.Invoke(this, EventArgs.Empty);
         }
 
         // Método esperado por el Designer.cs para btnNuevoCliente
@@ -242,8 +231,6 @@ namespace Nuevo_Proyecto.Models.Views
                 MessageBox.Show($"Factura guardada correctamente con código: {resultado.Numero}");
                 dataGridDetallesFacturas.Rows.Clear();
                 ResetFields();
-
-                GuardarFacturaClick?.Invoke(this, EventArgs.Empty);
             }
             catch (Exception ex)
             {
@@ -260,8 +247,6 @@ namespace Nuevo_Proyecto.Models.Views
             // Crear instancia del formulario FacturasEmitidas
             FacturasEmitidas frm = new FacturasEmitidas();
             frm.Show();
-
-            VerImprimirClick?.Invoke(this, EventArgs.Empty);
         }
 
         public void showMessage(string message, string titulo, bool esError)
@@ -311,8 +296,6 @@ namespace Nuevo_Proyecto.Models.Views
                 {
                     MessageBox.Show("Debe seleccionar la línea que desea quitar.", "Información", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
-
-                QuitarLineaClick?.Invoke(this, EventArgs.Empty);
             }
             catch (Exception ex)
             {
@@ -323,7 +306,6 @@ namespace Nuevo_Proyecto.Models.Views
         private void btnLimpiarAll_Click(object sender, EventArgs e)
         {
             ResetFields();
-            LimpiarTodoClick?.Invoke(this, EventArgs.Empty);
         }
 
         private void btnAgregarProduc_Click(object sender, EventArgs e)
@@ -367,8 +349,6 @@ namespace Nuevo_Proyecto.Models.Views
             // Limpiar selección de producto y cantidad
             cmboxProductos.SelectedIndex = -1;
             numericUpCantidad.Value = 0;
-
-            AgregarProductoClick?.Invoke(this, EventArgs.Empty);
         }
 
         private void panel1_Paint(object sender, PaintEventArgs e)

@@ -45,7 +45,7 @@ namespace Nuevo_Proyecto.Services
         public IReadOnlyList<FacturaResumenDto> BuscarPorNumero(string prefijoNumero)
         {
             using var db = _factory.CreateDbContext();
-            return Resumen(db.Facturas.AsNoTracking().Where(f => f.Numero != null && f.Numero.StartsWith(prefijoNumero)));
+            return Resumen(db.Facturas.AsNoTracking().Where(f => f.Numero != null && f.Numero.ToUpper() == prefijoNumero.ToUpper()));
         }
 
         public IReadOnlyList<FacturaResumenDto> FiltrarPorFecha(DateTime desde, DateTime hasta)

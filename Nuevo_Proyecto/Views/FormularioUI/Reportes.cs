@@ -15,16 +15,30 @@ using System.IO;
 
 
 
+using Nuevo_Proyecto.Presenters;
+using Nuevo_Proyecto.Views.Interfaces;
+
 namespace Nuevo_Proyecto.Models.Views
 {
-    public partial class Reportes : Form
+    public partial class Reportes : Form, IReportesView
     {
-        private readonly Nuevo_Proyecto.Presenters.InventarioPresenter _presenter;
+        private readonly InventarioPresenter _presenter;
 
         public Reportes()
         {
             InitializeComponent();
-            _presenter = new Nuevo_Proyecto.Presenters.InventarioPresenter(this as Nuevo_Proyecto.Views.Interfaces.IInventarioView);
+            _presenter = new InventarioPresenter();
+        }
+
+        public void MostrarReportes(DataTable reportes)
+        {
+            dataGridReportes.DataSource = reportes;
+        }
+
+        public void showMessage(string message, string titulo, bool esError)
+        {
+            MessageBoxIcon icon = esError ? MessageBoxIcon.Error : MessageBoxIcon.Information;
+            MessageBox.Show(message, titulo, MessageBoxButtons.OK, icon);
         }
 
         private void ExportarMovimientosAExcel()
@@ -89,50 +103,50 @@ namespace Nuevo_Proyecto.Models.Views
 
             // Ajustar encabezados de columnas principales
             if (dataGridReportes.Columns.Contains("MovimientoID"))
-                dataGridReportes.Columns["MovimientoID"].HeaderText = "ID Movimiento";
+                dataGridReportes.Columns["MovimientoID"]!.HeaderText = "ID Movimiento";
 
             if (dataGridReportes.Columns.Contains("Fecha"))
-                dataGridReportes.Columns["Fecha"].HeaderText = "Fecha";
+                dataGridReportes.Columns["Fecha"]!.HeaderText = "Fecha";
 
             if (dataGridReportes.Columns.Contains("Tipo"))
-                dataGridReportes.Columns["Tipo"].HeaderText = "Tipo";
+                dataGridReportes.Columns["Tipo"]!.HeaderText = "Tipo";
 
             if (dataGridReportes.Columns.Contains("Cantidad"))
-                dataGridReportes.Columns["Cantidad"].HeaderText = "Cantidad";
+                dataGridReportes.Columns["Cantidad"]!.HeaderText = "Cantidad";
 
             if (dataGridReportes.Columns.Contains("StockAnterior"))
-                dataGridReportes.Columns["StockAnterior"].HeaderText = "Stock Anterior";
+                dataGridReportes.Columns["StockAnterior"]!.HeaderText = "Stock Anterior";
 
             if (dataGridReportes.Columns.Contains("StockNuevo"))
-                dataGridReportes.Columns["StockNuevo"].HeaderText = "Stock Nuevo";
+                dataGridReportes.Columns["StockNuevo"]!.HeaderText = "Stock Nuevo";
 
             if (dataGridReportes.Columns.Contains("Observacion"))
-                dataGridReportes.Columns["Observacion"].HeaderText = "Observación";
+                dataGridReportes.Columns["Observacion"]!.HeaderText = "Observación";
 
             if (dataGridReportes.Columns.Contains("NombreProducto"))
-                dataGridReportes.Columns["NombreProducto"].HeaderText = "Producto";
+                dataGridReportes.Columns["NombreProducto"]!.HeaderText = "Producto";
 
             if (dataGridReportes.Columns.Contains("NombreEmpleado"))
-                dataGridReportes.Columns["NombreEmpleado"].HeaderText = "Empleado";
+                dataGridReportes.Columns["NombreEmpleado"]!.HeaderText = "Empleado";
 
             if (dataGridReportes.Columns.Contains("PrecioVenta"))
             {
-                dataGridReportes.Columns["PrecioVenta"].HeaderText = "Precio Venta";
-                dataGridReportes.Columns["PrecioVenta"].DefaultCellStyle.Format = "C2";
+                dataGridReportes.Columns["PrecioVenta"]!.HeaderText = "Precio Venta";
+                dataGridReportes.Columns["PrecioVenta"]!.DefaultCellStyle.Format = "C2";
             }
 
             if (dataGridReportes.Columns.Contains("ValorInventario"))
             {
-                dataGridReportes.Columns["ValorInventario"].HeaderText = "Valor Inventario";
-                dataGridReportes.Columns["ValorInventario"].DefaultCellStyle.Format = "C2";
+                dataGridReportes.Columns["ValorInventario"]!.HeaderText = "Valor Inventario";
+                dataGridReportes.Columns["ValorInventario"]!.DefaultCellStyle.Format = "C2";
             }
 
             // Ajustar encabezados de métricas de facturación (solo pagadas)
             if (dataGridReportes.Columns.Contains("CantidadFacturasEmitidas"))
-                dataGridReportes.Columns["CantidadFacturasEmitidas"].HeaderText = "Facturas Emitidas (Pagadas)";
+                dataGridReportes.Columns["CantidadFacturasEmitidas"]!.HeaderText = "Facturas Emitidas (Pagadas)";
 
             if (dataGridReportes.Columns.Contains("CantidadProductosDescontados"))
-                dataGridReportes.Columns["CantidadProductosDescontados"].HeaderText = "Productos Descontados (Pagadas)";
+                dataGridReportes.Columns["CantidadProductosDescontados"]!.HeaderText = "Productos Descontados (Pagadas)";
         }
 
         private void groupBoxDatosPedido_Enter(object sender, EventArgs e)
@@ -142,7 +156,7 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void Reportes_Load(object sender, EventArgs e)
         {
-            CargarReportes(null, null); CargarReportes(null, null);
+            CargarReportes(null, null);
         }
 
         private void btnExportaReportes_Click(object sender, EventArgs e)

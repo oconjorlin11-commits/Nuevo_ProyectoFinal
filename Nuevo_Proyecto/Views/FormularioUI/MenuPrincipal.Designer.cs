@@ -1,4 +1,4 @@
-﻿namespace Nuevo_Proyecto.Models.Views
+namespace Nuevo_Proyecto.Models.Views
 {
     partial class MenuPrincipal
     {
@@ -314,7 +314,6 @@
         #endregion
         private Panel pnlIcono;
         private PictureBox pictureBoxIcono;
-        private Button button7;
         private Button btnSalir;
         private Panel panel2;
         private Panel panel3;

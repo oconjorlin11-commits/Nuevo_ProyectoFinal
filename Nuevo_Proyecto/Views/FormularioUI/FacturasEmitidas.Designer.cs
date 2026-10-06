@@ -35,8 +35,6 @@
             label2 = new Label();
             btnVerComprob = new Button();
             button2 = new Button();
-            label1 = new Label();
-            label4 = new Label();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridFacturasEmitidas).BeginInit();
             SuspendLayout();
@@ -46,9 +44,9 @@
             panel1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             panel1.BackColor = Color.FromArgb(250, 247, 241);
             panel1.Controls.Add(dataGridFacturasEmitidas);
-            panel1.Location = new Point(12, 103);
+            panel1.Location = new Point(12, 85);
             panel1.Name = "panel1";
-            panel1.Size = new Size(1327, 651);
+            panel1.Size = new Size(1327, 665);
             panel1.TabIndex = 0;
             // 
             // dataGridFacturasEmitidas
@@ -130,8 +128,6 @@
             Controls.Add(btnVerComprob);
             Controls.Add(txtBuscarFact);
             Controls.Add(label2);
-            Controls.Add(label1);
-            Controls.Add(label4);
             Controls.Add(panel1);
             FormBorderStyle = FormBorderStyle.SizableToolWindow;
             Name = "FacturasEmitidas";
@@ -147,8 +143,6 @@
 
         private Panel panel1;
         private DataGridView dataGridFacturasEmitidas;
-        private Label label4;
-        private Label label1;
         private TextBox txtBuscarFact;
         private Label label2;
         private Button btnVerComprob;

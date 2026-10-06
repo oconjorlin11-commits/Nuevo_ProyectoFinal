@@ -28,22 +28,15 @@
         /// </summary>
         private void InitializeComponent()
         {
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             btnExportar = new Button();
             btnImprimir = new Button();
             pnlComprobante = new Panel();
             pnlFactura = new Panel();
-            pnlBotones = new Panel();
             dgvProductos = new DataGridView();
             lblGracias = new Label();
             lblTotal = new Label();
             lblSubTotalFinal = new Label();
-            lblPrecioFinal = new Label();
-            lblCantFinal = new Label();
-            lblProductoFinal = new Label();
-            lblSubTotal = new Label();
-            lblPrecio = new Label();
-            lblCantidad = new Label();
-            lblProducto = new Label();
             label3 = new Label();
             label2 = new Label();
             label1 = new Label();
@@ -63,8 +56,12 @@
             lblTitulo = new Label();
             pnlBotones = new Panel();
             button1 = new Button();
+            lblPrecioFinal = new Label();
+            lblCantFinal = new Label();
+            lblProductoFinal = new Label();
             pnlComprobante.SuspendLayout();
             pnlFactura.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvProductos).BeginInit();
             pnlBotones.SuspendLayout();
             SuspendLayout();
             // 
@@ -122,10 +119,6 @@
             pnlFactura.Controls.Add(lblGracias);
             pnlFactura.Controls.Add(lblTotal);
             pnlFactura.Controls.Add(lblSubTotalFinal);
-            pnlFactura.Controls.Add(lblSubTotal);
-            pnlFactura.Controls.Add(lblPrecio);
-            pnlFactura.Controls.Add(lblCantidad);
-            pnlFactura.Controls.Add(lblProducto);
             pnlFactura.Controls.Add(label3);
             pnlFactura.Controls.Add(label2);
             pnlFactura.Controls.Add(label1);
@@ -149,6 +142,27 @@
             pnlFactura.Size = new Size(984, 1130);
             pnlFactura.TabIndex = 0;
             pnlFactura.Paint += pnlFactura_Paint;
+            // 
+            // dgvProductos
+            // 
+            dgvProductos.AllowUserToAddRows = false;
+            dgvProductos.AllowUserToDeleteRows = false;
+            dgvProductos.AllowUserToResizeRows = false;
+            dgvProductos.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvProductos.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
+            dgvProductos.BackgroundColor = Color.FromArgb(250, 247, 241);
+            dgvProductos.BorderStyle = BorderStyle.None;
+            dgvProductos.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dgvProductos.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvProductos.Location = new Point(25, 618);
+            dgvProductos.Margin = new Padding(4);
+            dgvProductos.Name = "dgvProductos";
+            dgvProductos.ReadOnly = true;
+            dgvProductos.RowHeadersVisible = false;
+            dgvProductos.RowHeadersWidth = 82;
+            dgvProductos.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvProductos.Size = new Size(897, 251);
+            dgvProductos.TabIndex = 19;
             // 
             // lblGracias
             // 
@@ -182,115 +196,6 @@
             lblSubTotalFinal.Size = new Size(123, 37);
             lblSubTotalFinal.TabIndex = 24;
             lblSubTotalFinal.Text = "SubTotal";
-            // 
-            // lblPrecioFinal
-            // 
-            lblPrecioFinal.AutoSize = true;
-            lblPrecioFinal.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
-            lblPrecioFinal.Location = new Point(545, 748);
-            lblPrecioFinal.Margin = new Padding(4, 0, 4, 0);
-            lblPrecioFinal.Name = "lblPrecioFinal";
-            lblPrecioFinal.Size = new Size(93, 37);
-            lblPrecioFinal.TabIndex = 23;
-            lblPrecioFinal.Text = "Precio";
-            // 
-            // lblCantFinal
-            // 
-            lblCantFinal.AutoSize = true;
-            lblCantFinal.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
-            lblCantFinal.Location = new Point(352, 748);
-            lblCantFinal.Margin = new Padding(4, 0, 4, 0);
-            lblCantFinal.Name = "lblCantFinal";
-            lblCantFinal.Size = new Size(127, 37);
-            lblCantFinal.TabIndex = 22;
-            lblCantFinal.Text = "Cantidad";
-            // 
-            // lblProductoFinal
-            // 
-            lblProductoFinal.AutoSize = true;
-            lblProductoFinal.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
-            lblProductoFinal.Location = new Point(70, 748);
-            lblProductoFinal.Margin = new Padding(4, 0, 4, 0);
-            lblProductoFinal.Name = "lblProductoFinal";
-            lblProductoFinal.Size = new Size(130, 37);
-            lblProductoFinal.TabIndex = 21;
-            lblProductoFinal.Text = "Producto";
-            // 
-            // lblSubTotal
-            // 
-            lblSubTotal.AutoSize = true;
-            lblSubTotal.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
-            lblSubTotal.Location = new Point(708, 646);
-            lblSubTotal.Margin = new Padding(4, 0, 4, 0);
-            lblSubTotal.Name = "lblSubTotal";
-            lblSubTotal.Size = new Size(123, 37);
-            lblSubTotal.TabIndex = 20;
-            lblSubTotal.Text = "SubTotal";
-            // 
-            // lblPrecio
-            // 
-            lblPrecio.AutoSize = true;
-            lblPrecio.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
-            lblPrecio.Location = new Point(545, 646);
-            lblPrecio.Margin = new Padding(4, 0, 4, 0);
-            lblPrecio.Name = "lblPrecio";
-            lblPrecio.Size = new Size(93, 37);
-            lblPrecio.TabIndex = 19;
-            lblPrecio.Text = "Precio";
-            // 
-            // lblCantidad
-            // 
-            lblCantidad.AutoSize = true;
-            lblCantidad.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
-            lblCantidad.Location = new Point(352, 646);
-            lblCantidad.Margin = new Padding(4, 0, 4, 0);
-            lblCantidad.Name = "lblCantidad";
-            lblCantidad.Size = new Size(127, 37);
-            lblCantidad.TabIndex = 18;
-            lblCantidad.Text = "Cantidad";
-            // 
-            // lblProducto
-            // 
-            lblProducto.AutoSize = true;
-            lblProducto.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
-            lblProducto.Location = new Point(70, 646);
-            lblProducto.Margin = new Padding(4, 0, 4, 0);
-            lblProducto.Name = "lblProducto";
-            lblProducto.Size = new Size(130, 37);
-            lblProducto.TabIndex = 17;
-            lblProducto.Text = "Producto";
-            // 
-            // dgvProductos
-            // 
-            dgvProductos.AllowUserToAddRows = false;
-            dgvProductos.AllowUserToDeleteRows = false;
-            dgvProductos.AllowUserToResizeRows = false;
-            dgvProductos.BackgroundColor = Color.FromArgb(250, 247, 241);
-            dgvProductos.BorderStyle = BorderStyle.None;
-            dgvProductos.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle()
-            {
-                BackColor = Color.FromArgb(200, 180, 150),
-                ForeColor = Color.Black,
-                Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold),
-                Alignment = DataGridViewContentAlignment.MiddleCenter,
-                Padding = new Padding(2)
-            };
-            dgvProductos.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvProductos.DefaultCellStyle = new DataGridViewCellStyle()
-            {
-                BackColor = Color.FromArgb(250, 247, 241),
-                ForeColor = Color.Black,
-                Font = new Font("Segoe UI", 9F),
-                Alignment = DataGridViewContentAlignment.MiddleCenter
-            };
-            dgvProductos.Location = new Point(25, 695);
-            dgvProductos.Margin = new Padding(4);
-            dgvProductos.Name = "dgvProductos";
-            dgvProductos.ReadOnly = true;
-            dgvProductos.RowHeadersVisible = false;
-            dgvProductos.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvProductos.Size = new Size(950, 130);
-            dgvProductos.TabIndex = 19;
             // 
             // label3
             // 
@@ -508,6 +413,39 @@
             button1.UseVisualStyleBackColor = false;
             button1.Click += button1_Click;
             // 
+            // lblPrecioFinal
+            // 
+            lblPrecioFinal.AutoSize = true;
+            lblPrecioFinal.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
+            lblPrecioFinal.Location = new Point(545, 748);
+            lblPrecioFinal.Margin = new Padding(4, 0, 4, 0);
+            lblPrecioFinal.Name = "lblPrecioFinal";
+            lblPrecioFinal.Size = new Size(93, 37);
+            lblPrecioFinal.TabIndex = 23;
+            lblPrecioFinal.Text = "Precio";
+            // 
+            // lblCantFinal
+            // 
+            lblCantFinal.AutoSize = true;
+            lblCantFinal.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
+            lblCantFinal.Location = new Point(352, 748);
+            lblCantFinal.Margin = new Padding(4, 0, 4, 0);
+            lblCantFinal.Name = "lblCantFinal";
+            lblCantFinal.Size = new Size(127, 37);
+            lblCantFinal.TabIndex = 22;
+            lblCantFinal.Text = "Cantidad";
+            // 
+            // lblProductoFinal
+            // 
+            lblProductoFinal.AutoSize = true;
+            lblProductoFinal.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
+            lblProductoFinal.Location = new Point(70, 748);
+            lblProductoFinal.Margin = new Padding(4, 0, 4, 0);
+            lblProductoFinal.Name = "lblProductoFinal";
+            lblProductoFinal.Size = new Size(130, 37);
+            lblProductoFinal.TabIndex = 21;
+            lblProductoFinal.Text = "Producto";
+            // 
             // Comprobante
             // 
             AutoScaleDimensions = new SizeF(13F, 32F);
@@ -526,6 +464,7 @@
             pnlComprobante.ResumeLayout(false);
             pnlFactura.ResumeLayout(false);
             pnlFactura.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvProductos).EndInit();
             pnlBotones.ResumeLayout(false);
             ResumeLayout(false);
         }
@@ -561,10 +500,6 @@
         private Label lblPrecioFinal;
         private Label lblCantFinal;
         private Label lblProductoFinal;
-        private Label lblSubTotal;
-        private Label lblPrecio;
-        private Label lblCantidad;
-        private Label lblProducto;
         private Label label3;
         private Label label2;
         private Label label1;

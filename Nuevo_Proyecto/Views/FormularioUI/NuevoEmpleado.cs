@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -13,9 +13,12 @@ using Nuevo_Proyecto.Views.Interfaces;
 
 namespace Nuevo_Proyecto.Models.Views
 {
-    public partial class NuevoEmpleado : Form, IEmpleadoView
+    public partial class NuevoEmpleado : Form, INuevoEmpleadoView
     {
         private readonly EmpleadoPresenter _presenter;
+
+        public event EventHandler? GuardarClicked;
+        public event EventHandler? CancelarClicked;
 
         public NuevoEmpleado()
         {
@@ -78,9 +81,6 @@ namespace Nuevo_Proyecto.Models.Views
         public DateTime? FechaIngreso { get => dateTimePicker1.Value; set => dateTimePicker1.Value = value ?? DateTime.Now; }
         public bool Activo { get => checkEmpleadoAct.Checked; set => checkEmpleadoAct.Checked = value; }
         public string AutorizadoPor { get => cmboxAutizadoEmple.Text; set => cmboxAutizadoEmple.Text = value; }
-
-        public event EventHandler GuardarClicked;
-        public event EventHandler CancelarClicked;
 
         private void label4_Click(object sender, EventArgs e)
         {

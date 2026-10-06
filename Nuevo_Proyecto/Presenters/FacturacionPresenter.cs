@@ -9,6 +9,8 @@ namespace Nuevo_Proyecto.Presenters
     public class FacturacionPresenter
     {
         private readonly IFacturacionView? _view;
+        private readonly IFacturasEmitidasView? _facturasEmitidasView;
+        private readonly IComprobanteView? _comprobanteView;
         private readonly IFacturaRepository _facturas;
         private readonly ICatalogoRepository _catalogos;
         private readonly IProductoRepository _productos;
@@ -19,6 +21,28 @@ namespace Nuevo_Proyecto.Presenters
                                     IProductoRepository? productos = null)
         {
             _view = view;   // opcional: el dashboard solo usa las consultas
+            _facturas = facturas ?? new FacturaRepository();
+            _catalogos = catalogos ?? new CatalogoRepository();
+            _productos = productos ?? new ProductoRepository();
+        }
+
+        public FacturacionPresenter(IFacturasEmitidasView view,
+                                    IFacturaRepository? facturas = null,
+                                    ICatalogoRepository? catalogos = null,
+                                    IProductoRepository? productos = null)
+        {
+            _facturasEmitidasView = view ?? throw new ArgumentNullException(nameof(view));
+            _facturas = facturas ?? new FacturaRepository();
+            _catalogos = catalogos ?? new CatalogoRepository();
+            _productos = productos ?? new ProductoRepository();
+        }
+
+        public FacturacionPresenter(IComprobanteView view,
+                                    IFacturaRepository? facturas = null,
+                                    ICatalogoRepository? catalogos = null,
+                                    IProductoRepository? productos = null)
+        {
+            _comprobanteView = view ?? throw new ArgumentNullException(nameof(view));
             _facturas = facturas ?? new FacturaRepository();
             _catalogos = catalogos ?? new CatalogoRepository();
             _productos = productos ?? new ProductoRepository();

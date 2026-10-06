@@ -12,10 +12,9 @@ using System.Windows.Forms;
 
 namespace Nuevo_Proyecto.Models.Views
 {
-    public partial class NuevoCliente : Form, IClienteView
+    public partial class NuevoCliente : Form, INuevoClienteView
     {
-
-        // IClienteView properties implementation
+        // INuevoClienteView properties implementation
         public string Codigo { get => txtCodigoClient.Text; set => txtCodigoClient.Text = value; }
         public string Nombre { get => txtNombreClient.Text; set => txtNombreClient.Text = value; }
         public string Telefono { get => txtTelefonoClient.Text; set => txtTelefonoClient.Text = value; }
@@ -23,13 +22,9 @@ namespace Nuevo_Proyecto.Models.Views
         public string Nota { get => cmboxNota.Text; set => cmboxNota.Text = value; }
         public bool Activo { get => checboxActico.Checked; set => checboxActico.Checked = value; }
         public string AutorizadoPor { get => cmboxAutizado.Text; set => cmboxAutizado.Text = value; }
-        public string BuscarTexto { get => string.Empty; set { } }
 
-        public event EventHandler GuardarClicked;
-        public event EventHandler CancelarClicked;
-        public event EventHandler? EditarClicked;
-        public event EventHandler? EliminarClicked;
-        public event EventHandler? BuscarChanged;
+        public event EventHandler? GuardarClicked;
+        public event EventHandler? CancelarClicked;
 
         private readonly ClientePresenter _presenter;
 
@@ -127,25 +122,10 @@ namespace Nuevo_Proyecto.Models.Views
             cmboxAutizado.SelectedIndex = -1;
         }
 
-        // IClienteView - cerrar la vista (cuando el presentador lo solicite)
+        // INuevoClienteView - cerrar la vista (cuando el presentador lo solicite)
         public void CloseView()
         {
             this.Close();
-        }
-
-        public void MostrarClientes(DataTable dt) { }
-
-        public void CargarNotas(DataTable notas)
-        {
-            cmboxNota.DataSource = notas;
-            cmboxNota.DisplayMember = "Nota";
-            cmboxNota.ValueMember = "Nota";
-            cmboxNota.DropDownStyle = ComboBoxStyle.DropDown;
-        }
-
-        public void SetActivoEnabled(bool enabled)
-        {
-            checboxActico.Enabled = enabled;
         }
     }
 }

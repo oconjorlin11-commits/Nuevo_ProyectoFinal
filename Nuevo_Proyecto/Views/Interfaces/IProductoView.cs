@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Nuevo_Proyecto.Views.Interfaces
 {
@@ -27,9 +27,9 @@ namespace Nuevo_Proyecto.Views.Interfaces
 
         // Eventos que la vista notifica al presentador
 
-        event EventHandler GuardarClicked;
+        event EventHandler? GuardarClicked;
 
-        event EventHandler CancelarClicked;
+        event EventHandler? CancelarClicked;
 
 
         // Métodos de control visual ordenados por el presentador

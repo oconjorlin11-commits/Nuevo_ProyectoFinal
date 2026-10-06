@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Nuevo_Proyecto.Models.Entities
@@ -19,7 +19,7 @@ namespace Nuevo_Proyecto.Models.Entities
         public decimal Total { get; set; }
         public int? EstadoId { get; set; }
 
-        public virtual Cliente Cliente { get; set; }
+        public virtual Cliente Cliente { get; set; } = null!;
         public virtual ICollection<DetalleFactura> DetalleFacturas { get; set; } = new List<DetalleFactura>();
         public virtual Empleado Empleado { get; set; } = null!;
         public virtual Estado? EstadoNavigation { get; set; }

@@ -1,4 +1,4 @@
-﻿using Nuevo_Proyecto.Models.Entities;
+using Nuevo_Proyecto.Models.Entities;
 using Nuevo_Proyecto.Presenters;
 using Nuevo_Proyecto.Views.Interfaces;
 using System;
@@ -36,8 +36,8 @@ namespace Nuevo_Proyecto.Models.Views
         public int stockInicial { get => int.TryParse(txtStockInicial.Text, out var s) ? s : 0; set => txtStockInicial.Text = value.ToString(); }
         public int StockMinimo { get => int.TryParse(txtStockMinimo.Text, out var m) ? m : 0; set => txtStockMinimo.Text = value.ToString(); }
 
-        public event EventHandler GuardarClicked;
-        public event EventHandler CancelarClicked;
+        public event EventHandler? GuardarClicked;
+        public event EventHandler? CancelarClicked;
 
         public void showMessage(string message, string titulo, bool esError)
         {
@@ -157,14 +157,14 @@ namespace Nuevo_Proyecto.Models.Views
                 return;
 
             // 👉 Validar que el usuario seleccionado sea admin
-            DataRowView usuarioSeleccionado = CmboxEmpleado.SelectedItem as DataRowView;
+            DataRowView? usuarioSeleccionado = CmboxEmpleado.SelectedItem as DataRowView;
             if (usuarioSeleccionado == null)
             {
                 MessageBox.Show("Debe seleccionar un usuario autorizado.");
                 return;
             }
 
-            string cargo = usuarioSeleccionado["Cargo"].ToString();
+            string cargo = usuarioSeleccionado["Cargo"]?.ToString() ?? string.Empty;
             int empleadoID = Convert.ToInt32(usuarioSeleccionado["EmpleadoID"]);
 
             if (!cargo.Equals("Admin", StringComparison.OrdinalIgnoreCase))

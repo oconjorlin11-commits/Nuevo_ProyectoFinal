@@ -1,66 +1,64 @@
-using Nuevo_Proyecto.Presenters;
-using Nuevo_Proyecto.Views.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using Microsoft.Data.SqlClient;
+using Nuevo_Proyecto.Presenters;
+using Nuevo_Proyecto.Views.Interfaces;
 
 namespace Nuevo_Proyecto.Models.Views
 {
-    public partial class Empleados : Form, Nuevo_Proyecto.Views.Interfaces.IEmpleadoView
+    public partial class Empleados : Form, IEmpleadoView
     {
-        private bool EstadoOriginal; // true= trabajando, false= despedido
-
-        private string CodigoOriginal;
-
-        private string NombreOriginal;
-
-        private string CargoOriginal;
-
-        private string CedulaOriginal;
-
-        private string TelefonoOriginal;
-
-        private decimal SalarioOriginal;
-
-        private DateTime FechaIngresoOriginal;
-
-
         private readonly EmpleadoPresenter _presenter;
 
         public Empleados()
         {
             InitializeComponent();
             _presenter = new EmpleadoPresenter(this);
-            // Asegurar que el textbox de búsqueda ejecute el handler incluso si el diseñador no lo enlazó
-            txtBuscarEmpl.TextChanged += txtBuscarEmpleados_TextChanged;
-            // Volver a rellenar estado cuando termine el binding para asegurar visualización
+
+            txtBuscarEmpl.TextChanged += (s, e) => BuscarChanged?.Invoke(this, EventArgs.Empty);
             dataGridEmpleados.DataBindingComplete += (s, e) => RellenarEstado();
-            // Convertir el valor bit (0/1) de la columna Activo en texto legible
             dataGridEmpleados.CellFormatting += datagrewEmpleados_CellFormatting;
-            // Manejar errores de datos para evitar el dialogo predeterminado
             dataGridEmpleados.DataError += DataGridEmpleados_DataError;
+            dataGridEmpleados.SelectionChanged += dataGridEmpleados_SelectionChanged;
         }
 
-        // IEmpleadoView implementation
+        // =========================================================================
+        // Implementación de IEmpleadoView: propiedades enlazadas a controles UI
+        // =========================================================================
+
         public string Codigo { get => txtCodigoEmpl.Text; set => txtCodigoEmpl.Text = value; }
         public string Nombre { get => txtNombreEmpl.Text; set => txtNombreEmpl.Text = value; }
         public string Cedula { get => txtCedulaEmpl.Text; set => txtCedulaEmpl.Text = value; }
         public string Telefono { get => txtTelefonoEmpl.Text; set => txtTelefonoEmpl.Text = value; }
         public string Cargo { get => cmboxCargoEmpl.Text; set => cmboxCargoEmpl.Text = value; }
-        public decimal Salario { get => decimal.TryParse(txtSalarioEmpl.Text, out var s) ? s : 0; set => txtSalarioEmpl.Text = value.ToString(); }
-        public DateTime? FechaIngreso { get => dateTimePickerEmpleado.Value; set => dateTimePickerEmpleado.Value = value ?? DateTime.Now; }
+        public decimal Salario
+        {
+            get => decimal.TryParse(txtSalarioEmpl.Text, out var s) ? s : 0;
+            set => txtSalarioEmpl.Text = value.ToString("0.00");
+        }
+        public DateTime? FechaIngreso
+        {
+            get => dateTimePickerEmpleado.Value;
+            set => dateTimePickerEmpleado.Value = value ?? DateTime.Now;
+        }
         public bool Activo { get => checkBoxEmpleado.Checked; set => checkBoxEmpleado.Checked = value; }
-        public string AutorizadoPor { get => string.Empty; set { } }
+        public string BuscarTexto { get => txtBuscarEmpl.Text; set => txtBuscarEmpl.Text = value; }
 
-        public event EventHandler GuardarClicked;
-        public event EventHandler CancelarClicked;
+        // =========================================================================
+        // Eventos de la vista notificados al presentador
+        // =========================================================================
+
+        public event EventHandler? EditarClicked;
+        public event EventHandler? EliminarClicked;
+        public event EventHandler? BuscarChanged;
+
+        // =========================================================================
+        // Métodos de control visual ordenados por el presentador
+        // =========================================================================
 
         public void showMessage(string message, string titulo, bool esError)
         {
@@ -70,132 +68,10 @@ namespace Nuevo_Proyecto.Models.Views
 
         public void ResetFields()
         {
-            LimpiarControles();
-        }
-
-        // IEmpleadoView - cerrar la vista (no aplica para la vista principal, implementar como no-op)
-        public void CloseView()
-        {
-            // No cerrar la ventana principal desde el presentador
-        }
-
-        private void RellenarEstado()
-        {
-            // Asegurar que solo exista una columna visible llamada "Estado"
-            // Ocultar la columna cruda 'Activo' y mostrar la columna derivada 'Estado' si existe
-            if (dataGridEmpleados.Columns.Contains("Activo"))
-            {
-                dataGridEmpleados.Columns["Activo"].Visible = false;
-            }
-            if (dataGridEmpleados.Columns.Contains("Estado"))
-            {
-                dataGridEmpleados.Columns["Estado"].Visible = true;
-                dataGridEmpleados.Columns["Estado"].HeaderText = "Estado";
-            }
-            // Forzar refresco para que los cambios se reflejen
-            dataGridEmpleados.Refresh();
-        }
-
-        private void DataGridEmpleados_DataError(object sender, DataGridViewDataErrorEventArgs e)
-        {
-            // Evitar el cuadro de diálogo predeterminado y suprimir la excepción de formato
-            e.ThrowException = false;
-            // Opcional: podríamos registrar o mostrar un mensaje corto si es necesario
-        }
-
-        // Helper para convertir valores devueltos por la BD (bit 0/1, byte, int, bool, string) a bool
-        private static bool ParseBoolDb(object? value)
-        {
-            if (value == null || value == DBNull.Value) return false;
-            try
-            {
-                if (value is bool b) return b;
-                if (value is byte by) return by != 0;
-                if (value is short s) return s != 0;
-                if (value is int i) return i != 0;
-                if (value is long l) return l != 0L;
-                var txt = value.ToString();
-                if (string.IsNullOrWhiteSpace(txt)) return false;
-                if (int.TryParse(txt, out var n)) return n != 0;
-                if (bool.TryParse(txt, out var bb)) return bb;
-            }
-            catch
-            {
-                // ignorar y retornar false
-            }
-            return false;
-        }
-
-
-
-        private void CargarEmpleadosActivos()
-        {
-            var empleados = _presenter.GetEmpleadosActivos();
-            var dt = new DataTable();
-            dt.Columns.Add("Codigo");
-            dt.Columns.Add("Nombre");
-            dt.Columns.Add("Cargo");
-            dt.Columns.Add("FechaIngreso");
-            dt.Columns.Add("Cedula");
-            dt.Columns.Add("Telefono");
-            dt.Columns.Add("Salario");
-            dt.Columns.Add("Activo", typeof(object)); // mantener el tipo original pero como object para evitar conversiones automáticas
-            // Columna visible con texto legible
-            dt.Columns.Add("Estado", typeof(string));
-
-            foreach (var e in empleados)
-            {
-                var row = dt.NewRow();
-                row["Codigo"] = e.Codigo;
-                row["Nombre"] = e.Nombre;
-                row["Cargo"] = e.Cargo;
-                row["FechaIngreso"] = e.FechaIngreso;
-                row["Cedula"] = e.Cedula;
-                row["Telefono"] = e.Telefono;
-                row["Salario"] = e.Salario;
-                row["Activo"] = e.Activo;
-                row["Estado"] = ParseBoolDb(e.Activo) ? "Trabajando" : "Despedido";
-                dt.Rows.Add(row);
-            }
-
-            dataGridEmpleados.DataSource = dt;
-
-            dataGridEmpleados.Columns["Codigo"].HeaderText = "Código";
-            dataGridEmpleados.Columns["Nombre"].HeaderText = "Nombre";
-            dataGridEmpleados.Columns["Cargo"].HeaderText = "Cargo";
-            dataGridEmpleados.Columns["FechaIngreso"].HeaderText = "Fecha Ingreso";
-            dataGridEmpleados.Columns["Cedula"].HeaderText = "Cédula";
-            dataGridEmpleados.Columns["Telefono"].HeaderText = "Teléfono";
-            dataGridEmpleados.Columns["Salario"].HeaderText = "Salario";
-            // Ajustar visual: ocultar la columna cruda Activo y mostrar la columna Estado
-            if (dataGridEmpleados.Columns.Contains("Activo"))
-            {
-                dataGridEmpleados.Columns["Activo"].Visible = false;
-            }
-            if (dataGridEmpleados.Columns.Contains("Estado"))
-            {
-                dataGridEmpleados.Columns["Estado"].HeaderText = "Estado";
-            }
-
-            // Estado ya fue calculado en la tabla, pero llamar a RellenarEstado para mantener compatibilidad
-            RellenarEstado(); // 👉 recalcular columna Estado
-        }
-
-        private void LimpiarControles()
-        {
-            CodigoOriginal = null;
-            NombreOriginal = null;
-            CargoOriginal = null;
-            CedulaOriginal = null;
-            TelefonoOriginal = null;
-            SalarioOriginal = 0;
-            FechaIngresoOriginal = DateTime.MinValue;
-            EstadoOriginal = false;
-
             txtCodigoEmpl.Clear();
             txtNombreEmpl.Clear();
-            cmboxCargoEmpl.DataSource = null;
-            cmboxCargoEmpl.Text = "";
+            cmboxCargoEmpl.SelectedIndex = -1;
+            cmboxCargoEmpl.Text = string.Empty;
             txtCedulaEmpl.Clear();
             txtTelefonoEmpl.Clear();
             txtSalarioEmpl.Clear();
@@ -204,244 +80,150 @@ namespace Nuevo_Proyecto.Models.Views
             checkBoxEmpleado.Enabled = false;
         }
 
-        private void LimpiarDespuesDeAccion()
+        public void MostrarEmpleados(DataTable dt)
         {
-            CargarEmpleadosActivos();
-            LimpiarControles();
-            txtBuscarEmpl.Clear();
+            dataGridEmpleados.DataSource = dt;
+            ConfigurarColumnasGrid();
+            RellenarEstado();
         }
 
-
-        private void btnNuevoEmpleado_Click(object sender, EventArgs e)
+        public void CargarCargos(DataTable cargos)
         {
-            // Abrir el formulario de nuevo empleado en modo modal y refrescar la lista al cerrar
-            using (var frm = new NuevoEmpleado())
-            {
-                frm.ShowDialog();
-            }
-
-            // Refrescar la lista de empleados tras cerrar el diálogo
-            CargarEmpleadosActivos();
+            cmboxCargoEmpl.DataSource = cargos;
+            cmboxCargoEmpl.DisplayMember = "Cargo";
+            cmboxCargoEmpl.ValueMember = "Cargo";
+            cmboxCargoEmpl.DropDownStyle = ComboBoxStyle.DropDown;
         }
 
-        private void Frm_Empleados_Load(object sender, EventArgs e)
+        public void SetActivoEnabled(bool enabled)
         {
+            checkBoxEmpleado.Enabled = enabled;
+        }
 
-            // 👉 Configuración de controles
+        // =========================================================================
+        // Configuración y eventos visuales
+        // =========================================================================
+
+        private void Empleados_Load(object sender, EventArgs e)
+        {
             txtCodigoEmpl.ReadOnly = true;
             txtCodigoEmpl.BackColor = Color.LightGray;
-            dateTimePickerEmpleado.Enabled = false; // no editable
+            dateTimePickerEmpleado.Enabled = false;
             checkBoxEmpleado.Enabled = false;
 
             dataGridEmpleados.ReadOnly = true;
             dataGridEmpleados.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dataGridEmpleados.MultiSelect = false;
-            dataGridEmpleados.AutoGenerateColumns = true;
 
+            _presenter.InicializarVista();
+        }
 
-            // 👉 cargar combo de cargos al inicio
-            DataTable cargos = _presenter.GetCargos();
-            cmboxCargoEmpl.DataSource = cargos;
-            cmboxCargoEmpl.DisplayMember = "Cargo";
-            cmboxCargoEmpl.ValueMember = "Cargo";
-            cmboxCargoEmpl.DropDownStyle = ComboBoxStyle.DropDown;
+        private void ConfigurarColumnasGrid()
+        {
+            if (dataGridEmpleados.Columns.Contains("Codigo")) dataGridEmpleados.Columns["Codigo"]!.HeaderText = "Código";
+            if (dataGridEmpleados.Columns.Contains("Nombre")) dataGridEmpleados.Columns["Nombre"]!.HeaderText = "Nombre";
+            if (dataGridEmpleados.Columns.Contains("Cargo")) dataGridEmpleados.Columns["Cargo"]!.HeaderText = "Cargo";
+            if (dataGridEmpleados.Columns.Contains("FechaIngreso")) dataGridEmpleados.Columns["FechaIngreso"]!.HeaderText = "Fecha Ingreso";
+            if (dataGridEmpleados.Columns.Contains("Cedula")) dataGridEmpleados.Columns["Cedula"]!.HeaderText = "Cédula";
+            if (dataGridEmpleados.Columns.Contains("Telefono")) dataGridEmpleados.Columns["Telefono"]!.HeaderText = "Teléfono";
+            if (dataGridEmpleados.Columns.Contains("Salario")) dataGridEmpleados.Columns["Salario"]!.HeaderText = "Salario";
 
-            // 👉 cargar empleados activos al inicio
-            CargarEmpleadosActivos();
+            if (dataGridEmpleados.Columns.Contains("Activo")) dataGridEmpleados.Columns["Activo"]!.Visible = false;
+            if (dataGridEmpleados.Columns.Contains("Estado")) dataGridEmpleados.Columns["Estado"]!.HeaderText = "Estado";
+        }
 
-            // Ocultar la columna Activo cruda (bit) y usar el formateo de celda para mostrar "Trabajando"/"Despedido"
+        private void RellenarEstado()
+        {
             if (dataGridEmpleados.Columns.Contains("Activo"))
             {
-                dataGridEmpleados.Columns["Activo"].Visible = false;
+                dataGridEmpleados.Columns["Activo"]!.Visible = false;
             }
-
-            LimpiarControles();
+            if (dataGridEmpleados.Columns.Contains("Estado"))
+            {
+                dataGridEmpleados.Columns["Estado"]!.Visible = true;
+                dataGridEmpleados.Columns["Estado"]!.HeaderText = "Estado";
+            }
         }
 
-        private void txtBuscarEmpleados_TextChanged(object sender, EventArgs e)
+        private void dataGridEmpleados_SelectionChanged(object? sender, EventArgs e)
         {
+            if (dataGridEmpleados.SelectedRows == null || dataGridEmpleados.SelectedRows.Count == 0) return;
+            var row = dataGridEmpleados.SelectedRows[0];
+            if (row.Cells[0].Value == null) return;
 
-            string codigo = txtBuscarEmpl.Text.Trim();
-
-            if (string.IsNullOrEmpty(codigo))
+            try
             {
-                CargarEmpleadosActivos();
-                RellenarEstado();   // 👉 recalcular siempre
-                LimpiarControles();
-                return;
+                string codigo = row.Cells["Codigo"].Value?.ToString() ?? string.Empty;
+                string nombre = row.Cells["Nombre"].Value?.ToString() ?? string.Empty;
+                string cargo = row.Cells["Cargo"].Value?.ToString() ?? string.Empty;
+                string cedula = row.Cells["Cedula"].Value?.ToString() ?? string.Empty;
+                string? telefono = row.Cells["Telefono"].Value?.ToString();
+                decimal salario = decimal.TryParse(row.Cells["Salario"].Value?.ToString(), out var s) ? s : 0;
+                DateTime fecha = DateTime.TryParse(row.Cells["FechaIngreso"].Value?.ToString(), out var f) ? f : DateTime.Now;
+                bool activo = ParseBoolDb(row.Cells["Activo"].Value);
+
+                _presenter.SeleccionarEmpleado(codigo, nombre, cargo, cedula, telefono, salario, fecha, activo);
             }
-
-            DataTable empleado = _presenter.BuscarEmpleadoPorCodigo(codigo);
-
-            // Añadir columna Estado legible y ocultar Activo crudo
-            if (!empleado.Columns.Contains("Estado"))
+            catch
             {
-                empleado.Columns.Add("Estado", typeof(string));
-                foreach (DataRow r in empleado.Rows)
-                {
-                    r["Estado"] = ParseBoolDb(r["Activo"]) ? "Trabajando" : "Despedido";
-                }
-            }
-
-            if (empleado.Rows.Count > 0)
-            {
-                dataGridEmpleados.DataSource = empleado;
-                if (dataGridEmpleados.Columns.Contains("Activo")) dataGridEmpleados.Columns["Activo"].Visible = false;
-                if (dataGridEmpleados.Columns.Contains("Estado")) dataGridEmpleados.Columns["Estado"].HeaderText = "Estado";
-
-                DataRow row = empleado.Rows[0];
-                CodigoOriginal = row["Codigo"].ToString();
-                NombreOriginal = row["Nombre"].ToString();
-                CargoOriginal = row["Cargo"].ToString();
-                CedulaOriginal = row["Cedula"].ToString();
-                TelefonoOriginal = row["Telefono"].ToString();
-                SalarioOriginal = Convert.ToDecimal(row["Salario"]);
-                FechaIngresoOriginal = Convert.ToDateTime(row["FechaIngreso"]);
-                EstadoOriginal = ParseBoolDb(row["Activo"]);
-
-                txtCodigoEmpl.Text = CodigoOriginal;
-                txtNombreEmpl.Text = NombreOriginal;
-                DataTable cargos = _presenter.GetCargos();
-                cmboxCargoEmpl.DataSource = cargos;
-                cmboxCargoEmpl.DisplayMember = "Cargo";
-                cmboxCargoEmpl.ValueMember = "Cargo";
-                cmboxCargoEmpl.SelectedValue = CargoOriginal;
-                txtCedulaEmpl.Text = CedulaOriginal;
-                txtTelefonoEmpl.Text = TelefonoOriginal;
-                txtSalarioEmpl.Text = SalarioOriginal.ToString();
-                dateTimePickerEmpleado.Value = FechaIngresoOriginal;
-
-                checkBoxEmpleado.Checked = EstadoOriginal;
-                checkBoxEmpleado.Enabled = !EstadoOriginal;
-
-                // 👉 recalcular columna Estado
-                RellenarEstado();
-            }
-            else
-            {
-                // 👉 Si no se encontró el empleado
-                CargarEmpleadosActivos();
-                RellenarEstado();   // recalcular siempre
-                LimpiarControles();
-
-                // ⚡ Mostrar mensaje pero NO limpiar el textbox
-                MessageBox.Show("Empleado no encontrado.");
+                // ignorar errores de formato al cambiar de fila
             }
         }
 
-
-
-        private void btnEditarEmpl_Click(object sender, EventArgs e)
+        private void btnNuevoEmpleado_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(CodigoOriginal))
+            using (var frm = new NuevoEmpleado())
             {
-                MessageBox.Show("Debe buscar primero un empleado.");
-                return;
+                frm.ShowDialog();
             }
-
-            // 👉 Caso 1: Reactivar empleado
-            if (!EstadoOriginal && checkBoxEmpleado.Checked)
-            {
-                bool ok = _presenter.ReactivarEmpleado(CodigoOriginal);
-
-                if (ok)
-                {
-                    MessageBox.Show("Empleado reactivado correctamente.");
-                    // ⚡ Mostrar lista inicial de empleados activos
-                    LimpiarDespuesDeAccion();
-                }
-                else
-                {
-                    MessageBox.Show("No se pudo reactivar el empleado.");
-                }
-                return;
-            }
-
-            // 👉 Caso 2: Actualizar datos
-            bool huboCambios =
-                txtNombreEmpl.Text != NombreOriginal ||
-                cmboxCargoEmpl.Text != CargoOriginal ||
-                txtCedulaEmpl.Text != CedulaOriginal ||
-                txtTelefonoEmpl.Text != TelefonoOriginal ||
-                Convert.ToDecimal(txtSalarioEmpl.Text) != SalarioOriginal;
-
-            if (!huboCambios)
-            {
-                MessageBox.Show("No se ha hecho ningún cambio.");
-                return;
-            }
-
-            bool okUpdate = _presenter.ActualizarEmpleado(
-                CodigoOriginal,
-                txtNombreEmpl.Text,
-                cmboxCargoEmpl.Text,
-                txtCedulaEmpl.Text,
-                txtTelefonoEmpl.Text,
-                Convert.ToDecimal(txtSalarioEmpl.Text)
-            );
-
-            if (okUpdate)
-            {
-                MessageBox.Show("Empleado actualizado correctamente.");
-                // ⚡ Siempre volver a la vista inicial de empleados activos
-                LimpiarDespuesDeAccion();
-            }
-            else
-            {
-                MessageBox.Show("No se pudo actualizar el empleado.");
-            }
+            _presenter.CargarEmpleadosActivos();
         }
 
+        private void btnEditarEmpl_Click(object sender, EventArgs e) =>
+            EditarClicked?.Invoke(this, EventArgs.Empty);
 
-        private void btnEliminarEmpl_Click(object sender, EventArgs e)
-        {
-            if (string.IsNullOrEmpty(CodigoOriginal))
-            {
-                MessageBox.Show("Debe seleccionar un empleado primero.");
-                return;
-            }
+        private void btnEliminarEmpl_Click(object sender, EventArgs e) =>
+            EliminarClicked?.Invoke(this, EventArgs.Empty);
 
-            bool ok = _presenter.EliminarEmpleado(CodigoOriginal);
-
-            if (ok)
-            {
-                MessageBox.Show("Empleado despedido correctamente.");
-                LimpiarDespuesDeAccion();
-            }
-            else
-            {
-                MessageBox.Show("No se pudo despedir al empleado.");
-            }
-
-        }
-
-        private void datagrewEmpleados_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        private void datagrewEmpleados_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
             try
             {
                 if (dataGridEmpleados.Columns[e.ColumnIndex].Name == "Activo")
                 {
-                    var val = e.Value;
-                    bool activo = ParseBoolDb(val);
+                    bool activo = ParseBoolDb(e.Value);
                     e.Value = activo ? "Trabajando" : "Despedido";
                     e.FormattingApplied = true;
                 }
             }
             catch
             {
-                // No permitir que el formateo rompa la UI
             }
         }
 
-        private void dateTimePickerEmpleado_ValueChanged(object sender, EventArgs e)
+        private void DataGridEmpleados_DataError(object? sender, DataGridViewDataErrorEventArgs e)
         {
-
+            e.ThrowException = false;
         }
 
-        private void Empleados_Load(object sender, EventArgs e)
+        private static bool ParseBoolDb(object? value)
         {
-            // Llamar al inicializador existente para mantener compatibilidad con el código anterior
-            Frm_Empleados_Load(sender, e);
+            if (value == null || value == DBNull.Value) return false;
+            try
+            {
+                if (value is bool b) return b;
+                var txt = value.ToString()?.Trim() ?? string.Empty;
+                if (txt == "1") return true;
+                if (txt == "0") return false;
+                if (bool.TryParse(txt, out var bb)) return bb;
+            }
+            catch
+            {
+            }
+            return false;
         }
+
+        private void dateTimePickerEmpleado_ValueChanged(object sender, EventArgs e) { }
     }
 }
+

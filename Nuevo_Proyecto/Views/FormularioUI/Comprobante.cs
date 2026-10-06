@@ -19,7 +19,7 @@ using ClosedXML.Excel;
 
 namespace Nuevo_Proyecto.Models.Views
 {
-    public partial class Comprobante : Form, IFacturacionView
+    public partial class Comprobante : Form, IComprobanteView
     {
         private string _facturaCodigo;
 
@@ -28,47 +28,7 @@ namespace Nuevo_Proyecto.Models.Views
 
         public Comprobante() : this("")
         {
-
         }
-
-        public void showMessage(string message, string titulo, bool esError)
-        {
-            MessageBoxIcon icon = esError ? MessageBoxIcon.Error : MessageBoxIcon.Information;
-            MessageBox.Show(message, titulo, MessageBoxButtons.OK, icon);
-        }
-
-        public void ResetFields()
-        {
-            // No aplica para comprobante; método requerido por la interfaz
-        }
-
-        // Implementación de métodos de la interfaz IFacturacionView requeridos
-        public void LoadCategorias(DataTable categorias) { }
-        public void LoadProductosPorCategoria(DataTable productos) { }
-        public void LoadEmpleados(DataTable empleados) { }
-        public void LoadClientes(DataTable clientes) { }
-        public void LoadFormasPago(DataTable formasPago) { }
-        public void AgregarLineaDetalle(int productoId, string nombreProducto, int cantidad, decimal precioUnitario, decimal subtotal) { }
-        public void LimpiarDetalles() { }
-        public int ObtenerFilasDetalles() => 0;
-
-        // Propiedades de la interfaz
-        public int? ClienteSeleccionado => null;
-        public int? EmpleadoSeleccionado => null;
-        public int? FormaPagoSeleccionado => null;
-        public int? CategoriaSeleccionada => null;
-        public int? ProductoSeleccionado => null;
-        public int CantidadProducto => 0;
-        public string Observacion => string.Empty;
-        public decimal Total { get => 0; set { } }
-
-        // Eventos de la interfaz
-        public event EventHandler NuevoClienteClick;
-        public event EventHandler AgregarProductoClick;
-        public event EventHandler QuitarLineaClick;
-        public event EventHandler LimpiarTodoClick;
-        public event EventHandler VerImprimirClick;
-        public event EventHandler GuardarFacturaClick;
 
         public Comprobante(string facturaCodigo)
         {
@@ -82,21 +42,33 @@ namespace Nuevo_Proyecto.Models.Views
             _presenter = presenter ?? new FacturacionPresenter(this);
         }
 
+        public void showMessage(string message, string titulo, bool esError)
+        {
+            MessageBoxIcon icon = esError ? MessageBoxIcon.Error : MessageBoxIcon.Information;
+            MessageBox.Show(message, titulo, MessageBoxButtons.OK, icon);
+        }
+
+        public void MostrarComprobante(DataTable detalleFactura)
+        {
+            _dtFactura = detalleFactura;
+            if (_dtFactura != null && _dtFactura.Rows.Count > 0)
+            {
+                CargarFacturaEnLabels(_dtFactura);
+            }
+            else
+            {
+                showMessage($"No se encontraron datos para la factura: {_facturaCodigo}",
+                    "Aviso", true);
+            }
+        }
+
         private void Comprobante_Shown(object sender, EventArgs e)
         {
             // Cargar datos en tiempo real cuando el formulario se muestra
             if (!string.IsNullOrWhiteSpace(_facturaCodigo))
             {
-                _dtFactura = _presenter.ObtenerDetalleFacturaPorCodigo(_facturaCodigo.Trim());
-                if (_dtFactura != null && _dtFactura.Rows.Count > 0)
-                {
-                    CargarFacturaEnLabels(_dtFactura);
-                }
-                else
-                {
-                    MessageBox.Show($"No se encontraron datos para la factura: {_facturaCodigo}",
-                        "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
+                var dt = _presenter.ObtenerDetalleFacturaPorCodigo(_facturaCodigo.Trim());
+                MostrarComprobante(dt);
             }
         }
 
@@ -138,15 +110,15 @@ namespace Nuevo_Proyecto.Models.Views
             dgvProductos.Columns.Add("Subtotal", "SubTotal");
 
             // Configurar ancho de columnas
-            dgvProductos.Columns["Producto"].Width = 400;
-            dgvProductos.Columns["Cantidad"].Width = 100;
-            dgvProductos.Columns["Precio"].Width = 150;
-            dgvProductos.Columns["Subtotal"].Width = 150;
+            dgvProductos.Columns["Producto"]!.Width = 400;
+            dgvProductos.Columns["Cantidad"]!.Width = 100;
+            dgvProductos.Columns["Precio"]!.Width = 150;
+            dgvProductos.Columns["Subtotal"]!.Width = 150;
 
             // Configurar alineación
-            dgvProductos.Columns["Cantidad"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dgvProductos.Columns["Precio"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
-            dgvProductos.Columns["Subtotal"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+            dgvProductos.Columns["Cantidad"]!.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dgvProductos.Columns["Precio"]!.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+            dgvProductos.Columns["Subtotal"]!.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
 
             decimal total = 0;
 
@@ -595,9 +567,11 @@ namespace Nuevo_Proyecto.Models.Views
 
                 // Poblar productos
                 decimal totalGeneral = 0;
-                foreach (DataRow dataRow in _dtFactura.Rows)
+                if (_dtFactura != null)
                 {
-                    string producto = dataRow["Producto"]?.ToString() ?? "";
+                    foreach (DataRow dataRow in _dtFactura.Rows)
+                    {
+                        string producto = dataRow["Producto"]?.ToString() ?? "";
                     int cantidad = dataRow["Cantidad"] != DBNull.Value ? Convert.ToInt32(dataRow["Cantidad"]) : 0;
                     decimal precio = dataRow["Precio"] != DBNull.Value ? Convert.ToDecimal(dataRow["Precio"]) : 0m;
                     decimal subtotal = dataRow["Subtotal"] != DBNull.Value ? Convert.ToDecimal(dataRow["Subtotal"]) : 0m;
@@ -614,6 +588,7 @@ namespace Nuevo_Proyecto.Models.Views
 
                     totalGeneral += subtotal;
                     row++;
+                }
                 }
 
                 // ============ TOTALES ============

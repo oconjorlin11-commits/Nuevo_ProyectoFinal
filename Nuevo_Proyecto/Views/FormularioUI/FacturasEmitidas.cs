@@ -1,9 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Nuevo_Proyecto.Presenters;
-using Nuevo_Proyecto.Services.Helpers;
-using Nuevo_Proyecto.Views.Helpers;
-using Nuevo_Proyecto.Views.Interfaces;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
@@ -11,11 +7,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
+using Nuevo_Proyecto.Presenters;
+using Nuevo_Proyecto.Services.Helpers;
+using Nuevo_Proyecto.Views.Helpers;
+using Nuevo_Proyecto.Views.Interfaces;
 
 namespace Nuevo_Proyecto.Models.Views
 {
-    public partial class FacturasEmitidas : Form, IFacturacionView
+    public partial class FacturasEmitidas : Form, IFacturasEmitidasView
     {
         private readonly FacturacionPresenter _presenter;
 
@@ -25,9 +24,25 @@ namespace Nuevo_Proyecto.Models.Views
             _presenter = new FacturacionPresenter(this);
         }
 
+        public void MostrarFacturas(DataTable facturas)
+        {
+            dataGridFacturasEmitidas.DataSource = facturas;
+        }
+
+        public void showMessage(string message, string titulo, bool esError)
+        {
+            MessageBoxIcon icon = esError ? MessageBoxIcon.Error : MessageBoxIcon.Information;
+            MessageBox.Show(message, titulo, MessageBoxButtons.OK, icon);
+        }
+
+        public void ResetFields()
+        {
+            dataGridFacturasEmitidas.DataSource = null;
+        }
+
         private void CargarTodasLasFacturas()
         {
-            dataGridFacturasEmitidas.DataSource = _presenter.GetTodasLasFacturasConDetalles();
+            MostrarFacturas(_presenter.GetTodasLasFacturasConDetalles());
             btnVerComprob.Enabled = false;
         }
 
@@ -38,7 +53,7 @@ namespace Nuevo_Proyecto.Models.Views
             if (!string.IsNullOrWhiteSpace(codigo))
             {
                 DataTable dt = _presenter.BuscarFacturaPorCodigo(codigo);
-                dataGridFacturasEmitidas.DataSource = dt;
+                MostrarFacturas(dt);
 
                 // 👉 habilitar solo si hay exactamente 1 resultado
                 btnVerComprob.Enabled = dt.Rows.Count == 1;
@@ -56,25 +71,26 @@ namespace Nuevo_Proyecto.Models.Views
             if (dataGridFacturasEmitidas.CurrentRow != null)
             {
                 // 👉 Obtiene el código de factura (ej. FACT-002)
-                string facturaCodigo = dataGridFacturasEmitidas.CurrentRow.Cells["Numero"].Value.ToString();
+                string facturaCodigo = dataGridFacturasEmitidas.CurrentRow.Cells["Numero"].Value?.ToString() ?? string.Empty;
 
-                // 👉 Abre el comprobante con ese código
-                Comprobante frmComprobante = new Comprobante(facturaCodigo);
-                frmComprobante.ShowDialog();
+                if (!string.IsNullOrWhiteSpace(facturaCodigo))
+                {
+                    // 👉 Abre el comprobante con ese código
+                    using (Comprobante frmComprobante = new Comprobante(facturaCodigo))
+                    {
+                        frmComprobante.ShowDialog();
+                    }
+                }
             }
             else
             {
-                MessageBox.Show("Seleccione una factura para ver el comprobante.",
-                                "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                showMessage("Seleccione una factura para ver el comprobante.", "Aviso", false);
             }
-
         }
-
-
 
         private void button2_Click(object sender, EventArgs e)
         {
-
+            AnularFacturaSeleccionada();
         }
 
         private void FacturasEmitidas_Load(object sender, EventArgs e)
@@ -113,7 +129,7 @@ namespace Nuevo_Proyecto.Models.Views
             var numero = fila?.Cells["Numero"].Value?.ToString();
             if (string.IsNullOrWhiteSpace(numero))
             {
-                MessageBox.Show("Seleccione una factura.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                showMessage("Seleccione una factura.", "Aviso", false);
                 return;
             }
 
@@ -126,12 +142,12 @@ namespace Nuevo_Proyecto.Models.Views
             try
             {
                 _presenter.AnularFactura(numero, motivo);
-                MessageBox.Show($"Factura {numero} anulada.", "Listo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                showMessage($"Factura {numero} anulada.", "Listo", false);
                 CargarTodasLasFacturas();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "No se pudo anular", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                showMessage(ex.Message, "No se pudo anular", true);
             }
         }
 
@@ -139,44 +155,6 @@ namespace Nuevo_Proyecto.Models.Views
         {
             BuscarFacturaPorCodigo();
         }
-
-        public void showMessage(string message, string titulo, bool esError)
-        {
-            MessageBoxIcon icon = esError ? MessageBoxIcon.Error : MessageBoxIcon.Information;
-            MessageBox.Show(message, titulo, MessageBoxButtons.OK, icon);
-        }
-
-        public void ResetFields()
-        {
-            dataGridFacturasEmitidas.DataSource = null;
-        }
-
-        // Implementación de métodos de la interfaz IFacturacionView requeridos
-        public void LoadCategorias(DataTable categorias) { }
-        public void LoadProductosPorCategoria(DataTable productos) { }
-        public void LoadEmpleados(DataTable empleados) { }
-        public void LoadClientes(DataTable clientes) { }
-        public void LoadFormasPago(DataTable formasPago) { }
-        public void AgregarLineaDetalle(int productoId, string nombreProducto, int cantidad, decimal precioUnitario, decimal subtotal) { }
-        public void LimpiarDetalles() { }
-        public int ObtenerFilasDetalles() => 0;
-
-        // Propiedades de la interfaz
-        public int? ClienteSeleccionado => null;
-        public int? EmpleadoSeleccionado => null;
-        public int? FormaPagoSeleccionado => null;
-        public int? CategoriaSeleccionada => null;
-        public int? ProductoSeleccionado => null;
-        public int CantidadProducto => 0;
-        public string Observacion => string.Empty;
-        public decimal Total { get => 0; set { } }
-
-        // Eventos de la interfaz
-        public event EventHandler NuevoClienteClick;
-        public event EventHandler AgregarProductoClick;
-        public event EventHandler QuitarLineaClick;
-        public event EventHandler LimpiarTodoClick;
-        public event EventHandler VerImprimirClick;
-        public event EventHandler GuardarFacturaClick;
     }
 }
+

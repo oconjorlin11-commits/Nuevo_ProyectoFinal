@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Nuevo_Proyecto.Models.DTOs;
 using Nuevo_Proyecto.Services;
@@ -9,7 +12,8 @@ namespace Nuevo_Proyecto.Presenters
 {
     public class ClientePresenter
     {
-        private readonly IClienteView _view;
+        private readonly IClienteView? _view;
+        private readonly INuevoClienteView? _nuevoClienteView;
         private readonly IClienteRepository _clientes;
         private readonly IEmpleadoRepository _empleados;
 
@@ -21,6 +25,7 @@ namespace Nuevo_Proyecto.Presenters
         private string? _notaOriginal;
         private bool _estadoOriginal;
 
+        // Constructor para la administración de clientes (Clientescs)
         public ClientePresenter(IClienteView view,
                                 IClienteRepository? clientes = null,
                                 IEmpleadoRepository? empleados = null)
@@ -29,11 +34,30 @@ namespace Nuevo_Proyecto.Presenters
             _clientes = clientes ?? new ClienteRepository();
             _empleados = empleados ?? new EmpleadoRepository();
 
-            _view.GuardarClicked += OnGuardarClicked;
-            _view.CancelarClicked += OnCancelarClicked;
             _view.EditarClicked += OnEditarClicked;
             _view.EliminarClicked += OnEliminarClicked;
             _view.BuscarChanged += OnBuscarChanged;
+        }
+
+        // Constructor para la creación de nuevo cliente (NuevoCliente)
+        public ClientePresenter(INuevoClienteView nuevoClienteView,
+                                IClienteRepository? clientes = null,
+                                IEmpleadoRepository? empleados = null)
+        {
+            _nuevoClienteView = nuevoClienteView ?? throw new ArgumentNullException(nameof(nuevoClienteView));
+            _clientes = clientes ?? new ClienteRepository();
+            _empleados = empleados ?? new EmpleadoRepository();
+
+            _nuevoClienteView.GuardarClicked += OnGuardarNuevoClienteClicked;
+            _nuevoClienteView.CancelarClicked += OnCancelarNuevoClienteClicked;
+        }
+
+        // Constructor genérico para consultas/tests
+        public ClientePresenter(IClienteRepository? clientes = null,
+                                IEmpleadoRepository? empleados = null)
+        {
+            _clientes = clientes ?? new ClienteRepository();
+            _empleados = empleados ?? new EmpleadoRepository();
         }
 
         // ---------------------------------------------------------------- control de la vista
@@ -46,6 +70,7 @@ namespace Nuevo_Proyecto.Presenters
 
         public void CargarClientesActivos()
         {
+            if (_view == null) return;
             var clientes = _clientes.GetActivos();
             _view.MostrarClientes(DataTableMapper.Clientes(clientes));
             _view.CargarNotas(GetNotas());
@@ -60,14 +85,17 @@ namespace Nuevo_Proyecto.Presenters
             _notaOriginal = nota;
             _estadoOriginal = activo;
 
-            _view.Codigo = codigo;
-            _view.Nombre = nombre;
-            _view.Telefono = telefono ?? string.Empty;
-            _view.Direccion = direccion;
-            _view.Nota = nota ?? string.Empty;
-            _view.Activo = activo;
-            _view.SetActivoEnabled(!activo);
-            _view.CargarNotas(GetNotas());
+            if (_view != null)
+            {
+                _view.Codigo = codigo;
+                _view.Nombre = nombre;
+                _view.Telefono = telefono ?? string.Empty;
+                _view.Direccion = direccion;
+                _view.Nota = nota ?? string.Empty;
+                _view.Activo = activo;
+                _view.SetActivoEnabled(!activo);
+                _view.CargarNotas(GetNotas());
+            }
         }
 
         public void LimpiarCampos()
@@ -79,8 +107,11 @@ namespace Nuevo_Proyecto.Presenters
             _notaOriginal = null;
             _estadoOriginal = false;
 
-            _view.ResetFields();
-            _view.SetActivoEnabled(false);
+            if (_view != null)
+            {
+                _view.ResetFields();
+                _view.SetActivoEnabled(false);
+            }
         }
 
         // ---------------------------------------------------------------- consultas para la vista
@@ -106,21 +137,26 @@ namespace Nuevo_Proyecto.Presenters
 
         public bool ReactivarCliente(string codigo) => _clientes.Reactivar(codigo);
 
-        // ---------------------------------------------------------------- lógica de negocio en métodos privados
+        // ---------------------------------------------------------------- eventos de NuevoCliente
 
-        private void OnCancelarClicked(object? sender, EventArgs e) => LimpiarCampos();
-
-        private void OnGuardarClicked(object? sender, EventArgs e)
+        private void OnCancelarNuevoClienteClicked(object? sender, EventArgs e)
         {
-            string codigo = _view.Codigo?.Trim() ?? string.Empty;
-            string nombre = _view.Nombre?.Trim() ?? string.Empty;
-            string? telefono = string.IsNullOrWhiteSpace(_view.Telefono) ? null : _view.Telefono.Trim();
-            string direccion = _view.Direccion?.Trim() ?? string.Empty;
-            string? nota = string.IsNullOrWhiteSpace(_view.Nota) ? null : _view.Nota.Trim();
+            _nuevoClienteView?.ResetFields();
+        }
+
+        private void OnGuardarNuevoClienteClicked(object? sender, EventArgs e)
+        {
+            if (_nuevoClienteView == null) return;
+
+            string codigo = _nuevoClienteView.Codigo?.Trim() ?? string.Empty;
+            string nombre = _nuevoClienteView.Nombre?.Trim() ?? string.Empty;
+            string? telefono = string.IsNullOrWhiteSpace(_nuevoClienteView.Telefono) ? null : _nuevoClienteView.Telefono.Trim();
+            string direccion = _nuevoClienteView.Direccion?.Trim() ?? string.Empty;
+            string? nota = string.IsNullOrWhiteSpace(_nuevoClienteView.Nota) ? null : _nuevoClienteView.Nota.Trim();
 
             if (codigo.Length == 0 || nombre.Length == 0 || direccion.Length == 0)
             {
-                _view.showMessage("El código, el nombre y la dirección son obligatorios.", "Error", true);
+                _nuevoClienteView.showMessage("El código, el nombre y la dirección son obligatorios.", "Error", true);
                 return;
             }
 
@@ -128,8 +164,8 @@ namespace Nuevo_Proyecto.Presenters
             if (codigo.Length > 10 || nombre.Length > 100 || direccion.Length > 200 ||
                 (telefono?.Length ?? 0) > 20 || (nota?.Length ?? 0) > 200)
             {
-                _view.showMessage("Algún campo excede el largo permitido (código 10, nombre 100, teléfono 20, dirección 200, nota 200).",
-                                  "Validación", true);
+                _nuevoClienteView.showMessage("Algún campo excede el largo permitido (código 10, nombre 100, teléfono 20, dirección 200, nota 200).",
+                                              "Validación", true);
                 return;
             }
 
@@ -137,7 +173,7 @@ namespace Nuevo_Proyecto.Presenters
             {
                 if (_clientes.CodigoExiste(codigo))
                 {
-                    _view.showMessage($"El código '{codigo}' ya existe. Por favor, ingrese un código único.", "Error", true);
+                    _nuevoClienteView.showMessage($"El código '{codigo}' ya existe. Por favor, ingrese un código único.", "Error", true);
                     return;
                 }
 
@@ -148,25 +184,29 @@ namespace Nuevo_Proyecto.Presenters
                     Telefono = telefono,
                     Direccion = direccion,
                     Nota = nota,
-                    Activo = _view.Activo
+                    Activo = _nuevoClienteView.Activo
                 });
 
-                _view.showMessage("Cliente guardado exitosamente.", "Éxito", false);
-                _view.ResetFields();
-                try { _view.CloseView(); } catch { /* la vista puede no ser modal */ }
+                _nuevoClienteView.showMessage("Cliente guardado exitosamente.", "Éxito", false);
+                _nuevoClienteView.ResetFields();
+                try { _nuevoClienteView.CloseView(); } catch { /* la vista puede no ser modal */ }
             }
             catch (DbUpdateException ex)
             {
-                _view.showMessage($"Error de base de datos: {ex.InnerException?.Message ?? ex.Message}", "Error BD", true);
+                _nuevoClienteView.showMessage($"Error de base de datos: {ex.InnerException?.Message ?? ex.Message}", "Error BD", true);
             }
             catch (Exception ex)
             {
-                _view.showMessage($"Ocurrió un error inesperado: {ex.Message}", "Error", true);
+                _nuevoClienteView.showMessage($"Ocurrió un error inesperado: {ex.Message}", "Error", true);
             }
         }
 
+        // ---------------------------------------------------------------- eventos de Clientescs
+
         private void OnEditarClicked(object? sender, EventArgs e)
         {
+            if (_view == null) return;
+
             if (string.IsNullOrEmpty(_codigoOriginal))
             {
                 _view.showMessage("Debe seleccionar un cliente primero.", "Aviso", true);
@@ -233,6 +273,8 @@ namespace Nuevo_Proyecto.Presenters
 
         private void OnEliminarClicked(object? sender, EventArgs e)
         {
+            if (_view == null) return;
+
             if (string.IsNullOrEmpty(_codigoOriginal))
             {
                 _view.showMessage("Debe seleccionar un cliente primero.", "Aviso", true);
@@ -253,6 +295,8 @@ namespace Nuevo_Proyecto.Presenters
 
         private void OnBuscarChanged(object? sender, EventArgs e)
         {
+            if (_view == null) return;
+
             string codigo = _view.BuscarTexto?.Trim() ?? string.Empty;
 
             if (string.IsNullOrEmpty(codigo))

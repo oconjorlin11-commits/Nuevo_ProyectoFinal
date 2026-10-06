@@ -18,10 +18,9 @@ namespace Nuevo_Proyecto.Models.Views
     public partial class Inventario : Form, Nuevo_Proyecto.Views.Interfaces.IInventarioView
     {
 
-        private int ProductoIDSeleccionado;
         private int ProductoIDOriginal;
-        private string CodigoOriginal;
-        private string NombreOriginal;
+        private string CodigoOriginal = string.Empty;
+        private string NombreOriginal = string.Empty;
         private decimal PrecioVentaOriginal;
         private int StockOriginal;
         private int StockMinimoOriginal;
@@ -40,7 +39,7 @@ namespace Nuevo_Proyecto.Models.Views
             // Suscribir formateo y manejo de errores para la columna Activo
             dataGridInventario.CellFormatting += dataGridInventario_CellFormatting;
             dataGridInventario.DataError += DataGridInventario_DataError;
-            dataGridInventario.DataBindingComplete += (s, e) => { if (dataGridInventario.Columns.Contains("Activo")) dataGridInventario.Columns["Activo"].HeaderText = "Estado"; };
+            dataGridInventario.DataBindingComplete += (s, e) => { if (dataGridInventario.Columns.Contains("Activo")) dataGridInventario.Columns["Activo"]!.HeaderText = "Estado"; };
             // Suscribir textbox de búsqueda (nombre en diseñador: txtBucarInvet)
             txtBucarInvet.TextChanged += txtBuscarInventario_TextChanged;
             // Suscribir cambio de categoría de filtro (cmboxCategoriaInve) para mostrar por categoría sin filtrar por stock
@@ -347,7 +346,7 @@ namespace Nuevo_Proyecto.Models.Views
             dataGridInventario.MultiSelect = false;
         }
 
-        private void txtBuscarInventario_TextChanged(object sender, EventArgs e)
+        private void txtBuscarInventario_TextChanged(object? sender, EventArgs e)
         {
 
 
@@ -369,9 +368,9 @@ namespace Nuevo_Proyecto.Models.Views
 
                 // 👉 Tomar el primero para edición rápida
                 DataRow fila = resultados.Rows[0];
-                CodigoOriginal = fila["Codigo"].ToString();
+                CodigoOriginal = fila["Codigo"]?.ToString() ?? string.Empty;
                 ProductoIDOriginal = Convert.ToInt32(fila["ProductoID"]);
-                NombreOriginal = fila["Nombre"].ToString();
+                NombreOriginal = fila["Nombre"]?.ToString() ?? string.Empty;
                 CategoriaOriginalID = Convert.ToInt32(fila["CategoriaID"]);
                 UnidadOriginalID = Convert.ToInt32(fila["UnidadID"]);
                 PrecioVentaOriginal = Convert.ToDecimal(fila["PrecioVenta"]);
@@ -614,16 +613,17 @@ namespace Nuevo_Proyecto.Models.Views
                 }
 
                 // Ajustar apariencia de la columna Estado/Activo
-                if (dataGridInventario.Columns.Contains("Activo"))
+                var colActivo = dataGridInventario.Columns["Activo"];
+                if (colActivo != null)
                 {
-                    dataGridInventario.Columns["Activo"].HeaderText = "Estado";
-                    dataGridInventario.Columns["Activo"].ReadOnly = true;
-                    dataGridInventario.Columns["Activo"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                    colActivo.HeaderText = "Estado";
+                    colActivo.ReadOnly = true;
+                    colActivo.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                 }
             }
         }
 
-        private void dataGridInventario_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e) 
+        private void dataGridInventario_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e) 
         {
             try
             {
@@ -662,7 +662,7 @@ namespace Nuevo_Proyecto.Models.Views
 
         }
 
-        private void DataGridInventario_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        private void DataGridInventario_DataError(object? sender, DataGridViewDataErrorEventArgs e)
         {
             e.ThrowException = false;
         }
