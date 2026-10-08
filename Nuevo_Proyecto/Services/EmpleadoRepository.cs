@@ -113,11 +113,11 @@ namespace Nuevo_Proyecto.Services
             return query.Any();
         }
 
-        public void Crear(EmpleadoDto dto)
+        public int Crear(EmpleadoDto dto)
         {
             using var db = _factory.CreateDbContext();
 
-            db.Empleados.Add(new Empleado
+            var empleado = new Empleado
             {
                 Codigo = dto.Codigo,
                 Nombre = dto.Nombre,
@@ -127,9 +127,12 @@ namespace Nuevo_Proyecto.Services
                 Salario = dto.Salario,
                 Fechaingreso = dto.FechaIngreso,
                 Activo = dto.Activo
-            });
+            };
 
+            db.Empleados.Add(empleado);
             db.SaveChanges();
+
+            return empleado.EmpleadoId;
         }
 
         public bool Actualizar(string codigo, string nombre, string? cargo, string cedula, string? telefono, decimal salario)

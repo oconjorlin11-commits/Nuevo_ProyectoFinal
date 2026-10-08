@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Nuevo_Proyecto.Services.Helpers;
+using Nuevo_Proyecto.Views.FormularioUI;
 
 namespace Nuevo_Proyecto.Models.Views
 {
@@ -25,6 +26,16 @@ namespace Nuevo_Proyecto.Models.Views
         {
             // Datos de la sesión y permisos según el rol
             lblUsuario.Text = SesionActual.NombreEmpleado;
+
+            // Mostrar saludo de bienvenida
+            string rol = SesionActual.EsAdministrador ? "Administrador" : SesionActual.Usuario?.Cargo ?? "Usuario";
+            MessageBox.Show(
+                $"¡Bienvenido {SesionActual.NombreEmpleado}!\n\nRol: {rol}",
+                "Inicio de Sesión Exitoso",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information
+            );
+
             // Desbloquear acceso para todos los usuarios a Empleados y Reportes
             btnEmpleados.Enabled = true; // SesionActual.EsAdministrador;
             btnReportes.Enabled = true; // SesionActual.EsAdministrador;
@@ -67,11 +78,42 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void btnClientes_Click(object sender, EventArgs e) => CargarFormulario(new Clientescs());
 
-        private void btnEmpleados_Click(object sender, EventArgs e) => CargarFormulario(new Empleados());
+        private void btnEmpleados_Click(object sender, EventArgs e)
+        {
+            if (!VerificarAcceso())
+                return;
+            CargarFormulario(new Empleados());
+        }
 
-        private void btnInventario_Click(object sender, EventArgs e) => CargarFormulario(new Inventario());
+        private void btnInventario_Click(object sender, EventArgs e)
+        {
+            if (!VerificarAcceso())
+                return;
+            CargarFormulario(new Inventario());
+        }
 
-        private void btnReportes_Click(object sender, EventArgs e) => CargarFormulario(new Reportes());
+        private void btnReportes_Click(object sender, EventArgs e)
+        {
+            if (!VerificarAcceso())
+                return;
+            CargarFormulario(new Reportes());
+        }
+
+        private bool VerificarAcceso()
+        {
+            // Si es administrador, permitir acceso directo
+            if (SesionActual.EsAdministrador)
+                return true;
+
+            // Mostrar dialogo de verificacion de permisos
+            var verificacion = new VerificacionPermisos(SesionActual.NombreUsuario);
+            if (verificacion.ShowDialog(this) == DialogResult.OK)
+            {
+                return true;
+            }
+
+            return false;
+        }
 
         private void btnSalir_Click(object sender, EventArgs e)
         {

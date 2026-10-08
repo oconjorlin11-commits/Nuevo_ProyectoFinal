@@ -29,8 +29,7 @@ namespace Nuevo_Proyecto.Services
         private sealed class FilaLogin
         {
             public string NombreUsuario { get; set; } = string.Empty;
-            public string? ContrasenaLegacy { get; set; }
-            public string? ContrasenaHash { get; set; }
+            public string? Contrasena { get; set; }
             public string? RolSistema { get; set; }
             public int EmpleadoId { get; set; }
             public string Codigo { get; set; } = string.Empty;
@@ -52,15 +51,14 @@ namespace Nuevo_Proyecto.Services
 
                 var fila = db.Database.SqlQuery<FilaLogin>($@"
                     SELECT u.NombreUsuario              AS NombreUsuario,
-                           u.[Contraseña]               AS ContrasenaLegacy,
-                           u.ContrasenaHash             AS ContrasenaHash,
+                           u.[Contraseña]               AS Contrasena,
                            u.RolSistema                 AS RolSistema,
-                           e.EmpleadoID                 AS EmpleadoId,
+                           u.EmpleadoID                 AS EmpleadoId,
                            e.Codigo                     AS Codigo,
                            e.Nombre                     AS Nombre,
                            e.Cargo                      AS Cargo
                     FROM Usuarios u
-                    INNER JOIN Empleados e ON u.CodigoEmpleado = e.Codigo
+                    INNER JOIN Empleados e ON u.EmpleadoID = e.EmpleadoID
                     WHERE u.NombreUsuario = {usuario}
                       AND u.Activo = 1
                       AND ISNULL(e.Activo, 1) = 1")
@@ -69,32 +67,22 @@ namespace Nuevo_Proyecto.Services
 
                 if (fila == null) return Fallo(MensajeGenerico);
 
-                bool valido;
-                bool migrar = false;
-
-                if (!string.IsNullOrEmpty(fila.ContrasenaHash))
-                {
-                    valido = PasswordHasher.Verificar(contrasena, fila.ContrasenaHash);
-                }
-                else
-                {
-                    // Cuenta aún sin migrar: compara con el texto plano y la migra al entrar
-                    valido = !string.IsNullOrEmpty(fila.ContrasenaLegacy)
-                             && string.Equals(fila.ContrasenaLegacy.Trim(), contrasena, StringComparison.Ordinal);
-                    migrar = valido;
-                }
+                // Validar contraseña (comparación directa con el texto plano)
+                bool valido = !string.IsNullOrEmpty(fila.Contrasena)
+                             && string.Equals(fila.Contrasena.Trim(), contrasena, StringComparison.Ordinal);
 
                 if (!valido) return Fallo(MensajeGenerico);
 
-                if (migrar)
+                // Actualizar último acceso si la columna existe
+                try
                 {
-                    var hash = PasswordHasher.Hash(contrasena);
                     db.Database.ExecuteSqlInterpolated(
-                        $"UPDATE Usuarios SET ContrasenaHash = {hash}, [Contraseña] = 'MIGRADO' WHERE NombreUsuario = {fila.NombreUsuario}");
+                        $"UPDATE Usuarios SET UltimoAcceso = SYSDATETIME() WHERE NombreUsuario = {fila.NombreUsuario}");
                 }
-
-                db.Database.ExecuteSqlInterpolated(
-                    $"UPDATE Usuarios SET UltimoAcceso = SYSDATETIME() WHERE NombreUsuario = {fila.NombreUsuario}");
+                catch
+                {
+                    // Si la columna UltimoAcceso no existe, ignorar el error
+                }
 
                 return new ResultadoLoginDto
                 {
@@ -113,8 +101,7 @@ namespace Nuevo_Proyecto.Services
             }
             catch (Exception ex)
             {
-                return Fallo("No se pudo validar el acceso. Verifique la conexión y que haya ejecutado " +
-                             "Database/01_seguridad_y_auditoria.sql." + Environment.NewLine + ex.Message);
+                return Fallo("No se pudo validar el acceso. Verifique la conexión " + Environment.NewLine + ex.Message);
             }
         }
 

@@ -15,6 +15,7 @@ namespace Nuevo_Proyecto.Presenters
         private readonly IEmpleadoView? _view;
         private readonly INuevoEmpleadoView? _nuevoEmpleadoView;
         private readonly IEmpleadoRepository _empleados;
+        private readonly IUsuarioRepository _usuarios;
 
         // Estado original seleccionado para control de cambios y reactivación
         private string? _codigoOriginal;
@@ -27,10 +28,11 @@ namespace Nuevo_Proyecto.Presenters
         private bool _estadoOriginal;
 
         // Constructor para la administración de empleados (Empleados)
-        public EmpleadoPresenter(IEmpleadoView view, IEmpleadoRepository? empleados = null)
+        public EmpleadoPresenter(IEmpleadoView view, IEmpleadoRepository? empleados = null, IUsuarioRepository? usuarios = null)
         {
             _view = view ?? throw new ArgumentNullException(nameof(view));
             _empleados = empleados ?? new EmpleadoRepository();
+            _usuarios = usuarios ?? new UsuarioRepository();
 
             _view.EditarClicked += OnEditarClicked;
             _view.EliminarClicked += OnEliminarClicked;
@@ -38,10 +40,11 @@ namespace Nuevo_Proyecto.Presenters
         }
 
         // Constructor para el formulario de nuevo empleado (NuevoEmpleado)
-        public EmpleadoPresenter(INuevoEmpleadoView nuevoEmpleadoView, IEmpleadoRepository? empleados = null)
+        public EmpleadoPresenter(INuevoEmpleadoView nuevoEmpleadoView, IEmpleadoRepository? empleados = null, IUsuarioRepository? usuarios = null)
         {
             _nuevoEmpleadoView = nuevoEmpleadoView ?? throw new ArgumentNullException(nameof(nuevoEmpleadoView));
             _empleados = empleados ?? new EmpleadoRepository();
+            _usuarios = usuarios ?? new UsuarioRepository();
 
             _nuevoEmpleadoView.GuardarClicked += OnGuardarNuevoEmpleadoClicked;
             _nuevoEmpleadoView.CancelarClicked += OnCancelarNuevoEmpleadoClicked;
@@ -223,7 +226,7 @@ namespace Nuevo_Proyecto.Presenters
                     return;
                 }
 
-                _empleados.Crear(new EmpleadoDto
+                var empleadoDto = new EmpleadoDto
                 {
                     Codigo = codigo,
                     Nombre = nombre,
@@ -233,9 +236,20 @@ namespace Nuevo_Proyecto.Presenters
                     Salario = _nuevoEmpleadoView.Salario,
                     FechaIngreso = _nuevoEmpleadoView.FechaIngreso,
                     Activo = _nuevoEmpleadoView.Activo
-                });
+                };
 
-                _nuevoEmpleadoView.showMessage("Empleado guardado exitosamente.", "Éxito", false);
+                // 👉 Crear empleado y usuario automáticamente usando el procedimiento almacenado
+                bool usuarioCreado = _usuarios.CrearUsuarioEmpleado(empleadoDto);
+
+                if (usuarioCreado)
+                {
+                    _nuevoEmpleadoView.showMessage("Empleado y usuario guardados exitosamente.", "Éxito", false);
+                }
+                else
+                {
+                    _nuevoEmpleadoView.showMessage("Empleado guardado, pero hubo un error al crear el usuario del sistema.", "Aviso", false);
+                }
+
                 _nuevoEmpleadoView.ResetFields();
                 try { _nuevoEmpleadoView.CloseView(); } catch { /* la vista puede no ser modal */ }
             }
