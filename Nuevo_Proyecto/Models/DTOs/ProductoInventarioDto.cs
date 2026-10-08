@@ -14,6 +14,7 @@ namespace Nuevo_Proyecto.Models.DTOs
         public int Stock { get; set; }
         public int StockMinimo { get; set; }
         public bool Activo { get; set; }
+        public string Observacion { get; set; } = string.Empty;
 
         public bool StockBajo => Stock <= StockMinimo;
         public decimal ValorInventario => PrecioVenta * Stock;

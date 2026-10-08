@@ -100,7 +100,7 @@ namespace Nuevo_Proyecto.Presenters
             dt.Columns.Add("Observacion", typeof(string));
             foreach (var i in items)
                 dt.Rows.Add(i.ProductoId, i.Codigo, i.Nombre, i.CategoriaId, i.Categoria, i.UnidadId, i.Unidad,
-                            i.PrecioVenta, i.Stock, i.StockMinimo, i.Activo, string.Empty);
+                            i.PrecioVenta, i.Stock, i.StockMinimo, i.Activo, i.Observacion ?? string.Empty);
             return dt;
         }
 

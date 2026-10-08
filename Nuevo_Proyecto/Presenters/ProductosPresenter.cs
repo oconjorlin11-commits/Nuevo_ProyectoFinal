@@ -56,6 +56,34 @@ namespace Nuevo_Proyecto.Presenters
                 return;
             }
 
+            // Validar que el nombre no exceda 20 caracteres
+            if (nombre.Length > 20)
+            {
+                _view.showMessage("El nombre del producto no puede exceder 20 caracteres.", "Validacion", true);
+                return;
+            }
+
+            // Validar que no exista otro producto con el mismo nombre
+            if (_productos.NombreExiste(nombre))
+            {
+                _view.showMessage($"Ya existe un producto con el nombre '{nombre}'. Por favor, ingrese un nombre único.", "Error", true);
+                return;
+            }
+
+            // Validar que no exista un producto con nombre similar (ej: aguacate vs aguacates)
+            if (_productos.NombreEsSimilar(nombre))
+            {
+                _view.showMessage($"Existe un producto con un nombre muy similar a '{nombre}'. Por favor, ingrese un nombre completamente diferente.", "Error", true);
+                return;
+            }
+
+            // Validar que la descripción no exceda 20 caracteres
+            if ((descripcion?.Length ?? 0) > 20)
+            {
+                _view.showMessage("La descripción del producto no puede exceder 20 caracteres.", "Validacion", true);
+                return;
+            }
+
             if (_view.CategoriaId <= 0 || _view.UnidadId <= 0)
             {
                 _view.showMessage("Seleccione la categoría y la unidad del producto.", "Validacion", true);
@@ -74,9 +102,9 @@ namespace Nuevo_Proyecto.Presenters
                 return;
             }
 
-            if (codigo.Length > 10 || nombre.Length > 100 || (descripcion?.Length ?? 0) > 200)
+            if (codigo.Length > 10)
             {
-                _view.showMessage("Algún campo excede el largo permitido (código 10, nombre 100, descripción 200).", "Validacion", true);
+                _view.showMessage("El código no puede exceder 10 caracteres.", "Validacion", true);
                 return;
             }
 

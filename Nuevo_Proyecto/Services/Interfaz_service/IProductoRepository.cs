@@ -6,6 +6,8 @@ namespace Nuevo_Proyecto.Services.Interfaz_service
     {
         string GetSiguienteCodigo();
         bool CodigoExiste(string codigo);
+        bool NombreExiste(string nombre);
+        bool NombreEsSimilar(string nombre);
 
         /// <summary>Crea el producto, su inventario inicial y el movimiento de ingreso (todo en una transacción).</summary>
         void Crear(ProductoNuevoDto producto, int empleadoId);

@@ -21,7 +21,7 @@ namespace Nuevo_Proyecto.Services
         {
             using var db = _factory.CreateDbContext();
             var codigos = db.Productos.AsNoTracking().Select(p => p.Codigo).ToList();
-            return CodigoGenerator.SiguienteSecuencial("P", codigos, 4);
+            return CodigoGenerator.SiguienteAgrupado("PRD", codigos, "PRD-001");
         }
 
         public bool CodigoExiste(string codigo)
@@ -30,35 +30,90 @@ namespace Nuevo_Proyecto.Services
             return db.Productos.AsNoTracking().Any(p => p.Codigo == codigo);
         }
 
+        public bool NombreExiste(string nombre)
+        {
+            using var db = _factory.CreateDbContext();
+            return db.Productos.AsNoTracking().Any(p => p.Nombre.ToLower() == nombre.ToLower());
+        }
+
+        public bool NombreEsSimilar(string nombre)
+        {
+            using var db = _factory.CreateDbContext();
+            var nombresExistentes = db.Productos.AsNoTracking()
+                .Select(p => p.Nombre.ToLower())
+                .ToList();
+
+            string nombreNormalizado = nombre.ToLower().Trim();
+
+            foreach (var existente in nombresExistentes)
+            {
+                // Calcular similitud usando Levenshtein distance
+                int distancia = CalcularDistanciaLevenshtein(nombreNormalizado, existente);
+                int maxLengthComparison = Math.Max(nombreNormalizado.Length, existente.Length);
+
+                // Si la distancia es menor o igual al 30% de la longitud máxima, considerar similar
+                double similitud = 1.0 - ((double)distancia / maxLengthComparison);
+
+                if (similitud >= 0.70)  // 70% de similitud
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static int CalcularDistanciaLevenshtein(string s1, string s2)
+        {
+            int len1 = s1.Length;
+            int len2 = s2.Length;
+            int[,] d = new int[len1 + 1, len2 + 1];
+
+            for (int i = 0; i <= len1; i++) d[i, 0] = i;
+            for (int j = 0; j <= len2; j++) d[0, j] = j;
+
+            for (int i = 1; i <= len1; i++)
+            {
+                for (int j = 1; j <= len2; j++)
+                {
+                    int cost = s1[i - 1] == s2[j - 1] ? 0 : 1;
+                    d[i, j] = Math.Min(Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
+                }
+            }
+
+            return d[len1, len2];
+        }
+
         public void Crear(ProductoNuevoDto dto, int empleadoId)
         {
             using var db = _factory.CreateDbContext();
 
-            // Un solo SaveChanges = una sola transacción: producto + inventario + movimiento
+            // Crear el producto
             var producto = new Productos
             {
                 Codigo = dto.Codigo,
                 Nombre = dto.Nombre,
                 CategoriaId = dto.CategoriaId,
                 UnidadId = dto.UnidadId,
-                Descripcion = dto.Descripcion ?? string.Empty,   // la entidad no admite null
+                Descripcion = dto.Descripcion ?? string.Empty,
                 PrecioVenta = dto.PrecioVenta,
                 Activo = dto.Activo
             };
-            producto.Inventarios.Add(new Inventario
-            {
-                Stock = dto.StockInicial,
-                StockMinimo = dto.StockMinimo
-                // ValorInventario es columna calculada en la BD: no se escribe
-            });
+
             db.Productos.Add(producto);
+            db.SaveChanges();  // Guardar producto
 
-            var mov = MovimientosHelper.Crear(0, TipoMovimientoInventario.IngresoProducto,
+            // Insertar inventario usando SQL directo para evitar conflicto con triggers
+            db.Database.ExecuteSqlInterpolated($@"
+                INSERT INTO Inventario (ProductoId, Stock, StockMinimo)
+                VALUES ({producto.ProductoId}, {dto.StockInicial}, {dto.StockMinimo})
+            ");
+
+            // Ahora agregar el movimiento de inventario
+            var mov = MovimientosHelper.Crear(producto.ProductoId, TipoMovimientoInventario.IngresoProducto,
                 dto.StockInicial, 0, dto.StockInicial, empleadoId, "Ingreso inicial del producto");
-            mov.Producto = producto;          // el Id se resuelve al guardar
             db.MovimientoInventarios.Add(mov);
-
-            db.SaveChanges();
+            db.SaveChanges();  // Guardar movimiento
         }
 
         public decimal GetPrecio(int productoId)

@@ -22,6 +22,11 @@ namespace Nuevo_Proyecto.Presenters
             _inventario = inventario ?? new InventarioRepository();
             _catalogos = catalogos ?? new CatalogoRepository();
             _empleados = empleados ?? new EmpleadoRepository();
+
+            if (_view != null)
+            {
+                _view.BuscarChanged += OnBuscarChanged;
+            }
         }
 
         // ---------------------------------------------------------------- consultas
@@ -65,5 +70,42 @@ namespace Nuevo_Proyecto.Presenters
 
         public int InhabilitarProducto(int productoId, int empleadoId, string motivo) =>
             _inventario.Inhabilitar(productoId, empleadoId, motivo);
+
+        // ---------------------------------------------------------------- búsqueda automática (igual que Empleados)
+
+        private void OnBuscarChanged(object? sender, EventArgs e)
+        {
+            if (_view == null) return;
+
+            string busqueda = _view.BuscarTexto?.Trim() ?? string.Empty;
+
+            if (string.IsNullOrEmpty(busqueda))
+            {
+                // Si el textbox está vacío, mostrar solo los activos y limpiar campos
+                var dt = BuscarInventarioPorCodigoONombre("");
+                _view.MostrarInventario(dt);
+                _view.ResetFields();
+                return;
+            }
+
+            // Buscar por código o nombre (búsqueda parcial)
+            var dt2 = BuscarInventarioPorCodigoONombre(busqueda);
+
+            if (dt2.Rows.Count > 0)
+            {
+                // Mostrar resultados en el grid
+                _view.MostrarInventario(dt2);
+
+                // Cargar el primer resultado en los campos de edición
+                _view.CargarDatosEdicion(dt2.Rows[0]);
+            }
+            else
+            {
+                // No hay resultados: mostrar solo los activos y mostrar mensaje
+                _view.MostrarInventario(BuscarInventarioPorCodigoONombre(""));
+                _view.showMessage("Producto no encontrado.", "Búsqueda", esError: true);
+                _view.ResetFields();
+            }
+        }
     }
 }

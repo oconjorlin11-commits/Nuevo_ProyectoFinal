@@ -35,7 +35,7 @@ namespace Nuevo_Proyecto.Services
             using var db = _factory.CreateDbContext();
             return db.Empleados.AsNoTracking()
                 .Where(e => e.Activo == true)
-                .OrderBy(e => e.Nombre)
+                .OrderBy(e => e.Codigo)
                 .Select(ADto)
                 .ToList();
         }
@@ -45,7 +45,7 @@ namespace Nuevo_Proyecto.Services
             using var db = _factory.CreateDbContext();
             return db.Empleados.AsNoTracking()
                 .Where(e => e.Activo == true && e.Cargo != null && cargos.Contains(e.Cargo))
-                .OrderBy(e => e.Nombre)
+                .OrderBy(e => e.Codigo)
                 .Select(ADto)
                 .ToList();
         }

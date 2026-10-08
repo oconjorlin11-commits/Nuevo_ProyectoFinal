@@ -26,7 +26,7 @@ namespace Nuevo_Proyecto.Services
         public IReadOnlyList<ProductoInventarioDto> GetActivos()
         {
             using var db = _factory.CreateDbContext();
-            return db.Productos.AsNoTracking().Where(p => p.Activo == true).OrderBy(p => p.Nombre)
+            return db.Productos.AsNoTracking().Where(p => p.Activo == true).OrderBy(p => p.Codigo)
                 .Select(Proyecciones.ProductoInventario).ToList();
         }
 
@@ -42,7 +42,15 @@ namespace Nuevo_Proyecto.Services
         {
             using var db = _factory.CreateDbContext();
             return db.Productos.AsNoTracking()
-                .Where(p => p.Codigo.Contains(texto) || p.Nombre.Contains(texto)).OrderBy(p => p.Nombre)
+                .Where(p => p.Codigo.Contains(texto) || p.Nombre.Contains(texto)).OrderBy(p => p.Codigo)
+                .Select(Proyecciones.ProductoInventario).ToList();
+        }
+
+        public IReadOnlyList<ProductoInventarioDto> BuscarPorCodigoExacto(string codigo)
+        {
+            using var db = _factory.CreateDbContext();
+            return db.Productos.AsNoTracking()
+                .Where(p => p.Codigo == codigo).OrderBy(p => p.Codigo)
                 .Select(Proyecciones.ProductoInventario).ToList();
         }
 

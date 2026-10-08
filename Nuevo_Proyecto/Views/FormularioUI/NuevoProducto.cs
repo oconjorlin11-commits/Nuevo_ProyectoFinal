@@ -98,13 +98,13 @@ namespace Nuevo_Proyecto.Models.Views
                 return false;
             }
 
-            if (cmboxCategoriaProduc.SelectedValue == null)
+            if (cmboxCategoriaProduc.SelectedValue == null || (int)cmboxCategoriaProduc.SelectedValue < 0)
             {
                 MessageBox.Show("Debe seleccionar una categoría.");
                 return false;
             }
 
-            if (cmboxUnidadProduct.SelectedValue == null)
+            if (cmboxUnidadProduct.SelectedValue == null || (int)cmboxUnidadProduct.SelectedValue < 0)
             {
                 MessageBox.Show("Debe seleccionar una unidad.");
                 return false;
@@ -133,21 +133,40 @@ namespace Nuevo_Proyecto.Models.Views
             txtCodigoProduc.Text = _presenter.ObtenerProximoCodigoProducto();
             txtCodigoProduc.Enabled = false;
 
-            // 👉 Solo admins
+            // 👉 Solo admins - Agregar placeholder
             CmboxEmpleado.DataSource = _presenter.CargarUsuariosAdmin();
             CmboxEmpleado.DisplayMember = "Nombre";
             CmboxEmpleado.ValueMember = "EmpleadoID";
+            // Agregar item placeholder al inicio
+            DataTable dtEmpleados = _presenter.CargarUsuariosAdmin();
+            DataRow placeholderEmpl = dtEmpleados.NewRow();
+            placeholderEmpl["Nombre"] = "Seleccione un administrador";
+            placeholderEmpl["EmpleadoID"] = -1;  // ID inválido para identificar placeholder
+            dtEmpleados.Rows.InsertAt(placeholderEmpl, 0);
+            CmboxEmpleado.DataSource = dtEmpleados;
+            CmboxEmpleado.SelectedIndex = 0;
 
-            // Categorías
-            cmboxCategoriaProduc.DataSource = _presenter.GetCategoriasActivas();
+            // Categorías - Agregar placeholder
+            DataTable dtCategorias = _presenter.GetCategoriasActivas();
+            DataRow placeholderCat = dtCategorias.NewRow();
+            placeholderCat["Nombre"] = "Seleccione una categoría";
+            placeholderCat["CategoriaID"] = -1;
+            dtCategorias.Rows.InsertAt(placeholderCat, 0);
+            cmboxCategoriaProduc.DataSource = dtCategorias;
             cmboxCategoriaProduc.DisplayMember = "Nombre";
             cmboxCategoriaProduc.ValueMember = "CategoriaID";
+            cmboxCategoriaProduc.SelectedIndex = 0;
 
-            // Unidades
-            cmboxUnidadProduct.DataSource = _presenter.GetUnidades();
+            // Unidades - Agregar placeholder
+            DataTable dtUnidades = _presenter.GetUnidades();
+            DataRow placeholderUni = dtUnidades.NewRow();
+            placeholderUni["Nombre"] = "Seleccione una unidad de medida";
+            placeholderUni["UnidadID"] = -1;
+            dtUnidades.Rows.InsertAt(placeholderUni, 0);
+            cmboxUnidadProduct.DataSource = dtUnidades;
             cmboxUnidadProduct.DisplayMember = "Nombre";
             cmboxUnidadProduct.ValueMember = "UnidadID";
-
+            cmboxUnidadProduct.SelectedIndex = 0;
         }
 
         private void btnGuardarProduc_Click(object sender, EventArgs e)
