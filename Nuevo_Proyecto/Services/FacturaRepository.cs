@@ -48,6 +48,15 @@ namespace Nuevo_Proyecto.Services
             return Resumen(db.Facturas.AsNoTracking().Where(f => f.Numero != null && f.Numero.ToUpper() == prefijoNumero.ToUpper()));
         }
 
+        public IReadOnlyList<FacturaResumenDto> BuscarPorFechaEspecifica(DateTime fecha)
+        {
+            using var db = _factory.CreateDbContext();
+            // Crear el inicio y fin del día específico
+            var inicio = fecha.Date;  // Comienza a las 00:00:00
+            var fin = Proyecciones.FinDeDia(fecha);  // Termina a las 23:59:59
+            return Resumen(db.Facturas.AsNoTracking().Where(f => f.Fecha >= inicio && f.Fecha <= fin).OrderByDescending(f => f.Fecha));
+        }
+
         public IReadOnlyList<FacturaResumenDto> FiltrarPorFecha(DateTime desde, DateTime hasta)
         {
             using var db = _factory.CreateDbContext();

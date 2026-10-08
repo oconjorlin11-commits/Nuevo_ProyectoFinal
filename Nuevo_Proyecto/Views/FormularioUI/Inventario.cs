@@ -50,7 +50,7 @@ namespace Nuevo_Proyecto.Models.Views
             cmboxCategoriaInve.SelectedIndexChanged += CmboxCategoriaInve_SelectedIndexChanged;
         }
 
-        // Devuelve una tabla con slo filas cuyo Stock > 0 (mantiene esquema)
+        // Devuelve una tabla con solo filas cuyo Stock > 0 (mantiene esquema y orden)
         private DataTable FilterOnlyWithStock(DataTable? source)
         {
             if (source == null) return new DataTable();
@@ -58,17 +58,24 @@ namespace Nuevo_Proyecto.Models.Views
             // Crear un nuevo DataTable con el mismo esquema
             var dt = new DataTable();
 
-            // Copiar definici�n de columnas
+            // Copiar definiciÃ³n de columnas
             foreach (DataColumn col in source.Columns)
             {
                 dt.Columns.Add(col.ColumnName, col.DataType);
             }
 
-            // Filtrar y copiar filas
+            // Filtrar y copiar filas (preserva orden)
             foreach (DataRow r in source.Rows)
             {
                 try
                 {
+                    // Validar que tenga cÃ³digo vÃ¡lido
+                    var codigo = r["Codigo"];
+                    if (codigo == null || codigo == DBNull.Value || string.IsNullOrWhiteSpace(codigo.ToString()))
+                    {
+                        continue;
+                    }
+
                     var stockVal = r["Stock"];
                     int stock = 0;
 
@@ -107,9 +114,51 @@ namespace Nuevo_Proyecto.Models.Views
             dataGridInventario.DataSource = null;
         }
 
+        public void LimpiarCamposEdicion()
+        {
+            txtCodigoInvent.Text = string.Empty;
+            txtProductosInven.Text = string.Empty;
+            txtPrecioVentas.Text = string.Empty;
+            txtStock.Text = string.Empty;
+            txtMinimo.Text = string.Empty;
+        }
+
         public void MostrarInventario(DataTable dt)
         {
+            // Limpiar filas vacías o sin información válida
+            if (dt != null && dt.Rows.Count > 0)
+            {
+                for (int i = dt.Rows.Count - 1; i >= 0; i--)
+                {
+                    try
+                    {
+                        var codigo = dt.Rows[i]["Codigo"];
+                        var nombre = dt.Rows[i]["Nombre"];
+
+                        // Remover si no tiene código Y nombre válidos
+                        if ((codigo == null || codigo == DBNull.Value || string.IsNullOrWhiteSpace(codigo.ToString())) ||
+                            (nombre == null || nombre == DBNull.Value || string.IsNullOrWhiteSpace(nombre.ToString())))
+                        {
+                            dt.Rows.RemoveAt(i);
+                        }
+                    }
+                    catch
+                    {
+                        // Si hay error, remover la fila
+                        dt.Rows.RemoveAt(i);
+                    }
+                }
+            }
+
             dataGridInventario.DataSource = dt;
+
+            // Aplicar ordenamiento por Código
+            if (dt != null && dt.Rows.Count > 0)
+            {
+                DataView dv = new DataView(dt);
+                dv.Sort = "Codigo ASC";
+                dataGridInventario.DataSource = dv;
+            }
         }
 
         private void ConfigurardataGridInventario()
@@ -361,21 +410,37 @@ namespace Nuevo_Proyecto.Models.Views
 
             //  Mostrar inventario solo activo y con stock al inicio
             var dtInventario = FilterOnlyWithStock(_presenter.ObtenerInventarioActivo());
+
+            // Limpiar filas vacÃ­as (sin cÃ³digo de producto)
+            for (int i = dtInventario.Rows.Count - 1; i >= 0; i--)
+            {
+                var codigo = dtInventario.Rows[i]["Codigo"];
+                if (codigo == null || codigo == DBNull.Value || string.IsNullOrWhiteSpace(codigo.ToString()))
+                {
+                    dtInventario.Rows.RemoveAt(i);
+                }
+            }
+
             dataGridInventario.DataSource = dtInventario;
 
-            // Cargar el primer producto en los campos de edici�n
-            if (dtInventario.Rows.Count > 0)
-            {
-                CargarDatosEdicion(dtInventario.Rows[0]);
-            }
+                                    // Ordenar por cÃ³digo de forma explÃ­cita
+                                    if (dtInventario.Rows.Count > 0)
+                                    {
+                                                DataView dv = new DataView(dtInventario);
+                                                dv.Sort = "Codigo ASC";
+                                                dataGridInventario.DataSource = dv;
+                                    }
+
+            
 
             //  Opciones de seleccin
             dataGridInventario.ReadOnly = true;
             dataGridInventario.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dataGridInventario.MultiSelect = false;
+            dataGridInventario.AllowUserToAddRows = false;
 
             // Suscribirse a selecci�n de fila en el DataGrid
-            dataGridInventario.CellClick += DataGridInventario_CellClick;
+            // // Solo bÃºsqueda por textbox, no por clic en grid  // Deshabilitado: solo buscar por textbox
         }
 
         private void DataGridInventario_CellClick(object? sender, DataGridViewCellEventArgs e)
@@ -593,6 +658,13 @@ namespace Nuevo_Proyecto.Models.Views
         {
             if (this.DesignMode) return;
 
+            // Si hay una búsqueda activa (txtBucarInvet no está vacío), no filtrar por categoría
+            // La búsqueda tiene PRIORIDAD
+            if (!string.IsNullOrEmpty(txtBucarInvet.Text?.Trim()))
+            {
+                return;
+            }
+
             if (cmboxCategoriaInve.SelectedValue != null && cmboxCategoriaInve.SelectedValue is int)
             {
                 int categoriaID = (int)cmboxCategoriaInve.SelectedValue;
@@ -625,8 +697,8 @@ namespace Nuevo_Proyecto.Models.Views
             {
                 if (dataGridInventario.Columns[e.ColumnIndex].Name == "Activo")
                 {
-                    // Priorizar el Stock: si Stock existe y es 0 -> Agotado, si >0 -> Activo
-                    string estado = "";
+                    // Verificar el Stock: si Stock <= 0 -> Agotado, si >0 -> Activo
+                    string estado = "Activo";
                     if (dataGridInventario.Columns.Contains("Stock") && e.RowIndex >= 0 && e.RowIndex < dataGridInventario.Rows.Count)
                     {
                         var stockVal = dataGridInventario.Rows[e.RowIndex].Cells["Stock"].Value;
@@ -639,12 +711,7 @@ namespace Nuevo_Proyecto.Models.Views
                         }
                     }
 
-                    // Si no se pudo deducir por Stock, caer a Activo/Agotado segn Activo booleano
-                    if (string.IsNullOrEmpty(estado))
-                    {
-                        bool activo = ParseBoolDb(e.Value);
-                        estado = activo ? "Activo" : "Agotado";
-                    }
+                    
 
                     // Solo asignar estado si hay datos
                     e.Value = estado;
@@ -686,7 +753,8 @@ namespace Nuevo_Proyecto.Models.Views
                 txtPrecioVentas.Text = PrecioVentaOriginal.ToString("0.00");
                 txtStock.Text = StockOriginal.ToString();
                 txtMinimo.Text = StockMinimoOriginal.ToString();
-                cmboxCategoriaInve.SelectedValue = CategoriaOriginalID;
+                // NO llenar cmboxCategoriaInve (es el filtro de búsqueda)
+                // cmboxCategoriaInve.SelectedValue = CategoriaOriginalID;
                 cmboxUnidad.SelectedValue = UnidadOriginalID;
                 checkBoxInventario.Checked = EstadoOriginal;
 
@@ -732,5 +800,16 @@ namespace Nuevo_Proyecto.Models.Views
     }
     
 }
+
+
+
+
+
+
+
+
+
+
+
 
 

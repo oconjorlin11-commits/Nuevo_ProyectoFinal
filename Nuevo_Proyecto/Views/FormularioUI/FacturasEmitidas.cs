@@ -43,48 +43,119 @@ namespace Nuevo_Proyecto.Models.Views
         private void CargarTodasLasFacturas()
         {
             MostrarFacturas(_presenter.GetTodasLasFacturasConDetalles());
-            btnVerComprob.Enabled = false;
+            btnVerComprob.Enabled = true;
         }
 
         private void BuscarFacturaPorCodigo()
         {
-            string codigo = txtBuscarFact.Text.Trim();
+            string busqueda = txtBuscarFact.Text.Trim();
 
-            if (!string.IsNullOrWhiteSpace(codigo))
+            if (string.IsNullOrWhiteSpace(busqueda))
             {
-                DataTable dt = _presenter.BuscarFacturaPorCodigo(codigo);
-                MostrarFacturas(dt);
-
-                // 👉 habilitar solo si hay exactamente 1 resultado
-                btnVerComprob.Enabled = dt.Rows.Count == 1;
-            }
-            else
-            {
-                // 👉 si está vacío, mostrar todas
                 CargarTodasLasFacturas();
-                btnVerComprob.Enabled = false;
+                return;
             }
-        }
 
-        private void btnVerComprob_Click(object sender, EventArgs e)
-        {
-            if (dataGridFacturasEmitidas.CurrentRow != null)
+            // Detectar si es una fecha (formato d/m/a o dd/mm/aa)
+            if (EsFormatoFecha(busqueda))
             {
-                // 👉 Obtiene el código de factura (ej. FACT-002)
-                string facturaCodigo = dataGridFacturasEmitidas.CurrentRow.Cells["Numero"].Value?.ToString() ?? string.Empty;
-
-                if (!string.IsNullOrWhiteSpace(facturaCodigo))
+                if (DateTime.TryParseExact(busqueda, new[] { "d/M/yy", "dd/MM/yy", "d/M/yyyy", "dd/MM/yyyy" }, 
+                    System.Globalization.CultureInfo.InvariantCulture, 
+                    System.Globalization.DateTimeStyles.None, out var fecha))
                 {
-                    // 👉 Abre el comprobante con ese código
-                    using (Comprobante frmComprobante = new Comprobante(facturaCodigo))
-                    {
-                        frmComprobante.ShowDialog();
-                    }
+                    DataTable dt = _presenter.BuscarFacturasPorFecha(fecha);
+                    MostrarFacturas(dt);
+                    btnVerComprob.Enabled = true;
+
+                    // 👉 Limpiar selección para que el usuario deba seleccionar explícitamente
+                    dataGridFacturasEmitidas.ClearSelection();
+                }
+                else
+                {
+                    CargarTodasLasFacturas();
                 }
             }
             else
             {
-                showMessage("Seleccione una factura para ver el comprobante.", "Aviso", false);
+                // Es un código de factura
+                DataTable dt = _presenter.BuscarFacturaPorCodigo(busqueda);
+                MostrarFacturas(dt);
+                btnVerComprob.Enabled = true;
+            }
+        }
+
+        private bool EsFormatoFecha(string texto)
+        {
+            // Verificar si contiene "/" y si podría ser una fecha
+            if (!texto.Contains("/")) return false;
+
+            var partes = texto.Split('/');
+            if (partes.Length != 3) return false;
+
+            // Intentar parsear como números
+            return int.TryParse(partes[0], out _) && 
+                   int.TryParse(partes[1], out _) && 
+                   int.TryParse(partes[2], out _);
+        }
+
+        private DataTable FiltrarDataTablePorFecha(DataTable dt, DateTime fecha)
+        {
+            // Crear una copia del DataTable para filtrar
+            var dtFiltrada = dt.Clone();
+            var inicioDelDia = fecha.Date;
+            var finDelDia = inicioDelDia.AddDays(1).AddTicks(-1);
+
+            foreach (DataRow row in dt.Rows)
+            {
+                if (row["Fecha"] is DateTime fechaFactura)
+                {
+                    if (fechaFactura >= inicioDelDia && fechaFactura <= finDelDia)
+                    {
+                        dtFiltrada.ImportRow(row);
+                    }
+                }
+            }
+
+            return dtFiltrada;
+        }
+
+        private void DtpFechaFiltro_ValueChanged(object sender, EventArgs e)
+        {
+            BuscarFacturaPorCodigo();
+        }
+
+        private void btnVerComprob_Click(object sender, EventArgs e)
+        {
+            string busqueda = txtBuscarFact.Text.Trim();
+
+            // Validar 1: Si no hay búsqueda (se cargaron todas las facturas)
+            if (string.IsNullOrWhiteSpace(busqueda))
+            {
+                showMessage("No puede ver el comprobante, necesita buscar la factura que desea ver.", "Aviso", false);
+                return;
+            }
+
+            // Validar 2: Verificar que el usuario haya seleccionado una fila explícitamente
+            if (dataGridFacturasEmitidas.SelectedRows.Count == 0)
+            {
+                showMessage("Seleccione una factura en el DataGrid para ver el comprobante.", "Aviso", false);
+                return;
+            }
+
+            // Obtener la fila seleccionada
+            DataGridViewRow filaSeleccionada = dataGridFacturasEmitidas.SelectedRows[0];
+            string facturaCodigo = filaSeleccionada.Cells["Numero"].Value?.ToString() ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(facturaCodigo))
+            {
+                showMessage("No se pudo obtener el número de factura. Intente de nuevo.", "Error", true);
+                return;
+            }
+
+            // 👉 Abre el comprobante con ese código
+            using (Comprobante frmComprobante = new Comprobante(facturaCodigo))
+            {
+                frmComprobante.ShowDialog();
             }
         }
 
@@ -96,6 +167,28 @@ namespace Nuevo_Proyecto.Models.Views
         private void FacturasEmitidas_Load(object sender, EventArgs e)
         {
             CargarTodasLasFacturas(); // 👉 al abrir, carga todas las facturas con detalles
+
+            // Agregar placeholder al TextBox de búsqueda
+            if (txtBuscarFact != null)
+            {
+                // En .NET Framework/WinForms, usamos un evento GotFocus/LostFocus para simular placeholder
+                // O si el textbox soporta PlaceholderText directamente (Windows Forms moderno)
+                try
+                {
+                    // Intentar establecer PlaceholderText (disponible en .NET 5+)
+                    var propiedadPlaceholder = txtBuscarFact.GetType().GetProperty("PlaceholderText");
+                    if (propiedadPlaceholder != null)
+                    {
+                        propiedadPlaceholder.SetValue(txtBuscarFact, "ej: FACT-000 o d/m/a");
+                    }
+                }
+                catch
+                {
+                    // Si no está disponible, se usa el método alternativo con eventos
+                    // (que puede extenderse si es necesario)
+                }
+            }
+
             ConfigurarMenuAnular();
         }
 

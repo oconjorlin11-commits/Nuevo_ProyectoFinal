@@ -77,23 +77,24 @@ namespace Nuevo_Proyecto.Presenters
         {
             if (_view == null) return;
 
-            string busqueda = _view.BuscarTexto?.Trim() ?? string.Empty;
+            string codigo = _view.BuscarTexto?.Trim() ?? string.Empty;
 
-            if (string.IsNullOrEmpty(busqueda))
+            if (string.IsNullOrEmpty(codigo))
             {
                 // Si el textbox está vacío, mostrar solo los activos y limpiar campos
-                var dt = BuscarInventarioPorCodigoONombre("");
+                var dt = ObtenerInventarioActivo();
                 _view.MostrarInventario(dt);
-                _view.ResetFields();
+                _view.LimpiarCamposEdicion();
                 return;
             }
 
-            // Buscar por código o nombre (búsqueda parcial)
-            var dt2 = BuscarInventarioPorCodigoONombre(busqueda);
+            // Buscar por código EXACTO (igual que en Empleados)
+            var resultados = _inventario.BuscarPorCodigoExacto(codigo);
+            var dt2 = DataTableMapper.Inventario(resultados);
 
             if (dt2.Rows.Count > 0)
             {
-                // Mostrar resultados en el grid
+                // Mostrar resultado exacto encontrado (SOLO ese producto)
                 _view.MostrarInventario(dt2);
 
                 // Cargar el primer resultado en los campos de edición
@@ -101,11 +102,11 @@ namespace Nuevo_Proyecto.Presenters
             }
             else
             {
-                // No hay resultados: mostrar solo los activos y mostrar mensaje
-                _view.MostrarInventario(BuscarInventarioPorCodigoONombre(""));
-                _view.showMessage("Producto no encontrado.", "Búsqueda", esError: true);
-                _view.ResetFields();
+                // No hay resultados exactos: mostrar solo los activos y limpiar SOLO campos de edición
+                _view.MostrarInventario(ObtenerInventarioActivo());
+                _view.LimpiarCamposEdicion();
             }
         }
     }
 }
+

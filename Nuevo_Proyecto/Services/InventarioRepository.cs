@@ -49,8 +49,9 @@ namespace Nuevo_Proyecto.Services
         public IReadOnlyList<ProductoInventarioDto> BuscarPorCodigoExacto(string codigo)
         {
             using var db = _factory.CreateDbContext();
+            string codigoNormalizado = codigo.ToUpper();
             return db.Productos.AsNoTracking()
-                .Where(p => p.Codigo == codigo).OrderBy(p => p.Codigo)
+                .Where(p => p.Codigo.ToUpper() == codigoNormalizado).OrderBy(p => p.Codigo)
                 .Select(Proyecciones.ProductoInventario).ToList();
         }
 

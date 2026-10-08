@@ -229,6 +229,23 @@ namespace Nuevo_Proyecto.Models.Views
                 });
 
                 MessageBox.Show($"Factura guardada correctamente con código: {resultado.Numero}");
+
+                // 👉 Preguntar al usuario si desea ver/imprimir el comprobante
+                DialogResult respuesta = MessageBox.Show(
+                    $"¿Desea ver e imprimir el comprobante de la factura {resultado.Numero} ahora?",
+                    "Comprobante",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                if (respuesta == DialogResult.Yes)
+                {
+                    // Abrir el formulario de comprobante directamente con el número de factura
+                    using (Comprobante frmComprobante = new Comprobante(resultado.Numero))
+                    {
+                        frmComprobante.ShowDialog();
+                    }
+                }
+
                 dataGridDetallesFacturas.Rows.Clear();
                 ResetFields();
             }

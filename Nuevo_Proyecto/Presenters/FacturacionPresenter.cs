@@ -58,6 +58,9 @@ namespace Nuevo_Proyecto.Presenters
         public DataTable BuscarFacturaPorCodigo(string codigoFactura) =>
             DataTableMapper.FacturasResumen(_facturas.BuscarPorNumero(codigoFactura));
 
+        public DataTable BuscarFacturasPorFecha(DateTime fecha) =>
+            DataTableMapper.FacturasResumen(_facturas.BuscarPorFechaEspecifica(fecha));
+
         public DataTable FiltrarFacturasPorFecha(DateTime desde, DateTime hasta) =>
             DataTableMapper.FacturasResumen(_facturas.FiltrarPorFecha(desde, hasta));
 

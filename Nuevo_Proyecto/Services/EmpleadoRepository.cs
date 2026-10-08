@@ -53,8 +53,9 @@ namespace Nuevo_Proyecto.Services
         public IReadOnlyList<EmpleadoDto> BuscarPorCodigo(string codigoExacto)
         {
             using var db = _factory.CreateDbContext();
+            string codigoNormalizado = codigoExacto.ToUpper();
             return db.Empleados.AsNoTracking()
-                .Where(e => e.Codigo == codigoExacto)
+                .Where(e => e.Codigo.ToUpper() == codigoNormalizado)
                 .OrderBy(e => e.Codigo)
                 .Select(ADto)
                 .ToList();

@@ -10,6 +10,7 @@ namespace Nuevo_Proyecto.Services.Interfaz_service
 
         IReadOnlyList<FacturaResumenDto> GetTodas();
         IReadOnlyList<FacturaResumenDto> BuscarPorNumero(string prefijoNumero);
+        IReadOnlyList<FacturaResumenDto> BuscarPorFechaEspecifica(DateTime fecha);
         IReadOnlyList<FacturaResumenDto> FiltrarPorFecha(DateTime desde, DateTime hasta);
         IReadOnlyList<FacturaDetalleDto> GetDetallePorNumero(string numero);
 
