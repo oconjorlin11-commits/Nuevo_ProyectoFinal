@@ -5,6 +5,7 @@ namespace Nuevo_Proyecto.Views.Interfaces
     public interface IInventarioView
     {
         string BuscarTexto { get; set; }
+        bool HayMultiplesResultados { get; set; }
 
         event EventHandler? BuscarChanged;
 

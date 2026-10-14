@@ -7,6 +7,7 @@ namespace Nuevo_Proyecto.Services.Interfaz_service
         IReadOnlyList<EmpleadoDto> GetActivos();
         IReadOnlyList<EmpleadoDto> GetPorCargos(params string[] cargos);
         IReadOnlyList<EmpleadoDto> BuscarPorCodigo(string prefijoCodigo);
+        IReadOnlyList<EmpleadoDto> BuscarPorCodigoONombre(string termino);
         IReadOnlyList<string> GetCargos();
         string GetSiguienteCodigo();
         bool CodigoExiste(string codigo);

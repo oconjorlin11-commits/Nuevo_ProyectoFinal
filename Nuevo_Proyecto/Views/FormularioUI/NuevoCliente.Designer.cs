@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(NuevoCliente));
             btnCancelarClient = new Button();
             btnGuardarClient = new Button();
             label5 = new Label();
@@ -41,8 +40,6 @@
             label4 = new Label();
             txtDireccionClient = new TextBox();
             pictureBox1 = new PictureBox();
-            label6 = new Label();
-            cmboxAutizado = new ComboBox();
             checboxActico = new CheckBox();
             cmboxNota = new ComboBox();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
@@ -54,11 +51,11 @@
             btnCancelarClient.FlatStyle = FlatStyle.Flat;
             btnCancelarClient.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnCancelarClient.ForeColor = Color.FromArgb(250, 247, 241);
-            // btnCancelarClient.Image = (Image)resources.GetObject("btnCancelarClient.Image");
             btnCancelarClient.ImageAlign = ContentAlignment.MiddleLeft;
-            btnCancelarClient.Location = new Point(486, 726);
+            btnCancelarClient.Location = new Point(632, 929);
+            btnCancelarClient.Margin = new Padding(4, 4, 4, 4);
             btnCancelarClient.Name = "btnCancelarClient";
-            btnCancelarClient.Size = new Size(189, 65);
+            btnCancelarClient.Size = new Size(246, 83);
             btnCancelarClient.TabIndex = 50;
             btnCancelarClient.Text = "Cancelar";
             btnCancelarClient.UseVisualStyleBackColor = false;
@@ -70,11 +67,11 @@
             btnGuardarClient.FlatStyle = FlatStyle.Flat;
             btnGuardarClient.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnGuardarClient.ForeColor = Color.FromArgb(250, 247, 241);
-            // btnGuardarClient.Image = (Image)resources.GetObject("btnGuardarClient.Image");
             btnGuardarClient.ImageAlign = ContentAlignment.MiddleLeft;
-            btnGuardarClient.Location = new Point(69, 726);
+            btnGuardarClient.Location = new Point(90, 929);
+            btnGuardarClient.Margin = new Padding(4, 4, 4, 4);
             btnGuardarClient.Name = "btnGuardarClient";
-            btnGuardarClient.Size = new Size(189, 65);
+            btnGuardarClient.Size = new Size(246, 83);
             btnGuardarClient.TabIndex = 49;
             btnGuardarClient.Text = "Guardar ";
             btnGuardarClient.UseVisualStyleBackColor = false;
@@ -85,9 +82,10 @@
             label5.AutoSize = true;
             label5.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label5.ForeColor = Color.FromArgb(38, 38, 38);
-            label5.Location = new Point(128, 475);
+            label5.Location = new Point(166, 608);
+            label5.Margin = new Padding(4, 0, 4, 0);
             label5.Name = "label5";
-            label5.Size = new Size(84, 32);
+            label5.Size = new Size(115, 45);
             label5.TabIndex = 43;
             label5.Text = "Notas:";
             // 
@@ -96,9 +94,10 @@
             label3.AutoSize = true;
             label3.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label3.ForeColor = Color.FromArgb(38, 38, 38);
-            label3.Location = new Point(128, 399);
+            label3.Location = new Point(166, 511);
+            label3.Margin = new Padding(4, 0, 4, 0);
             label3.Name = "label3";
-            label3.Size = new Size(121, 32);
+            label3.Size = new Size(164, 45);
             label3.TabIndex = 42;
             label3.Text = "Direccion:";
             // 
@@ -106,10 +105,11 @@
             // 
             txtTelefonoClient.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtTelefonoClient.ForeColor = Color.FromArgb(38, 38, 38);
-            txtTelefonoClient.Location = new Point(299, 320);
+            txtTelefonoClient.Location = new Point(389, 410);
+            txtTelefonoClient.Margin = new Padding(4, 4, 4, 4);
             txtTelefonoClient.Name = "txtTelefonoClient";
             txtTelefonoClient.PlaceholderText = "Ej: 1234567890";
-            txtTelefonoClient.Size = new Size(294, 39);
+            txtTelefonoClient.Size = new Size(381, 50);
             txtTelefonoClient.TabIndex = 41;
             // 
             // label2
@@ -117,9 +117,10 @@
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label2.ForeColor = Color.FromArgb(38, 38, 38);
-            label2.Location = new Point(128, 320);
+            label2.Location = new Point(166, 410);
+            label2.Margin = new Padding(4, 0, 4, 0);
             label2.Name = "label2";
-            label2.Size = new Size(113, 32);
+            label2.Size = new Size(153, 45);
             label2.TabIndex = 40;
             label2.Text = "Telefono:";
             // 
@@ -127,10 +128,11 @@
             // 
             txtNombreClient.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtNombreClient.ForeColor = Color.FromArgb(38, 38, 38);
-            txtNombreClient.Location = new Point(299, 246);
+            txtNombreClient.Location = new Point(389, 315);
+            txtNombreClient.Margin = new Padding(4, 4, 4, 4);
             txtNombreClient.Name = "txtNombreClient";
             txtNombreClient.PlaceholderText = "Ej: Juan Pérez";
-            txtNombreClient.Size = new Size(294, 39);
+            txtNombreClient.Size = new Size(381, 50);
             txtNombreClient.TabIndex = 39;
             // 
             // label1
@@ -138,9 +140,10 @@
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label1.ForeColor = Color.FromArgb(38, 38, 38);
-            label1.Location = new Point(128, 249);
+            label1.Location = new Point(166, 319);
+            label1.Margin = new Padding(4, 0, 4, 0);
             label1.Name = "label1";
-            label1.Size = new Size(97, 32);
+            label1.Size = new Size(148, 45);
             label1.TabIndex = 38;
             label1.Text = "Nombre:";
             // 
@@ -148,9 +151,10 @@
             // 
             txtCodigoClient.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtCodigoClient.ForeColor = Color.FromArgb(38, 38, 38);
-            txtCodigoClient.Location = new Point(299, 170);
+            txtCodigoClient.Location = new Point(389, 218);
+            txtCodigoClient.Margin = new Padding(4, 4, 4, 4);
             txtCodigoClient.Name = "txtCodigoClient";
-            txtCodigoClient.Size = new Size(294, 39);
+            txtCodigoClient.Size = new Size(381, 50);
             txtCodigoClient.TabIndex = 37;
             // 
             // label4
@@ -158,9 +162,10 @@
             label4.AutoSize = true;
             label4.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label4.ForeColor = Color.FromArgb(38, 38, 38);
-            label4.Location = new Point(128, 173);
+            label4.Location = new Point(166, 221);
+            label4.Margin = new Padding(4, 0, 4, 0);
             label4.Name = "label4";
-            label4.Size = new Size(97, 32);
+            label4.Size = new Size(132, 45);
             label4.TabIndex = 36;
             label4.Text = "Codigo:";
             // 
@@ -168,50 +173,32 @@
             // 
             txtDireccionClient.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtDireccionClient.ForeColor = Color.FromArgb(38, 38, 38);
-            txtDireccionClient.Location = new Point(299, 396);
+            txtDireccionClient.Location = new Point(389, 507);
+            txtDireccionClient.Margin = new Padding(4, 4, 4, 4);
             txtDireccionClient.Name = "txtDireccionClient";
             txtDireccionClient.PlaceholderText = "Ej: Calle Principal 123, Apto 4B";
-            txtDireccionClient.Size = new Size(294, 39);
+            txtDireccionClient.Size = new Size(381, 50);
             txtDireccionClient.TabIndex = 51;
             // 
             // pictureBox1
             // 
             pictureBox1.Image = Properties.Resources.users_clients_group_16774;
             pictureBox1.Location = new Point(1, 0);
+            pictureBox1.Margin = new Padding(4, 4, 4, 4);
             pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(106, 98);
+            pictureBox1.Size = new Size(138, 125);
             pictureBox1.SizeMode = PictureBoxSizeMode.CenterImage;
             pictureBox1.TabIndex = 52;
             pictureBox1.TabStop = false;
-            // 
-            // label6
-            // 
-            label6.AutoSize = true;
-            label6.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label6.ForeColor = Color.FromArgb(38, 38, 38);
-            label6.Location = new Point(128, 545);
-            label6.Name = "label6";
-            label6.Size = new Size(140, 32);
-            label6.TabIndex = 53;
-            label6.Text = "Autorizado:";
-            // 
-            // cmboxAutizado
-            // 
-            cmboxAutizado.BackColor = Color.White;
-            cmboxAutizado.ForeColor = Color.FromArgb(38, 38, 38);
-            cmboxAutizado.FormattingEnabled = true;
-            cmboxAutizado.Location = new Point(299, 544);
-            cmboxAutizado.Name = "cmboxAutizado";
-            cmboxAutizado.Size = new Size(294, 33);
-            cmboxAutizado.TabIndex = 54;
             // 
             // checboxActico
             // 
             checboxActico.AutoSize = true;
             checboxActico.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
-            checboxActico.Location = new Point(299, 623);
+            checboxActico.Location = new Point(389, 797);
+            checboxActico.Margin = new Padding(4, 4, 4, 4);
             checboxActico.Name = "checboxActico";
-            checboxActico.Size = new Size(108, 36);
+            checboxActico.Size = new Size(143, 49);
             checboxActico.TabIndex = 55;
             checboxActico.Text = "Activo";
             checboxActico.UseVisualStyleBackColor = true;
@@ -221,21 +208,20 @@
             cmboxNota.BackColor = Color.White;
             cmboxNota.ForeColor = Color.FromArgb(38, 38, 38);
             cmboxNota.FormattingEnabled = true;
-            cmboxNota.Location = new Point(299, 474);
+            cmboxNota.Location = new Point(389, 607);
+            cmboxNota.Margin = new Padding(4, 4, 4, 4);
             cmboxNota.Name = "cmboxNota";
-            cmboxNota.Size = new Size(294, 33);
+            cmboxNota.Size = new Size(381, 40);
             cmboxNota.TabIndex = 56;
             // 
             // NuevoCliente
             // 
-            AutoScaleDimensions = new SizeF(10F, 25F);
+            AutoScaleDimensions = new SizeF(13F, 32F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(232, 221, 206);
-            ClientSize = new Size(745, 866);
+            ClientSize = new Size(968, 1108);
             Controls.Add(cmboxNota);
             Controls.Add(checboxActico);
-            Controls.Add(cmboxAutizado);
-            Controls.Add(label6);
             Controls.Add(pictureBox1);
             Controls.Add(txtDireccionClient);
             Controls.Add(btnCancelarClient);
@@ -249,6 +235,7 @@
             Controls.Add(txtCodigoClient);
             Controls.Add(label4);
             FormBorderStyle = FormBorderStyle.FixedToolWindow;
+            Margin = new Padding(4, 4, 4, 4);
             Name = "NuevoCliente";
             Text = "NuevoCliente";
             Load += NuevoCliente_Load;
@@ -291,8 +278,6 @@
         private Label label4;
         private TextBox txtDireccionClient;
         private PictureBox pictureBox1;
-        private Label label6;
-        private ComboBox cmboxAutizado;
         private CheckBox checboxActico;
         private ComboBox cmboxNota;
     }

@@ -10,10 +10,10 @@ namespace Nuevo_Proyecto.Services.Interfaz_service
         string GetSiguienteCodigo();
         bool CodigoExiste(string codigo);
         bool TelefonoExiste(string telefono);
-        void Crear(ClienteDto cliente);
-        bool Actualizar(string codigo, string nombre, string? telefono, string? direccion, string? nota);
-        bool Desactivar(string codigo);
-        bool Reactivar(string codigo);
+        int Crear(ClienteDto cliente);  // Retorna el ClienteID del cliente creado
+        bool Actualizar(string codigo, string nombre, string? telefono, string? direccion, string? nota, string? motivo = null);
+        bool Desactivar(string codigo, string? motivo = null);
+        bool Reactivar(string codigo, string? motivo = null);
 
         /// <summary>Cliente genérico para ventas sin cliente (se crea la primera vez).</summary>
         ClienteDto ObtenerOCrearConsumidorFinal();

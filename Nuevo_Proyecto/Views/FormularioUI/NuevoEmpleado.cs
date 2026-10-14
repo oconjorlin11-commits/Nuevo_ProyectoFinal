@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Nuevo_Proyecto.Presenters;
 using Nuevo_Proyecto.Views.Interfaces;
+using Nuevo_Proyecto.Services;
+using Nuevo_Proyecto.Services.Helpers;
 
 
 namespace Nuevo_Proyecto.Models.Views
@@ -37,7 +39,6 @@ namespace Nuevo_Proyecto.Models.Views
             txtTelefonoEmple.TextChanged += (s, ev) => UpdateControlsState();
             comboxCargoEmpleado.TextChanged += (s, ev) => UpdateControlsState();
             txtSalarioEmpleado.TextChanged += (s, ev) => UpdateControlsState();
-            cmboxAutizadoEmple.SelectedIndexChanged += (s, ev) => UpdateControlsState();
             checkEmpleadoAct.CheckedChanged += (s, ev) => UpdateControlsState();
             UpdateControlsState();
         }
@@ -67,8 +68,6 @@ namespace Nuevo_Proyecto.Models.Views
             comboxCargoEmpleado.SelectedIndex = -1;
             comboxCargoEmpleado.Text = "Selecciona un cargo";
             txtSalarioEmpleado.Text = "0";
-            cmboxAutizadoEmple.SelectedIndex = -1;
-            cmboxAutizadoEmple.Text = "Seleccione un autorizado";
             checkEmpleadoAct.Checked = false;
         }
 
@@ -81,7 +80,6 @@ namespace Nuevo_Proyecto.Models.Views
         public decimal Salario { get => decimal.TryParse(txtSalarioEmpleado.Text, out var s) ? s : 0; set => txtSalarioEmpleado.Text = value.ToString(); }
         public DateTime? FechaIngreso { get => dateTimePicker1.Value; set => dateTimePicker1.Value = value ?? DateTime.Now; }
         public bool Activo { get => checkEmpleadoAct.Checked; set => checkEmpleadoAct.Checked = value; }
-        public string AutorizadoPor { get => cmboxAutizadoEmple.Text; set => cmboxAutizadoEmple.Text = value; }
 
         private void label4_Click(object sender, EventArgs e)
         {
@@ -148,16 +146,9 @@ namespace Nuevo_Proyecto.Models.Views
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(cmboxAutizadoEmple.Text) || cmboxAutizadoEmple.SelectedIndex == -1)
-            {
-                MessageBox.Show("Debes seleccionar un personal encargado (administrador).", "Campo vacío", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                cmboxAutizadoEmple.Focus();
-                return;
-            }
-
             // Si todos los campos están completos, delegar al presenter
             GuardarClicked?.Invoke(this, EventArgs.Empty);
-            // El presenter puede solicitar cerrar la vista mediante CloseView
+            // El presenter coordinará la creación y auditoría
         }
 
         private void NuevoEmpleado_Load(object sender, EventArgs e)
@@ -177,14 +168,6 @@ namespace Nuevo_Proyecto.Models.Views
             comboxCargoEmpleado.DropDownStyle = ComboBoxStyle.DropDown;
             comboxCargoEmpleado.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             comboxCargoEmpleado.AutoCompleteSource = AutoCompleteSource.ListItems;
-
-            // Cargar solo administradores en ComboBox de autorización
-            DataTable admins = _presenter.GetUsuariosAdministradores();
-            cmboxAutizadoEmple.DataSource = admins;
-            cmboxAutizadoEmple.DisplayMember = "Nombre";
-            cmboxAutizadoEmple.ValueMember = "Codigo";
-            cmboxAutizadoEmple.SelectedIndex = -1;
-            cmboxAutizadoEmple.Text = "Seleccione un autorizado"; // Placeholder text
 
             // Inicializar salario en 0
             txtSalarioEmpleado.Text = "0";

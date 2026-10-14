@@ -6,18 +6,24 @@ namespace Nuevo_Proyecto.Services.Helpers
     public static class SesionActual
     {
         public static SesionUsuarioDto? Usuario { get; private set; }
+        public static string? UsuarioAutorizador { get; set; }
 
         public static bool HaySesion => Usuario != null;
         public static int EmpleadoId => Usuario?.EmpleadoId ?? 0;
         public static string NombreUsuario => Usuario?.NombreUsuario ?? "sistema";
         public static string NombreEmpleado => Usuario?.NombreEmpleado ?? string.Empty;
+        public static string Rol => Usuario?.Rol ?? "Desconocido";
 
         public static bool EsAdministrador =>
             Usuario != null &&
             (Contiene(Usuario.Rol, "admin") || Contiene(Usuario.Cargo, "admin"));
 
         public static void Iniciar(SesionUsuarioDto usuario) => Usuario = usuario;
-        public static void Cerrar() => Usuario = null;
+        public static void Cerrar()
+        {
+            Usuario = null;
+            UsuarioAutorizador = null;
+        }
 
         /// <summary>Empleado a registrar en movimientos: el de la sesión o el indicado como respaldo.</summary>
         public static int EmpleadoORespaldo(int empleadoIdIndicado) =>

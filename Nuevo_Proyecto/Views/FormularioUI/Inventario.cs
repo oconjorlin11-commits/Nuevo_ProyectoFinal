@@ -1,5 +1,8 @@
 ﻿using Nuevo_Proyecto.Catalogos;
 using Nuevo_Proyecto.Presenters;
+using Nuevo_Proyecto.Services;
+using Nuevo_Proyecto.Services.Helpers;
+using Nuevo_Proyecto.Views.FormularioUI;
 using Nuevo_Proyecto.Views.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -31,8 +34,10 @@ namespace Nuevo_Proyecto.Models.Views
 
 
         private readonly InventarioPresenter _presenter;
+        private readonly AuditoriaService _auditoria;
 
         public string BuscarTexto { get => txtBucarInvet.Text; set => txtBucarInvet.Text = value; }
+        public bool HayMultiplesResultados { get; set; }
 
         public event EventHandler? BuscarChanged;
 
@@ -40,10 +45,13 @@ namespace Nuevo_Proyecto.Models.Views
         {
             InitializeComponent();
             _presenter = new InventarioPresenter(this);
+            _auditoria = new AuditoriaService();
             // Suscribir formateo y manejo de errores para la columna Activo
             dataGridInventario.CellFormatting += dataGridInventario_CellFormatting;
             dataGridInventario.DataError += DataGridInventario_DataError;
             dataGridInventario.DataBindingComplete += (s, e) => { if (dataGridInventario.Columns.Contains("Activo")) dataGridInventario.Columns["Activo"]!.HeaderText = "Estado"; };
+            // Suscribir selección de fila en el DataGrid
+            dataGridInventario.SelectionChanged += dataGridInventario_SelectionChanged;
             // Suscribir textbox de bsqueda (nombre en diseador: txtBucarInvet)
             txtBucarInvet.TextChanged += txtBuscarInventario_TextChanged;
             // Suscribir cambio de categora de filtro (cmboxCategoriaInve) para mostrar por categora sin filtrar por stock
@@ -239,86 +247,6 @@ namespace Nuevo_Proyecto.Models.Views
                    Convert.ToInt32(cmboxCategoriaInve.SelectedValue) != CategoriaOriginalID ||
                    Convert.ToInt32(cmboxUnidad.SelectedValue) != UnidadOriginalID;
         }
-        private (string motivo, int empleadoID) PedirMotivo(string tipoCambio)
-        {
-            Form motivoForm = new Form();
-            motivoForm.Text = tipoCambio;
-            motivoForm.Size = new Size(1200, 700);
-            motivoForm.StartPosition = FormStartPosition.CenterScreen;
-            motivoForm.FormBorderStyle = FormBorderStyle.FixedDialog;
-
-            Label lblMensaje = new Label
-            {
-                Text = $"Explique detalladamente el motivo de la {tipoCambio.ToLower()}:",
-                Dock = DockStyle.Top,
-                Height = 60,
-                Font = new Font("Segoe UI", 14, FontStyle.Bold),
-                TextAlign = ContentAlignment.MiddleLeft
-            };
-
-            ComboBox cbEmpleados = new ComboBox
-            {
-                Dock = DockStyle.Top,
-                Height = 40,
-                Font = new Font("Segoe UI", 12),
-                DropDownStyle = ComboBoxStyle.DropDownList
-            };
-
-            // Cargar empleados desde presenter
-            var empleadosDt = _presenter.GetEmpleadosActivos();
-            cbEmpleados.DisplayMember = "Nombre";
-            cbEmpleados.ValueMember = "EmpleadoID";
-            cbEmpleados.DataSource = empleadosDt; // DataTable con empleados
-
-            TextBox txtMotivo = new TextBox
-            {
-                Multiline = true,
-                Dock = DockStyle.Fill,
-                ScrollBars = ScrollBars.Both,
-                Font = new Font("Segoe UI", 13),
-                MaxLength = 2000
-            };
-
-            FlowLayoutPanel panelBotones = new FlowLayoutPanel
-            {
-                Dock = DockStyle.Bottom,
-                Height = 80,
-                FlowDirection = FlowDirection.RightToLeft
-            };
-
-            Button btnAceptar = new Button { Text = "Aceptar", Width = 160, Height = 60, DialogResult = DialogResult.OK };
-            Button btnCancelar = new Button { Text = "Cancelar", Width = 160, Height = 60, DialogResult = DialogResult.Cancel };
-
-            panelBotones.Controls.Add(btnAceptar);
-            panelBotones.Controls.Add(btnCancelar);
-
-            motivoForm.Controls.Add(txtMotivo);
-            motivoForm.Controls.Add(cbEmpleados);
-            motivoForm.Controls.Add(lblMensaje);
-            motivoForm.Controls.Add(panelBotones);
-
-            motivoForm.AcceptButton = btnAceptar;
-            motivoForm.CancelButton = btnCancelar;
-
-            if (motivoForm.ShowDialog() == DialogResult.OK)
-            {
-                int empleadoID = 0;
-
-                //  Manejo seguro del SelectedValue
-                if (cbEmpleados.SelectedValue != null && cbEmpleados.SelectedValue is int)
-                {
-                    empleadoID = (int)cbEmpleados.SelectedValue;
-                }
-                else if (cbEmpleados.SelectedItem is DataRowView drv)
-                {
-                    empleadoID = Convert.ToInt32(drv["EmpleadoID"]);
-                }
-
-                return (txtMotivo.Text.Trim(), empleadoID);
-            }
-
-            return ("", 0); //  si cancela, no devuelve motivo ni empleado
-        }
 
 
         private void RestaurarValoresOriginales()
@@ -334,6 +262,7 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void LimpiarDespuesDeAccion()
         {
+            // Limpiar campos de texto
             txtCodigoInvent.Text = string.Empty;
             txtProductosInven.Text = string.Empty;
             txtPrecioVentas.Text = string.Empty;
@@ -361,6 +290,11 @@ namespace Nuevo_Proyecto.Models.Views
             UnidadOriginalID = 0;
             PrecioVentaOriginal = 0;
             StockOriginal = 0;
+
+            // Limpiar búsqueda y recargar productos activos con stock
+            BuscarTexto = string.Empty;
+            var dtActualizado = FilterOnlyWithStock(_presenter.ObtenerInventarioActivo());
+            dataGridInventario.DataSource = dtActualizado;
             StockMinimoOriginal = 0;
             EstadoOriginal = false;
         }
@@ -382,6 +316,15 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void Inventario_Load(object sender, EventArgs e)
         {
+            // Registrar acceso a Inventario
+            _auditoria.RegistrarAccion(
+                seccion: "Inventario",
+                accion: "ACCESO_TEMPORAL",
+                usuario: SesionActual.NombreEmpleado,
+                rolUsuario: SesionActual.Rol,
+                descripcion: "Acceso temporal a inventario"
+            );
+
             //  Configurar columnas del DataGridView
             ConfigurardataGridInventario();
 
@@ -496,44 +439,207 @@ namespace Nuevo_Proyecto.Models.Views
                 return;
             }
 
-            //  Paso 3: lgica especial para reactivacin
-            if (!EstadoOriginal && checkBoxInventario.Checked)
+            // IMPORTANTE: La rama de REACTIVACIÓN debe evaluarse PRIMERO, antes de cualquier otra validación
+            // Detectar intento de reactivación: EstadoOriginal=false (inactivo)
+            bool intentaReactivar = !EstadoOriginal;
+
+            //  Paso 3: lógica especial para reactivación
+            if (intentaReactivar)
             {
-                if (stock <= 0 || minimo <= 0)
+                // ✅ VALIDACIÓN CRÍTICA: El checkbox DEBE estar checked para poder reactivar
+                // Si no está checked, NO mostrar el formulario de motivo
+                if (!checkBoxInventario.Checked)
                 {
-                    MessageBox.Show("Para reactivar el producto debe actualizar Stock y Stock Mnimo.");
+                    MessageBox.Show(
+                        "Para reactivar un producto INACTIVO, debe:\n\n" +
+                        "1. Activar el CheckBox (Estado: ACTIVO)\n" +
+                        "2. Ingresar el nuevo Stock (debe ser mayor que el actual)\n" +
+                        "3. Hacer clic en Editar\n\n" +
+                        "El CheckBox DEBE estar activado antes de continuar.",
+                        "CheckBox no activado"
+                    );
                     return;
                 }
 
-                int filas = _presenter.ReactivarProducto(CodigoOriginal, stock, minimo);
-                MessageBox.Show(filas > 0 ? "Producto reactivado correctamente." : "No se pudo reactivar.");
-                LimpiarDespuesDeAccion();
+                // Validación 1: si el producto fue dado de baja, el stock actual debe estar en 0
+                if (StockOriginal > 0)
+                {
+                    MessageBox.Show(
+                        $"El producto fue dado de baja pero aún tiene Stock:{StockOriginal}.\n" +
+                        "Cuando se da de baja un producto, el Stock debe quedar en 0.",
+                        "Verificar estado de baja"
+                    );
+                    return;
+                }
+
+                // Validación 2: Stock debe ser mayor a 0
+                if (stock <= 0)
+                {
+                    MessageBox.Show(
+                        $"Debe ingresar un Stock mayor a 0.\n" +
+                        $"Stock Mínimo requerido: {StockMinimoOriginal}",
+                        "Stock inválido"
+                    );
+                    return;
+                }
+
+                // Validación 3: Mínimo debe ser mayor a 0
+                if (minimo <= 0)
+                {
+                    MessageBox.Show("Stock Mínimo debe ser mayor a 0.");
+                    return;
+                }
+
+                // Validación 4: Stock ingresado debe ser MAYOR al Stock actual (0)
+                if (stock <= StockOriginal)
+                {
+                    MessageBox.Show(
+                        $"Debe AUMENTAR el Stock (actual: {StockOriginal}).\n" +
+                        $"Ingrese un valor mayor a {StockOriginal}.",
+                        "Stock no ha aumentado"
+                    );
+                    return;
+                }
+
+                // Validación 5: Stock debe ser >= Mínimo
+                if (stock < minimo)
+                {
+                    MessageBox.Show(
+                        $"El Stock ingresado ({stock}) debe ser mayor o igual al Stock Mínimo ({minimo}).",
+                        "Stock insuficiente para reactivar"
+                    );
+                    return;
+                }
+
+                // ✅ SOLO AQUÍ - Todas las validaciones pasaron, pedir motivo de reactivación
+                // En este punto: Checkbox ESTÁ checked, Stock es válido y mayor al mínimo
+                var formMotivoReactivacion = new Motivo_de_actualizacion_Inventario();
+                if (formMotivoReactivacion.ShowDialog() != DialogResult.OK)
+                {
+                    return;
+                }
+
+                string motivoReactivacion = formMotivoReactivacion.Motivo;
+
+                // Validación final: rechazar motivos vacíos o inválidos
+                if (string.IsNullOrWhiteSpace(motivoReactivacion))
+                {
+                    MessageBox.Show("El motivo de reactivación no puede estar vacío.", "Motivo requerido");
+                    return;
+                }
+
+                try
+                {
+                    int filas = _presenter.ReactivarProducto(CodigoOriginal, stock, minimo, motivoReactivacion);
+                    if (filas > 0)
+                    {
+                        MessageBox.Show("Producto reactivado correctamente.");
+                    }
+                    else
+                    {
+                        MessageBox.Show("No se pudo reactivar el producto.");
+                    }
+
+                    LimpiarDespuesDeAccion();
+                }
+                catch (InvalidOperationException ex)
+                {
+                    // Capturar específicamente las excepciones de validación de motivo
+                    MessageBox.Show(
+                        ex.Message,
+                        "Motivo no válido",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning
+                    );
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al reactivar el producto: " + ex.Message);
+                }
+
                 return;
             }
 
-            //  Paso 4: bloquear cambios en Cdigo y Activo
+            //  Paso 4: bloquear cambios en Código
             if (CodigoOriginal != txtCodigoInvent.Text)
             {
-                MessageBox.Show("No se puede editar el cdigo del producto.");
-                txtCodigoInvent.Text = CodigoOriginal; // restaura el cdigo original
+                MessageBox.Show("No se puede editar el código del producto.");
+                txtCodigoInvent.Text = CodigoOriginal;
                 return;
             }
 
-            if (EstadoOriginal != checkBoxInventario.Checked)
+            // Paso 4.5: Detectar intento de cambio de estado (EN CUALQUIER DIRECCIÓN)
+            bool cambioDeEstado = EstadoOriginal != checkBoxInventario.Checked;
+
+            if (cambioDeEstado)
             {
-                MessageBox.Show("No se puede cambiar el estado desde Editar. Use Eliminar/Activar.");
-                checkBoxInventario.Checked = EstadoOriginal;
-                return;
+                // Si intenta cambiar estado, verificar qué tipo de cambio
+                bool esDesactivacion = EstadoOriginal && !checkBoxInventario.Checked;  // activo → inactivo
+                bool esReactivacion = !EstadoOriginal && checkBoxInventario.Checked;  // inactivo → activo
+
+                if (esDesactivacion)
+                {
+                    // La desactivación SOLO se hace a través de "Eliminar", NO en "Editar"
+                    MessageBox.Show(
+                        "Para desactivar un producto, use el botón 'Eliminar'.",
+                        "Cambio de estado no permitido"
+                    );
+                    checkBoxInventario.Checked = EstadoOriginal;
+                    return;
+                }
+
+                if (esReactivacion)
+                {
+                    // La reactivación SÍ es permitida en "Editar", pero con validaciones rigurosas
+
+                    if (stock <= 0)
+                    {
+                        MessageBox.Show(
+                            $"Para reactivar el producto, debe ingresar un Stock mayor a 0.\n" +
+                            $"Stock Mínimo requerido: {StockMinimoOriginal}",
+                            "Stock inválido"
+                        );
+                        return;
+                    }
+
+                    if (minimo <= 0)
+                    {
+                        MessageBox.Show("Stock Mínimo debe ser mayor a 0.");
+                        return;
+                    }
+
+                    // Stock debe ser diferente al actual
+                    if (stock == StockOriginal)
+                    {
+                        MessageBox.Show(
+                            $"Para reactivar, debe ingresar un Stock NUEVO diferente al actual ({StockOriginal}).",
+                            "Stock no ha cambiado"
+                        );
+                        return;
+                    }
+
+                    // Stock debe ser mayor o igual al mínimo
+                    if (stock < minimo)
+                    {
+                        MessageBox.Show(
+                            $"El Stock ingresado ({stock}) debe ser mayor o igual al Stock Mínimo ({minimo}).",
+                            "Stock insuficiente para reactivar"
+                        );
+                        return;
+                    }
+                }
             }
 
             //  Paso 5: validar si hubo cambios
             if (!HayCambios())
             {
-                MessageBox.Show("No se ha hecho ningn cambio.");
+                MessageBox.Show("No se ha hecho ningún cambio.");
                 return;
             }
 
-            //  Paso 6: pedir motivo y actualizar
+            //  Paso 6: mostrar formulario de motivo SOLO si hay cambios reales
+            // El UsuarioAutorizador ya fue obtenido en Inventario_Load y está guardado en SesionActual
+
             var tipoCambio = TipoMovimientoHelper.DetectarTipoCambio(
                 txtProductosInven.Text,
                 Convert.ToInt32(cmboxCategoriaInve.SelectedValue),
@@ -551,58 +657,69 @@ namespace Nuevo_Proyecto.Models.Views
                 StockMinimoOriginal
             );
 
-            var resultado = PedirMotivo(TipoMovimientoHelper.ToDescription(tipoCambio));
-
-            if (string.IsNullOrEmpty(resultado.motivo) || resultado.empleadoID == 0)
+            // Crear y mostrar el formulario de motivo de actualización
+            var formMotivo = new Motivo_de_actualizacion_Inventario();
+            if (formMotivo.ShowDialog() == DialogResult.OK)
             {
-                RestaurarValoresOriginales();
-                MessageBox.Show("No se aplicaron cambios. Se restauraron los valores originales.");
-                return;
-            }
-
-            EmpleadoID = resultado.empleadoID;
-            string observacion = resultado.motivo;
-
-
-            int filasUpdate = _presenter.ActualizarProducto(
-        ProductoIDOriginal,
-        txtProductosInven.Text,
-        Convert.ToInt32(cmboxCategorias.SelectedValue),
-        Convert.ToInt32(cmboxUnidad.SelectedValue),
-        null,   // descripcin: se conserva la actual (antes se sobrescriba con el motivo del cambio)
-        precioVenta,
-        checkBoxInventario.Checked,
-        stock,
-        minimo,
-        EmpleadoID,
-        observacion
-    );
-
-            MessageBox.Show(filasUpdate > 0 ? "Producto actualizado correctamente." : "No se pudo actualizar.");
-            if (filasUpdate > 0)
-            {
-                // Actualizar la fila visible en el grid para reflejar la observacin
-                foreach (DataGridViewRow r in dataGridInventario.Rows)
+                if (string.IsNullOrWhiteSpace(formMotivo.Motivo))
                 {
-                    try
+                    RestaurarValoresOriginales();
+                    MessageBox.Show("No se aplicaron cambios. Se restauraron los valores originales.");
+                    return;
+                }
+
+                EmpleadoID = SesionActual.EmpleadoId;
+                string observacion = formMotivo.Motivo;
+
+                int filasUpdate = _presenter.ActualizarProducto(
+                    ProductoIDOriginal,
+                    txtProductosInven.Text,
+                    Convert.ToInt32(cmboxCategorias.SelectedValue),
+                    Convert.ToInt32(cmboxUnidad.SelectedValue),
+                    null,   // descripción: se conserva la actual
+                    precioVenta,
+                    checkBoxInventario.Checked,
+                    stock,
+                    minimo,
+                    EmpleadoID,
+                    observacion
+                );
+
+                MessageBox.Show(filasUpdate > 0 ? "Producto actualizado correctamente." : "No se pudo actualizar.");
+                if (filasUpdate > 0)
+                {
+                    // Registrar auditoría
+                    _auditoria.RegistrarAccion(
+                        seccion: "Inventario",
+                        accion: "MODIFICAR",
+                        registroId: ProductoIDOriginal,
+                        usuario: SesionActual.NombreEmpleado,
+                        rolUsuario: SesionActual.Rol,
+                        usuarioAutorizador: SesionActual.UsuarioAutorizador,
+                        detalle: $"Producto: {txtProductosInven.Text}, Stock: {stock}, Precio: {precioVenta}",
+                        descripcion: observacion
+                    );
+
+                    // Actualizar la fila visible en el grid para reflejar la observación
+                    foreach (DataGridViewRow r in dataGridInventario.Rows)
                     {
-                        if (r.Cells["ProductoID"].Value != null && Convert.ToInt32(r.Cells["ProductoID"].Value) == ProductoIDOriginal)
+                        try
                         {
-                            if (r.Cells["Observacion"] != null)
-                                r.Cells["Observacion"].Value = observacion;
+                            if (r.Cells["ProductoID"].Value != null && Convert.ToInt32(r.Cells["ProductoID"].Value) == ProductoIDOriginal)
+                            {
+                                if (r.Cells["Observacion"] != null)
+                                    r.Cells["Observacion"].Value = observacion;
+                            }
+                        }
+                        catch
+                        {
+                            // ignorar errores de actualización de celda
                         }
                     }
-                    catch
-                    {
-                        // ignorar errores de actualizacin de celda
-                    }
                 }
+                LimpiarDespuesDeAccion();
             }
-            LimpiarDespuesDeAccion();
         }
-
-
-
 
         private void btnEliminarInvent_Click(object sender, EventArgs e)
         {
@@ -613,34 +730,230 @@ namespace Nuevo_Proyecto.Models.Views
                 return;
             }
 
-            //  Paso 2: pedir motivo
-            var tipoCambio = TipoMovimientoInventario.InhabilitacionProducto;
-            var resultado = PedirMotivo(TipoMovimientoHelper.ToDescription(tipoCambio));
+            //  Paso 2: Confirmación inicial antes de mostrar formulario
+            DialogResult confirmDialog = MessageBox.Show(
+                $"¿Desea dar de baja permanentemente el producto:\n\n" +
+                $"Código: {CodigoOriginal}\n" +
+                $"Nombre: {NombreOriginal}\n\n" +
+                $"Deberá ingresar una razón válida y justificada.",
+                "Confirmar baja de producto",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            );
 
-            if (string.IsNullOrWhiteSpace(resultado.motivo) || resultado.empleadoID == 0)
+            if (confirmDialog != DialogResult.Yes)
             {
-                MessageBox.Show("No se aplicaron cambios. El producto sigue igual.");
                 return;
             }
 
-            try
-            {
-                EmpleadoID = resultado.empleadoID;
-                string motivo = resultado.motivo;
+            //  Paso 3: pedir motivo de baja
+            // El UsuarioAutorizador ya fue obtenido en Inventario_Load y está guardado en SesionActual
 
-                int filas = _presenter.InhabilitarProducto(
-                    ProductoIDOriginal,   //  usa el ID cargado en bsqueda
-                    EmpleadoID,
-                    motivo
-                );
-
-                MessageBox.Show(filas > 0 ? "Producto inhabilitado correctamente." : "No se pudo inhabilitar el producto.");
-                LimpiarDespuesDeAccion();
-            }
-            catch (Exception ex)
+            // Crear y mostrar el formulario de motivo de baja del producto
+            var formMotivoBaja = new Motivo_de_la_baja_del_producto();
+            if (formMotivoBaja.ShowDialog() == DialogResult.OK)
             {
-                MessageBox.Show("Error al inhabilitar producto: " + ex.Message);
+                string motivo = formMotivoBaja.Motivo.Trim();
+
+                // ✅ VALIDACIÓN CRÍTICA: Rechazar motivos inválidos o sin razón real
+                if (string.IsNullOrWhiteSpace(motivo))
+                {
+                    MessageBox.Show("No se puede dar de baja sin especificar un motivo.", "Motivo requerido");
+                    return;
+                }
+
+                // Validar que el motivo sea real (no frases como "porque sí", "me dio la gana", etc.)
+                if (!EsMotivoValidoParaBaja(motivo))
+                {
+                    MessageBox.Show(
+                        "El motivo ingresado no es válido. Debe indicar una razón real y justificada.\n\n" +
+                        "Motivos válidos: daño, caducidad, robo, obsolescencia, etc.",
+                        "Motivo sin justificación válida"
+                    );
+                    return;
+                }
+
+                try
+                {
+                    EmpleadoID = SesionActual.EmpleadoId;
+
+                    int filas = _presenter.InhabilitarProducto(
+                        ProductoIDOriginal,   //  usa el ID cargado en búsqueda
+                        EmpleadoID,
+                        motivo
+                    );
+
+                    MessageBox.Show(filas > 0 ? "Producto dado de baja correctamente." : "No se pudo dar de baja el producto.");
+
+                    if (filas > 0)
+                    {
+                        // Registrar auditoría
+                        _auditoria.RegistrarAccion(
+                            seccion: "Inventario",
+                            accion: "ELIMINAR",
+                            registroId: ProductoIDOriginal,
+                            usuario: SesionActual.NombreEmpleado,
+                            rolUsuario: SesionActual.Rol,
+                            usuarioAutorizador: SesionActual.UsuarioAutorizador,
+                            detalle: $"Producto: {CodigoOriginal} - {NombreOriginal}",
+                            descripcion: motivo
+                        );
+                    }
+
+                    LimpiarDespuesDeAccion();
+                }
+                catch (InvalidOperationException ex)
+                {
+                    // Capturar específicamente las excepciones de validación de motivo
+                    MessageBox.Show(
+                        ex.Message,
+                        "Motivo no válido",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning
+                    );
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al dar de baja el producto: " + ex.Message);
+                }
             }
+        }
+
+        /// <summary>
+        /// Valida motivos de ACTUALIZACIÓN - MÁS FLEXIBLE
+        /// Permite motivos operacionales sin palabras clave específicas
+        /// </summary>
+        /// <summary>
+        /// Valida motivos de BAJA/ELIMINACIÓN - MÁS RESTRICTIVO
+        /// Requiere razones específicas y válidas
+        /// </summary>
+        private bool EsMotivoValidoParaBaja(string motivo)
+        {
+            if (string.IsNullOrWhiteSpace(motivo))
+                return false;
+
+            motivo = motivo.Trim();
+
+            // Mínimo 10 caracteres
+            if (motivo.Length < 10)
+                return false;
+
+            var palabras = motivo.Split(" ", System.StringSplitOptions.RemoveEmptyEntries);
+            if (palabras.Length < 2)
+                return false;
+
+            var motivoLower = motivo.ToLower();
+
+            // 1️⃣ RECHAZAR FRASES CLARAMENTE SIN RAZÓN VÁLIDA
+            var frasesAbsurdas = new[]
+            {
+                "porque sí", "porque si", "me dio la gana", "me dio gana", 
+                "sin razón", "sin motivo", "sin justificación", "sin justificacion",
+                "al azar", "capricho", "aleatoriamente", "simplemente", "solo"
+            };
+
+            foreach (var frase in frasesAbsurdas)
+            {
+                if (motivoLower.Contains(frase))
+                    return false;
+            }
+
+            // 2️⃣ DETECTAR EVASIONES INTELIGENTES - Culpar a personas 
+            var personasYAcciones = new[]
+            {
+                "porque el administrador", "porque la administrador", "porque el jefe", "porque la jefa",
+                "porque el gerente", "porque el director", "porque la directora",
+                "porque alguien", "porque él", "porque ella", "porque yo",
+                "porque el dueño", "porque la empresa", "porque la compañía"
+            };
+
+            foreach (var patron in personasYAcciones)
+            {
+                if (motivoLower.Contains(patron))
+                {
+                    // Si culpa a una persona, debe tener razón objetiva
+                    var razonObjetiva = new[] { "daño", "roto", "caducado", "vencido", "robo", "perdida", 
+                        "obsoleto", "error", "defecto", "fallo", "politica", "norma", "auditoría", 
+                        "stock", "inventario", "control" };
+                    bool tieneRazon = false;
+                    foreach (var r in razonObjetiva)
+                    {
+                        if (motivoLower.Contains(r)) { tieneRazon = true; break; }
+                    }
+                    if (!tieneRazon) return false;
+                }
+            }
+
+            // Detectar acciones vacías
+            var accionesVacias = new[] { "quiso", "decidió", "decidio", "se le dio la gana", "le vino en gana", "se le antojó", "se le antojo" };
+            bool tienePersona = false;
+            foreach (var personas in new[] { "administrador", "jefe", "gerente", "director", "dueño", "él", "ella", "yo" })
+            {
+                if (motivoLower.Contains(personas)) { tienePersona = true; break; }
+            }
+            if (tienePersona)
+            {
+                foreach (var accion in accionesVacias)
+                {
+                    if (motivoLower.Contains(accion)) return false;
+                }
+            }
+
+            // 3️⃣ VERIFICAR QUE TENGA MOTIVOS VÁLIDOS
+            var motivosValidos = new[]
+            {
+                "daño", "dañado", "roto", "mojado", "oxidado", "deterioro",
+                "caducado", "caducidad", "vencido", "podrido", "fermentado",
+                "robo", "robado", "perdida", "perdido", "extraviado",
+                "obsoleto", "antiguo", "sin movimiento", "viejo",
+                "stock", "inventario", "agotado", "exceso",
+                "retiro", "cambio", "devolución", "devuelto",
+                "error", "equivocación", "confusión", "defecto", "avería",
+                "inspección", "revisión", "auditoría", "control",
+                "mantenimiento", "limpieza", "higiene", "desinfección"
+            };
+
+            bool tieneMotivoValido = false;
+            foreach (var m in motivosValidos)
+            {
+                if (motivoLower.Contains(m)) { tieneMotivoValido = true; break; }
+            }
+
+            if (!tieneMotivoValido)
+                return false;
+
+            // 4️⃣ DETECTAR PALABRAS INCOMPLETAS
+            foreach (var palabra in palabras)
+            {
+                if (palabra.Length < 3)
+                {
+                    var palabrasCortas = new[] { "de", "en", "el", "la", "un", "a", "y", "o", "si", "no", "es", "lo", "se", "le", "al", "su", "da", "x" };
+                    if (!palabrasCortas.Contains(palabra.ToLower()))
+                        return false;
+                }
+
+                if (palabra.Length > 3 && (palabra.EndsWith("cad") || palabra.EndsWith("dañ") || 
+                    palabra.EndsWith("rust") || palabra.EndsWith("prod")) && palabra.Length < 8)
+                {
+                    if (!palabra.Equals("stock"))
+                        return false;
+                }
+            }
+
+            // 5️⃣ DETECTAR SPAM - Cambios erráticos de mayúscula
+            int cambiosMayuscula = 0;
+            for (int i = 1; i < motivo.Length; i++)
+            {
+                bool esMayusc = char.IsUpper(motivo[i]);
+                bool anteriorMayusc = char.IsUpper(motivo[i - 1]);
+                if (esMayusc != anteriorMayusc && char.IsLetter(motivo[i]) && char.IsLetter(motivo[i - 1]))
+                    cambiosMayuscula++;
+            }
+
+            if (cambiosMayuscula > 3)
+                return false;
+
+            return true;
         }
 
         private void CbCategorias_SelectedIndexChanged(object sender, EventArgs e)
@@ -697,7 +1010,27 @@ namespace Nuevo_Proyecto.Models.Views
             {
                 if (dataGridInventario.Columns[e.ColumnIndex].Name == "Activo")
                 {
-                    // Verificar el Stock: si Stock <= 0 -> Agotado, si >0 -> Activo
+                    // Obtener el valor real de Activo (true/false)
+                    object? activoVal = dataGridInventario.Rows[e.RowIndex].Cells["Activo"].Value;
+                    bool esActivo = false;
+
+                    if (activoVal != null && activoVal != DBNull.Value)
+                    {
+                        if (bool.TryParse(activoVal.ToString(), out bool activo))
+                        {
+                            esActivo = activo;
+                        }
+                    }
+
+                    // Si el producto está inactivo (Activo = false) mostrar "Inactivo"
+                    if (!esActivo)
+                    {
+                        e.Value = "Inactivo";
+                        e.FormattingApplied = true;
+                        return;
+                    }
+
+                    // Si está activo, verificar stock
                     string estado = "Activo";
                     if (dataGridInventario.Columns.Contains("Stock") && e.RowIndex >= 0 && e.RowIndex < dataGridInventario.Rows.Count)
                     {
@@ -711,16 +1044,13 @@ namespace Nuevo_Proyecto.Models.Views
                         }
                     }
 
-                    
-
-                    // Solo asignar estado si hay datos
                     e.Value = estado;
                     e.FormattingApplied = true;
                 }
             }
             catch
             {
-                // no propagar excepcin de formateo
+                // no propagar excepción de formateo
             }
 
         }
@@ -795,6 +1125,22 @@ namespace Nuevo_Proyecto.Models.Views
             {
             }
             return false;
+        }
+
+        private void dataGridInventario_SelectionChanged(object? sender, EventArgs e)
+        {
+            // Solo cargar campos si hay múltiples resultados (resultado de búsqueda)
+            if (!HayMultiplesResultados)
+                return;
+
+            if (dataGridInventario.SelectedRows.Count > 0)
+            {
+                var row = dataGridInventario.SelectedRows[0];
+                if (row.DataBoundItem is DataRowView drv)
+                {
+                    CargarDatosEdicion(drv.Row);
+                }
+            }
         }
 
     }

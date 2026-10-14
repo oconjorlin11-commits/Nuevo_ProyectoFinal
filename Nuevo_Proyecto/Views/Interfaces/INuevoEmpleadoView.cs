@@ -16,7 +16,6 @@ namespace Nuevo_Proyecto.Views.Interfaces
         decimal Salario { get; set; }
         DateTime? FechaIngreso { get; set; }
         bool Activo { get; set; }
-        string AutorizadoPor { get; set; }
 
         event EventHandler? GuardarClicked;
         event EventHandler? CancelarClicked;

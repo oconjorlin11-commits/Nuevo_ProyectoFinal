@@ -2,10 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Windows.Forms;
 using Microsoft.EntityFrameworkCore;
 using Nuevo_Proyecto.Models.DTOs;
+using Nuevo_Proyecto.Models.Views;
 using Nuevo_Proyecto.Services;
+using Nuevo_Proyecto.Services.Helpers;
 using Nuevo_Proyecto.Services.Interfaz_service;
+using Nuevo_Proyecto.Views.FormularioUI;
 using Nuevo_Proyecto.Views.Interfaces;
 
 namespace Nuevo_Proyecto.Presenters
@@ -16,6 +20,9 @@ namespace Nuevo_Proyecto.Presenters
         private readonly INuevoClienteView? _nuevoClienteView;
         private readonly IClienteRepository _clientes;
         private readonly IEmpleadoRepository _empleados;
+
+        // Propiedad para capturar el ID del ultimo cliente creado (para auditoría)
+        public int? UltimoClienteIDCreado { get; private set; }
 
         // Estado original seleccionado para control de cambios y reactivación
         private string? _codigoOriginal;
@@ -101,10 +108,14 @@ namespace Nuevo_Proyecto.Presenters
                 _view.Nombre = nombre;
                 _view.Telefono = telefono ?? string.Empty;
                 _view.Direccion = direccion;
-                _view.Nota = nota ?? string.Empty;
                 _view.Activo = activo;
                 _view.SetActivoEnabled(!activo);
+
+                // IMPORTANTE: Cargar notas PRIMERO antes de setear el valor
                 _view.CargarNotas(GetNotas());
+
+                // LUEGO setear la nota seleccionada (después de que el combo tenga el DataSource)
+                _view.Nota = nota ?? string.Empty;
             }
         }
 
@@ -147,6 +158,92 @@ namespace Nuevo_Proyecto.Presenters
 
         public bool ReactivarCliente(string codigo) => _clientes.Reactivar(codigo);
 
+        // ---------------------------------------------------------------- métodos auxiliares
+
+        /// <summary>
+        /// Verifica si el usuario actual es administrador.
+        /// Si no, solicita credenciales de administrador.
+        /// Retorna true si acceso fue otorgado; false en caso contrario.
+        /// </summary>
+        private bool VerificarAccesoAdmin()
+        {
+            // Si es administrador puro, permitir acceso directo
+            if (SesionActual.EsAdministrador)
+                return true;
+
+            // Mostrar diálogo solicitando credenciales de admin
+            DialogResult resultado = MessageBox.Show(
+                "Para editar o eliminar un cliente necesita permiso de administrador.\n\n" +
+                "¿Desea ingresar las credenciales de un administrador?",
+                "Permiso Requerido",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Information
+            );
+
+            if (resultado != DialogResult.Yes)
+                return false;
+
+            // Mostrar diálogo de verificación de usuario
+            var verificacion = new Verificacion_de_usuario();
+            if (verificacion.ShowDialog() == DialogResult.OK)
+            {
+                // Guardar el nombre del admin verificado en la sesión
+                SesionActual.UsuarioAutorizador = verificacion.AdminNombreVerificado;
+
+                // Registrar la auditoría cuando se otorga acceso temporal
+                var auditoriaService = new AuditoriaService();
+                auditoriaService.RegistrarAuditoria(
+                    seccion: "Clientes",
+                    accion: "ACCESO_TEMPORAL",
+                    usuario: SesionActual.NombreUsuario ?? "Desconocido",
+                    rolUsuario: SesionActual.Usuario?.Cargo ?? "Usuario",
+                    descripcion: $"Acceso temporal a Clientes otorgado por usuario autorizado ({SesionActual.UsuarioAutorizador})"
+                );
+
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Solicita un motivo de ACTUALIZACIÓN usando el formulario específico de Cliente.
+        /// Retorna el motivo si es válido; string.Empty si fue cancelado.
+        /// </summary>
+        private string SolicitarMotivoActualizacionCliente()
+        {
+            var formMotivo = new Motivo_de_actualizacion_cliente();
+            if (formMotivo.ShowDialog() == DialogResult.OK)
+            {
+                string motivo = formMotivo.Motivo?.Trim() ?? string.Empty;
+                if (!string.IsNullOrWhiteSpace(motivo))
+                {
+                    return motivo;
+                }
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// Solicita un motivo de ELIMINACIÓN usando el formulario específico de Cliente.
+        /// Retorna el motivo si es válido; string.Empty si fue cancelado.
+        /// </summary>
+        private string SolicitarMotivoEliminacionCliente()
+        {
+            var formMotivo = new Motivo_de_eliminacion_de_cliente();
+            if (formMotivo.ShowDialog() == DialogResult.OK)
+            {
+                string motivo = formMotivo.Motivo?.Trim() ?? string.Empty;
+                if (!string.IsNullOrWhiteSpace(motivo))
+                {
+                    return motivo;
+                }
+            }
+
+            return string.Empty;
+        }
+
         // ---------------------------------------------------------------- eventos de NuevoCliente
 
         private void OnCancelarNuevoClienteClicked(object? sender, EventArgs e)
@@ -163,7 +260,6 @@ namespace Nuevo_Proyecto.Presenters
             string? telefono = string.IsNullOrWhiteSpace(_nuevoClienteView.Telefono) ? null : _nuevoClienteView.Telefono.Trim();
             string direccion = _nuevoClienteView.Direccion?.Trim() ?? string.Empty;
             string? nota = string.IsNullOrWhiteSpace(_nuevoClienteView.Nota) ? null : _nuevoClienteView.Nota.Trim();
-            string autorizadoPor = _nuevoClienteView.AutorizadoPor?.Trim() ?? string.Empty;
 
             // Validar campos básicos
             if (string.IsNullOrEmpty(codigo))
@@ -177,13 +273,6 @@ namespace Nuevo_Proyecto.Presenters
             if (errorValidacion != null)
             {
                 _nuevoClienteView.showMessage($"⚠️ {errorValidacion}", "Validación", true);
-                return;
-            }
-
-            // Validar autorizado por (solo Admin y Cajero)
-            if (string.IsNullOrEmpty(autorizadoPor))
-            {
-                _nuevoClienteView.showMessage("⚠️ Debe seleccionar quién autoriza (Admin o Cajero).", "Falta llenar", true);
                 return;
             }
 
@@ -204,6 +293,13 @@ namespace Nuevo_Proyecto.Presenters
                     Nota = nota,
                     Activo = true  // Siempre activo al crear
                 });
+
+                // Capturar el ID del cliente recién creado (se asigna automáticamente al objeto)
+                var clienteCreado = _clientes.BuscarPorCodigo(codigo).FirstOrDefault();
+                if (clienteCreado != null)
+                {
+                    UltimoClienteIDCreado = clienteCreado.ClienteId;
+                }
 
                 _nuevoClienteView.showMessage("✓ Cliente guardado exitosamente.", "Éxito", false);
                 _nuevoClienteView.ResetFields();
@@ -231,35 +327,59 @@ namespace Nuevo_Proyecto.Presenters
                 return;
             }
 
-            // Si estaba inactivo y el usuario marcó el CheckBox para reactivarlo
-            if (!_estadoOriginal && _view.Activo)
-            {
-                bool okReactivar = _clientes.Reactivar(_codigoOriginal);
-                if (okReactivar)
-                {
-                    _view.showMessage("Cliente reactivado correctamente.", "Éxito", false);
-                    RefrescarYLimpiar();
-                }
-                else
-                {
-                    _view.showMessage("No se pudo reactivar el cliente.", "Error", true);
-                }
-                return;
-            }
+            // Paso 1: PRIMERO verificar si realmente hay cambios (incluyendo reactivación)
+            bool intentaReactivar = !_estadoOriginal && _view.Activo;
 
-            // Si estaba activo, validar cambios
-            bool huboCambios =
-                _view.Nombre?.Trim() != _nombreOriginal ||
-                (_view.Telefono?.Trim() ?? string.Empty) != (_telefonoOriginal ?? string.Empty) ||
-                _view.Direccion?.Trim() != _direccionOriginal ||
-                (_view.Nota?.Trim() ?? string.Empty) != (_notaOriginal ?? string.Empty);
+            bool huboCambios = intentaReactivar ||
+                (_view.Nombre?.Trim() != _nombreOriginal ||
+                 (_view.Telefono?.Trim() ?? string.Empty) != (_telefonoOriginal ?? string.Empty) ||
+                 _view.Direccion?.Trim() != _direccionOriginal ||
+                 (_view.Nota?.Trim() ?? string.Empty) != (_notaOriginal ?? string.Empty));
 
             if (!huboCambios)
             {
-                _view.showMessage("No se ha hecho ningún cambio.", "Aviso", false);
+                _view.showMessage("No se ha hecho ningún cambio. Debe modificar al menos un campo antes de editar.", "Aviso", false);
                 return;
             }
 
+            // Paso 2: LUEGO verificar permisos de administrador
+            if (!VerificarAccesoAdmin())
+            {
+                _view.showMessage("No tiene permisos para modificar clientes. Se requiere autorización de un administrador.", "Permiso Denegado", true);
+                return;
+            }
+
+            // Paso 3: Si intenta reactivar
+            if (intentaReactivar)
+            {
+                string motivo = SolicitarMotivoActualizacionCliente();
+                if (string.IsNullOrWhiteSpace(motivo))
+                {
+                    _view.showMessage("Debe proporcionar un motivo válido para reactivar el cliente.", "Motivo requerido", true);
+                    return;
+                }
+
+                try
+                {
+                    bool okReactivar = _clientes.Reactivar(_codigoOriginal, motivo);
+                    if (okReactivar)
+                    {
+                        _view.showMessage("Cliente reactivado correctamente.", "Éxito", false);
+                        RefrescarYLimpiar();
+                    }
+                    else
+                    {
+                        _view.showMessage("No se pudo reactivar el cliente.", "Error", true);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _view.showMessage($"Error al reactivar: {ex.Message}", "Error", true);
+                }
+                return;
+            }
+
+            // Paso 4: Validar formato de campos modificados
             string nombre = _view.Nombre?.Trim() ?? string.Empty;
             string direccion = _view.Direccion?.Trim() ?? string.Empty;
             string? telefono = string.IsNullOrWhiteSpace(_view.Telefono) ? null : _view.Telefono.Trim();
@@ -277,15 +397,31 @@ namespace Nuevo_Proyecto.Presenters
                 return;
             }
 
-            bool okUpdate = _clientes.Actualizar(_codigoOriginal, nombre, telefono, direccion, nota);
-            if (okUpdate)
+            // Paso 5: Solicitar motivo de modificación
+            string motivoModificacion = SolicitarMotivoActualizacionCliente();
+            if (string.IsNullOrWhiteSpace(motivoModificacion))
             {
-                _view.showMessage("Cliente actualizado correctamente.", "Éxito", false);
-                RefrescarYLimpiar();
+                _view.showMessage("Debe proporcionar un motivo válido para modificar el cliente.", "Motivo requerido", true);
+                return;
             }
-            else
+
+            // Paso 6: Guardar cambios en BD
+            try
             {
-                _view.showMessage("No se pudo actualizar el cliente.", "Error", true);
+                bool okUpdate = _clientes.Actualizar(_codigoOriginal, nombre, telefono, direccion, nota, motivoModificacion);
+                if (okUpdate)
+                {
+                    _view.showMessage("Cliente actualizado correctamente.", "Éxito", false);
+                    RefrescarYLimpiar();
+                }
+                else
+                {
+                    _view.showMessage("No se pudo actualizar el cliente.", "Error", true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _view.showMessage($"Error al actualizar: {ex.Message}", "Error", true);
             }
         }
 
@@ -299,15 +435,53 @@ namespace Nuevo_Proyecto.Presenters
                 return;
             }
 
-            bool ok = _clientes.Desactivar(_codigoOriginal);
-            if (ok)
+            // Paso 1: Confirmación inicial antes de pedir credenciales
+            DialogResult confirmDialog = MessageBox.Show(
+                "¿Desea dar de baja permanentemente el cliente?\n\n" +
+                $"Código: {_codigoOriginal}\n" +
+                $"Nombre: {_nombreOriginal}\n\n" +
+                "Deberá ingresar una razón válida y justificada.",
+                "Confirmar baja de cliente",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            );
+
+            if (confirmDialog != DialogResult.Yes)
             {
-                _view.showMessage("Cliente eliminado (inactivado) correctamente.", "Éxito", false);
-                RefrescarYLimpiar();
+                return;
             }
-            else
+
+            // Paso 2: Verificar permisos de administrador
+            if (!VerificarAccesoAdmin())
             {
-                _view.showMessage("No se pudo eliminar el cliente.", "Error", true);
+                _view.showMessage("No tiene permisos para eliminar clientes.", "Permiso Denegado", true);
+                return;
+            }
+
+            // Paso 3: Solicitar motivo de eliminación usando formulario específico de Cliente
+            string motivo = SolicitarMotivoEliminacionCliente();
+            if (string.IsNullOrWhiteSpace(motivo))
+            {
+                _view.showMessage("Debe proporcionar un motivo válido para dar de baja el cliente.", "Motivo requerido", true);
+                return;
+            }
+
+            try
+            {
+                bool ok = _clientes.Desactivar(_codigoOriginal, motivo);
+                if (ok)
+                {
+                    _view.showMessage("Cliente eliminado (inactivado) correctamente.", "Éxito", false);
+                    RefrescarYLimpiar();
+                }
+                else
+                {
+                    _view.showMessage("No se pudo eliminar el cliente.", "Error", true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _view.showMessage($"Error al eliminar: {ex.Message}", "Error", true);
             }
         }
 

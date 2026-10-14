@@ -15,10 +15,12 @@ namespace Nuevo_Proyecto.Services
         public const string EstadoAnulada = "ANULADA";
 
         private readonly IDbContextFactory<Dev_ComideriaDbContext> _factory;
+        private readonly AuditoriaService _auditoria;
 
         public FacturaRepository(IDbContextFactory<Dev_ComideriaDbContext>? factory = null)
         {
             _factory = factory ?? new ComideriaContextFactory();
+            _auditoria = new AuditoriaService(_factory);
         }
 
         // ------------------------------------------------------------------ consultas
@@ -246,6 +248,17 @@ namespace Nuevo_Proyecto.Services
             db.SaveChanges();
             tran.Commit();
 
+            // Registrar auditoría
+            _auditoria.RegistrarAccion(
+                seccion: "Facturación",
+                accion: "CREAR",
+                registroId: factura.FacturaId,
+                usuario: SesionActual.NombreEmpleado,
+                rolUsuario: SesionActual.Rol,
+                detalle: $"Factura: {factura.Numero}, Cliente: {cliente.Nombre}, Total: {factura.Total}",
+                descripcion: "Nueva factura emitida"
+            );
+
             return new ResultadoFacturaDto
             {
                 FacturaId = factura.FacturaId,
@@ -301,6 +314,17 @@ namespace Nuevo_Proyecto.Services
 
             db.SaveChanges();
             tran.Commit();
+
+            // Registrar auditoría
+            _auditoria.RegistrarAccion(
+                seccion: "Facturación",
+                accion: "ANULAR",
+                registroId: factura.FacturaId,
+                usuario: SesionActual.NombreEmpleado,
+                rolUsuario: SesionActual.Rol,
+                detalle: $"Factura: {numero}, Cliente: {factura.Observacion}",
+                descripcion: motivo
+            );
         }
     }
 }

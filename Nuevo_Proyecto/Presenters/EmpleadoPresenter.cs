@@ -17,6 +17,9 @@ namespace Nuevo_Proyecto.Presenters
         private readonly IEmpleadoRepository _empleados;
         private readonly IUsuarioRepository _usuarios;
 
+        // Propiedad para capturar el ID del ultimo empleado creado (para auditoría)
+        public int? UltimoEmpleadoIDCreado { get; private set; }
+
         // Estado original seleccionado para control de cambios y reactivación
         private string? _codigoOriginal;
         private string? _nombreOriginal;
@@ -96,6 +99,10 @@ namespace Nuevo_Proyecto.Presenters
 
             if (_view != null)
             {
+                // Primero cargar los cargos disponibles
+                _view.CargarCargos(GetCargos());
+
+                // Luego asignar los valores del empleado
                 _view.Codigo = codigo;
                 _view.Nombre = nombre;
                 _view.Cargo = cargo;
@@ -105,7 +112,6 @@ namespace Nuevo_Proyecto.Presenters
                 _view.FechaIngreso = fechaIngreso;
                 _view.Activo = activo;
                 _view.SetActivoEnabled(!activo);
-                _view.CargarCargos(GetCargos());
             }
         }
 
@@ -244,6 +250,13 @@ namespace Nuevo_Proyecto.Presenters
                 if (usuarioCreado)
                 {
                     _nuevoEmpleadoView.showMessage("Empleado y usuario guardados exitosamente.", "Éxito", false);
+
+                    // Capturar el ID del empleado recién creado (buscarlo por código)
+                    var empleadoCreado = _empleados.BuscarPorCodigo(codigo).FirstOrDefault();
+                    if (empleadoCreado != null)
+                    {
+                        UltimoEmpleadoIDCreado = empleadoCreado.EmpleadoId;
+                    }
                 }
                 else
                 {
@@ -398,26 +411,52 @@ namespace Nuevo_Proyecto.Presenters
         {
             if (_view == null) return;
 
-            string codigo = _view.BuscarTexto?.Trim() ?? string.Empty;
+            string termino = _view.BuscarTexto?.Trim() ?? string.Empty;
 
-            if (string.IsNullOrEmpty(codigo))
+            if (string.IsNullOrEmpty(termino))
             {
-                // Si el textbox está vacío, mostrar solo los activos y limpiar campos
+                // Si el textbox está vacío, mostrar solo los activos
+                _view.HayMultiplesResultados = false;
                 CargarEmpleadosActivos();
                 LimpiarCampos();
                 return;
             }
 
-            // Buscar código EXACTO en activos e inactivos
-            var resultados = _empleados.BuscarPorCodigo(codigo);
+            // Determinar si es búsqueda por código o nombre
+            bool esCodigoFormat = termino.All(c => char.IsLetterOrDigit(c) || c == '-');
+
+            // Validar longitud mínima según tipo de búsqueda
+            // Códigos: mínimo 6 caracteres (ej: "emp-00")
+            // Nombres: mínimo 4 caracteres
+            if ((esCodigoFormat && termino.Length < 6) || (!esCodigoFormat && termino.Length < 4))
+            {
+                // No mostrar nada, DataGrid vacío (sin mezclar con activos)
+                _view.HayMultiplesResultados = false;
+                var dtVacio = DataTableMapper.Empleados(Enumerable.Empty<EmpleadoDto>());
+                _view.MostrarEmpleados(dtVacio);
+                LimpiarCampos();
+                return;
+            }
+
+            // Buscar por código O nombre (parcial) - busca en TODO
+            var resultados = _empleados.BuscarPorCodigoONombre(termino);
             var dt = DataTableMapper.Empleados(resultados);
 
-            if (dt.Rows.Count > 0)
+            if (dt.Rows.Count == 0)
             {
-                // Mostrar resultado exacto encontrado
+                // No hay coincidencias - mostrar tabla vacía
+                _view.HayMultiplesResultados = false;
+                _view.MostrarEmpleados(dt);
+                LimpiarCampos();
+                return;
+            }
+
+            if (dt.Rows.Count == 1)
+            {
+                // Una única coincidencia - cargar automáticamente
+                _view.HayMultiplesResultados = false;
                 _view.MostrarEmpleados(dt);
 
-                // Cargar el resultado en los campos de edición
                 var row = dt.Rows[0];
                 SeleccionarEmpleado(
                     row["Codigo"]?.ToString() ?? string.Empty,
@@ -432,8 +471,9 @@ namespace Nuevo_Proyecto.Presenters
             }
             else
             {
-                // Si no hay resultado exacto, mostrar solo los activos
-                CargarEmpleadosActivos();
+                // Múltiples coincidencias - mostrar en DataGrid para elegir
+                _view.HayMultiplesResultados = true;
+                _view.MostrarEmpleados(dt);
                 LimpiarCampos();
             }
         }

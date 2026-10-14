@@ -11,10 +11,12 @@ namespace Nuevo_Proyecto.Services
     public class ProductoRepository : IProductoRepository
     {
         private readonly IDbContextFactory<Dev_ComideriaDbContext> _factory;
+        private readonly AuditoriaService _auditoria;
 
         public ProductoRepository(IDbContextFactory<Dev_ComideriaDbContext>? factory = null)
         {
             _factory = factory ?? new ComideriaContextFactory();
+            _auditoria = new AuditoriaService(_factory);
         }
 
         public string GetSiguienteCodigo()
@@ -84,7 +86,7 @@ namespace Nuevo_Proyecto.Services
             return d[len1, len2];
         }
 
-        public void Crear(ProductoNuevoDto dto, int empleadoId)
+        public int Crear(ProductoNuevoDto dto, int empleadoId)
         {
             using var db = _factory.CreateDbContext();
 
@@ -114,6 +116,19 @@ namespace Nuevo_Proyecto.Services
                 dto.StockInicial, 0, dto.StockInicial, empleadoId, "Ingreso inicial del producto");
             db.MovimientoInventarios.Add(mov);
             db.SaveChanges();  // Guardar movimiento
+
+            // Registrar auditoría
+            _auditoria.RegistrarAccion(
+                seccion: "Inventario",
+                accion: "CREAR",
+                registroId: producto.ProductoId,
+                usuario: SesionActual.NombreEmpleado,
+                rolUsuario: SesionActual.Rol,
+                detalle: $"Producto: {dto.Codigo} - {dto.Nombre}, Categoría: {dto.CategoriaId}, Stock: {dto.StockInicial}",
+                descripcion: "Nuevo producto creado"
+            );
+
+            return producto.ProductoId;  // Retorna el ID del producto recién creado
         }
 
         public decimal GetPrecio(int productoId)
@@ -123,6 +138,15 @@ namespace Nuevo_Proyecto.Services
                 .Where(p => p.ProductoId == productoId)
                 .Select(p => p.PrecioVenta)
                 .FirstOrDefault();
+        }
+
+        public int? GetProductoIdPorCodigo(string codigo)
+        {
+            using var db = _factory.CreateDbContext();
+            return db.Productos.AsNoTracking()
+                .Where(p => p.Codigo == codigo)
+                .Select(p => p.ProductoId)
+                .FirstOrDefault() as int?;
         }
 
         public IReadOnlyList<ProductoInventarioDto> GetActivosPorCategoria(int categoriaId)

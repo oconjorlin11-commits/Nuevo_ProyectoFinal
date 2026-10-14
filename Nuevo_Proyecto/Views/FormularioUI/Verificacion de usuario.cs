@@ -15,6 +15,7 @@ namespace Nuevo_Proyecto.Views.FormularioUI
     public partial class Verificacion_de_usuario : Form
     {
         private readonly IAuthService _auth;
+        public string AdminNombreVerificado { get; private set; } = string.Empty;
 
         public Verificacion_de_usuario()
         {
@@ -115,9 +116,9 @@ namespace Nuevo_Proyecto.Views.FormularioUI
             LblVerificacion.ForeColor = Color.Red;
         }
 
-        private void BtnVerificar_Click(object? sender, EventArgs e)
+        private async void BtnVerificar_Click(object? sender, EventArgs e)
         {
-            BuscarUsuario();
+            await BuscarUsuarioAsync();
         }
 
         private void BtnCancelar_Click(object? sender, EventArgs e)
@@ -125,7 +126,7 @@ namespace Nuevo_Proyecto.Views.FormularioUI
             this.Close();
         }
 
-        private void BuscarUsuario()
+        private async Task BuscarUsuarioAsync()
         {
             try
             {
@@ -137,15 +138,15 @@ namespace Nuevo_Proyecto.Views.FormularioUI
                     return;
                 }
 
-                if (string.IsNullOrWhiteSpace(TxtContrasenaEspecial.Text))
+                if (string.IsNullOrWhiteSpace(TxtContraseñaEspecial.Text))
                 {
                     MessageBox.Show("Por favor, ingrese la Contrasena.", "Campo Obligatorio", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    TxtContrasenaEspecial.Focus();
+                    TxtContraseñaEspecial.Focus();
                     return;
                 }
 
                 // Validar credenciales del usuario
-                var resultadoAuth = _auth.Autenticar(TxtUsuarioEspecial.Text, TxtContrasenaEspecial.Text);
+                var resultadoAuth = _auth.Autenticar(TxtUsuarioEspecial.Text, TxtContraseñaEspecial.Text);
 
                 if (!resultadoAuth.Exitoso || resultadoAuth.Sesion == null)
                 {
@@ -156,8 +157,16 @@ namespace Nuevo_Proyecto.Views.FormularioUI
                 // Usuario encontrado y autenticado correctamente
                 LblRespUsuario.Text = resultadoAuth.Sesion.NombreUsuario ?? "N/A";
 
+                // 👉 Guardar el nombre del admin verificado
+                AdminNombreVerificado = resultadoAuth.Sesion.NombreEmpleado ?? resultadoAuth.Sesion.NombreUsuario ?? "Desconocido";
+
                 // Mostrar resultados en verde
                 MostrarResultadosExitosos();
+
+                // Cerrar el diálogo con resultado OK después de un breve tiempo para que el usuario vea el resultado exitoso
+                await Task.Delay(1500);
+                this.DialogResult = DialogResult.OK;
+                this.Close();
             }
             catch (Exception ex)
             {

@@ -361,6 +361,7 @@ namespace pruebaGeneralProyecto
         public IReadOnlyList<string> GetNotas() => new List<string>();
         public string GetSiguienteCodigo() => "CLI-" + (Clientes.Count + 1).ToString("D3");
         public bool CodigoExiste(string codigo) => Clientes.Any(c => c.Codigo.Equals(codigo, StringComparison.OrdinalIgnoreCase));
+        public bool TelefonoExiste(string telefono) => Clientes.Any(c => c.Telefono?.Equals(telefono) ?? false);
         public void Crear(ClienteDto cliente) => Clientes.Add(cliente);
         public bool Actualizar(string codigo, string nombre, string? telefono, string? direccion, string? nota) => true;
         public bool Desactivar(string codigo) => true;

@@ -1,6 +1,8 @@
 using Nuevo_Proyecto.Models.Entities;
 using Nuevo_Proyecto.Presenters;
 using Nuevo_Proyecto.Views.Interfaces;
+using Nuevo_Proyecto.Services;
+using Nuevo_Proyecto.Services.Helpers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -58,10 +60,8 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void CargarUsuarios()
         {
-            var dt = _presenter.CargarUsuariosAdmin();
-            CmboxEmpleado.DataSource = dt;
-            CmboxEmpleado.DisplayMember = "Nombre";
-            CmboxEmpleado.ValueMember = "EmpleadoID";
+            // Ya no necesitamos cargar usuarios manualmente
+            // El campo se pobla automáticamente con el usuario de la sesión
         }
 
 
@@ -133,19 +133,6 @@ namespace Nuevo_Proyecto.Models.Views
             txtCodigoProduc.Text = _presenter.ObtenerProximoCodigoProducto();
             txtCodigoProduc.Enabled = false;
 
-            // 👉 Solo admins - Agregar placeholder
-            CmboxEmpleado.DataSource = _presenter.CargarUsuariosAdmin();
-            CmboxEmpleado.DisplayMember = "Nombre";
-            CmboxEmpleado.ValueMember = "EmpleadoID";
-            // Agregar item placeholder al inicio
-            DataTable dtEmpleados = _presenter.CargarUsuariosAdmin();
-            DataRow placeholderEmpl = dtEmpleados.NewRow();
-            placeholderEmpl["Nombre"] = "Seleccione un administrador";
-            placeholderEmpl["EmpleadoID"] = -1;  // ID inválido para identificar placeholder
-            dtEmpleados.Rows.InsertAt(placeholderEmpl, 0);
-            CmboxEmpleado.DataSource = dtEmpleados;
-            CmboxEmpleado.SelectedIndex = 0;
-
             // Categorías - Agregar placeholder
             DataTable dtCategorias = _presenter.GetCategoriasActivas();
             DataRow placeholderCat = dtCategorias.NewRow();
@@ -175,27 +162,39 @@ namespace Nuevo_Proyecto.Models.Views
             if (!ValidarCampos())
                 return;
 
-            // 👉 Validar que el usuario seleccionado sea admin
-            DataRowView? usuarioSeleccionado = CmboxEmpleado.SelectedItem as DataRowView;
-            if (usuarioSeleccionado == null)
+            // 👉 Verificar que el usuario actual sea admin (validación en el presenter)
+            if (!SesionActual.EsAdministrador)
             {
-                MessageBox.Show("Debe seleccionar un usuario autorizado.");
-                return;
-            }
-
-            string cargo = usuarioSeleccionado["Cargo"]?.ToString() ?? string.Empty;
-            int empleadoID = Convert.ToInt32(usuarioSeleccionado["EmpleadoID"]);
-
-            if (!cargo.Equals("Admin", StringComparison.OrdinalIgnoreCase))
-            {
-                MessageBox.Show("Solo un usuario con cargo ADMIN puede guardar productos.");
+                MessageBox.Show("Solo un usuario con permiso ADMIN puede guardar productos.");
                 return;
             }
 
             // Delegar al presenter (el presenter verifica permisos y persiste)
             GuardarClicked?.Invoke(this, EventArgs.Empty);
 
+            // Verificar que el producto se guardó correctamente (UltimoProductoIDCreado será asignado)
+            if (_presenter.UltimoProductoIDCreado == null || _presenter.UltimoProductoIDCreado <= 0)
+            {
+                // Si no se guardó, no hacer nada más (el presenter ya mostró el error)
+                return;
+            }
 
+            // Registrar auditoría con los datos correctos del producto creado
+            var auditoriaService = new AuditoriaService();
+            auditoriaService.RegistrarAuditoria(
+                seccion: "Productos",
+                accion: "CREAR",
+                usuario: SesionActual.NombreUsuario ?? "Desconocido",
+                rolUsuario: SesionActual.Usuario?.Cargo ?? "Usuario",
+                registroID: _presenter.UltimoProductoIDCreado,  // ID del producto creado
+                usuarioAutorizador: SesionActual.UsuarioAutorizador,  // Usuario autorizador
+                detalle: $"Producto: {_presenter.UltimoProductoNombre}, Código: {_presenter.UltimoProductoCodigo}, Precio: {_presenter.UltimoProductoPrecio}",
+                descripcion: $"Nuevo producto creado: {_presenter.UltimoProductoNombre}"
+            );
+
+            // Cerrar el formulario con success para que Inventario lo detecte y refresque
+            this.DialogResult = DialogResult.OK;
+            this.Close();
         }
     }
 }

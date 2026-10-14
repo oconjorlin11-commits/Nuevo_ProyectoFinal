@@ -14,10 +14,12 @@ namespace Nuevo_Proyecto.Services
         public const string NombreConsumidorFinal = "Consumidor Final";
 
         private readonly IDbContextFactory<Dev_ComideriaDbContext> _factory;
+        private readonly AuditoriaService _auditoria;
 
         public ClienteRepository(IDbContextFactory<Dev_ComideriaDbContext>? factory = null)
         {
             _factory = factory ?? new ComideriaContextFactory();
+            _auditoria = new AuditoriaService(_factory);
         }
 
         private static readonly Expression<Func<Cliente, ClienteDto>> ADto = c => new ClienteDto
@@ -129,11 +131,11 @@ namespace Nuevo_Proyecto.Services
             return null;  // Todas las validaciones pasaron
         }
 
-        public void Crear(ClienteDto dto)
+        public int Crear(ClienteDto dto)
         {
             using var db = _factory.CreateDbContext();
 
-            db.Clientes.Add(new Cliente
+            var cliente = new Cliente
             {
                 Codigo = dto.Codigo,
                 Nombre = dto.Nombre,
@@ -141,12 +143,26 @@ namespace Nuevo_Proyecto.Services
                 Direccion = dto.Direccion,
                 Nota = dto.Nota ?? string.Empty,   // la entidad no admite null
                 Activo = dto.Activo
-            });
+            };
 
+            db.Clientes.Add(cliente);
             db.SaveChanges();
+
+            // Registrar auditoría
+            _auditoria.RegistrarAccion(
+                seccion: "Clientes",
+                accion: "CREAR",
+                registroId: cliente.ClienteId,
+                usuario: SesionActual.NombreEmpleado,
+                rolUsuario: SesionActual.Rol,
+                detalle: $"Cliente: {dto.Codigo} - {dto.Nombre}, Teléfono: {dto.Telefono}",
+                descripcion: "Nuevo cliente creado"
+            );
+
+            return cliente.ClienteId;  // Retorna el ID del cliente recién creado
         }
 
-        public bool Actualizar(string codigo, string nombre, string? telefono, string? direccion, string? nota)
+        public bool Actualizar(string codigo, string nombre, string? telefono, string? direccion, string? nota, string? motivo = null)
         {
             using var db = _factory.CreateDbContext();
             var cliente = db.Clientes.FirstOrDefault(c => c.Codigo == codigo);
@@ -160,20 +176,47 @@ namespace Nuevo_Proyecto.Services
             cliente.Nota = nota?.Trim() ?? string.Empty;
 
             db.SaveChanges();
+
+            // Registrar auditoría
+            _auditoria.RegistrarAccion(
+                seccion: "Clientes",
+                accion: "MODIFICAR",
+                registroId: cliente.ClienteId,
+                usuario: SesionActual.NombreEmpleado,
+                rolUsuario: SesionActual.Rol,
+                usuarioAutorizador: SesionActual.UsuarioAutorizador,
+                detalle: $"Cliente: {codigo} - {nombre}, Teléfono: {telefono}",
+                descripcion: motivo ?? "Cliente actualizado"
+            );
+
             return true;
         }
 
-        public bool Desactivar(string codigo) => CambiarEstado(codigo, false);
-        public bool Reactivar(string codigo) => CambiarEstado(codigo, true);
+        public bool Desactivar(string codigo, string? motivo = null) => CambiarEstado(codigo, false, motivo);
+        public bool Reactivar(string codigo, string? motivo = null) => CambiarEstado(codigo, true, motivo);
 
-        private bool CambiarEstado(string codigo, bool activo)
+        private bool CambiarEstado(string codigo, bool activo, string? motivo = null)
         {
             using var db = _factory.CreateDbContext();
             var cliente = db.Clientes.FirstOrDefault(c => c.Codigo == codigo);
             if (cliente == null) return false;
 
+            string accion = activo ? "REACTIVAR" : "DESACTIVAR";
             cliente.Activo = activo;
             db.SaveChanges();
+
+            // Registrar auditoría
+            _auditoria.RegistrarAccion(
+                seccion: "Clientes",
+                accion: accion,
+                registroId: cliente.ClienteId,
+                usuario: SesionActual.NombreEmpleado,
+                rolUsuario: SesionActual.Rol,
+                usuarioAutorizador: SesionActual.UsuarioAutorizador,
+                detalle: $"Cliente: {codigo} - {cliente.Nombre}",
+                descripcion: motivo ?? $"Cliente {(activo ? "reactivado" : "desactivado")}"
+            );
+
             return true;
         }
 

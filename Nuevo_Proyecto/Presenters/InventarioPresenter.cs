@@ -1,4 +1,5 @@
 using System.Data;
+using System.Linq;
 using Nuevo_Proyecto.Services;
 using Nuevo_Proyecto.Services.Helpers;
 using Nuevo_Proyecto.Services.Interfaz_service;
@@ -40,7 +41,8 @@ namespace Nuevo_Proyecto.Presenters
 
         public DataTable ObtenerInventarioActivo() => DataTableMapper.Inventario(_inventario.GetActivos());
 
-        public DataTable BuscarInventarioPorCodigoONombre(string texto) => DataTableMapper.Inventario(_inventario.Buscar(texto));
+        public DataTable BuscarInventarioPorCodigoONombre(string texto) => 
+            DataTableMapper.Inventario(_inventario.BuscarPorCodigoONombreProducto(texto));
 
         public DataTable GetInventarioActivoPorCategoria(int categoriaId) =>
             DataTableMapper.Inventario(_inventario.GetActivosPorCategoria(categoriaId));
@@ -60,8 +62,8 @@ namespace Nuevo_Proyecto.Presenters
 
         // ---------------------------------------------------------------- comandos
 
-        public int ReactivarProducto(string codigo, int stock, int minimo) =>
-            _inventario.Reactivar(codigo, stock, minimo, SesionActual.EmpleadoORespaldo(0));
+        public int ReactivarProducto(string codigo, int stock, int minimo, string motivo = "Producto reactivado") =>
+            _inventario.Reactivar(codigo, stock, minimo, SesionActual.EmpleadoORespaldo(0), motivo);
 
         public int ActualizarProducto(int productoId, string nombre, int categoriaId, int unidadId, string? descripcion,
                                       decimal precioVenta, bool activo, int stock, int minimo, int empleadoId, string observacion) =>
@@ -77,33 +79,57 @@ namespace Nuevo_Proyecto.Presenters
         {
             if (_view == null) return;
 
-            string codigo = _view.BuscarTexto?.Trim() ?? string.Empty;
+            string terminoBusqueda = _view.BuscarTexto?.Trim() ?? string.Empty;
 
-            if (string.IsNullOrEmpty(codigo))
+            if (string.IsNullOrEmpty(terminoBusqueda))
             {
                 // Si el textbox está vacío, mostrar solo los activos y limpiar campos
+                _view.HayMultiplesResultados = false;
                 var dt = ObtenerInventarioActivo();
                 _view.MostrarInventario(dt);
                 _view.LimpiarCamposEdicion();
                 return;
             }
 
-            // Buscar por código EXACTO (igual que en Empleados)
-            var resultados = _inventario.BuscarPorCodigoExacto(codigo);
+            // Determinar si es búsqueda por código o nombre
+            bool esCodigoFormat = terminoBusqueda.All(c => char.IsLetterOrDigit(c) || c == '-');
+
+            // Validar longitud mínima según tipo de búsqueda
+            // Códigos: mínimo 6 caracteres (ej: "prod-00")
+            // Nombres: mínimo 4 caracteres
+            if ((esCodigoFormat && terminoBusqueda.Length < 6) || (!esCodigoFormat && terminoBusqueda.Length < 4))
+            {
+                // No mostrar nada, DataGrid vacío (sin mezclar con activos)
+                _view.HayMultiplesResultados = false;
+                var dtVacio = DataTableMapper.Inventario(Enumerable.Empty<Nuevo_Proyecto.Models.DTOs.ProductoInventarioDto>());
+                _view.MostrarInventario(dtVacio);
+                _view.LimpiarCamposEdicion();
+                return;
+            }
+
+            // Buscar por código o nombre (búsqueda flexible con Contains) - busca en TODO
+            var resultados = _inventario.BuscarPorCodigoONombreProducto(terminoBusqueda);
             var dt2 = DataTableMapper.Inventario(resultados);
 
-            if (dt2.Rows.Count > 0)
+            if (dt2.Rows.Count == 0)
             {
-                // Mostrar resultado exacto encontrado (SOLO ese producto)
+                // No hay coincidencias - mostrar tabla vacía
+                _view.HayMultiplesResultados = false;
                 _view.MostrarInventario(dt2);
-
-                // Cargar el primer resultado en los campos de edición
+                _view.LimpiarCamposEdicion();
+            }
+            else if (dt2.Rows.Count == 1)
+            {
+                // Una coincidencia: mostrar y cargar automáticamente
+                _view.HayMultiplesResultados = false;
+                _view.MostrarInventario(dt2);
                 _view.CargarDatosEdicion(dt2.Rows[0]);
             }
             else
             {
-                // No hay resultados exactos: mostrar solo los activos y limpiar SOLO campos de edición
-                _view.MostrarInventario(ObtenerInventarioActivo());
+                // Múltiples coincidencias: mostrar todas en el DataGrid para que elija
+                _view.HayMultiplesResultados = true;
+                _view.MostrarInventario(dt2);
                 _view.LimpiarCamposEdicion();
             }
         }

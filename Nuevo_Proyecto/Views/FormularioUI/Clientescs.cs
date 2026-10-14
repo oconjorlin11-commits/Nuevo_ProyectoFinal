@@ -25,7 +25,27 @@ namespace Nuevo_Proyecto.Models.Views
         public string Nombre { get => txtNombreClient.Text; set => txtNombreClient.Text = value; }
         public string Telefono { get => txtTelefonoClient.Text; set => txtTelefonoClient.Text = value; }
         public string Direccion { get => txtDireccionClient.Text; set => txtDireccionClient.Text = value; }
-        public string Nota { get => cmboxNotasClient.Text; set => cmboxNotasClient.Text = value; }
+        public string Nota
+        {
+            get => cmboxNotasClient.Text;
+            set
+            {
+                // Intentar seleccionar por SelectedValue primero (valor vinculado)
+                if (cmboxNotasClient.DataSource != null && !string.IsNullOrEmpty(value))
+                {
+                    cmboxNotasClient.SelectedValue = value;
+                    // Si SelectedValue falla o retorna -1, setear el Text directamente
+                    if (cmboxNotasClient.SelectedIndex == -1)
+                    {
+                        cmboxNotasClient.Text = value;
+                    }
+                }
+                else
+                {
+                    cmboxNotasClient.Text = value;
+                }
+            }
+        }
         public bool Activo { get => checboxClient.Checked; set => checboxClient.Checked = value; }
         public string BuscarTexto { get => txtBuscarClient.Text; set => txtBuscarClient.Text = value; }
 

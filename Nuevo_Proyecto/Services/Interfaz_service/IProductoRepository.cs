@@ -10,9 +10,10 @@ namespace Nuevo_Proyecto.Services.Interfaz_service
         bool NombreEsSimilar(string nombre);
 
         /// <summary>Crea el producto, su inventario inicial y el movimiento de ingreso (todo en una transacción).</summary>
-        void Crear(ProductoNuevoDto producto, int empleadoId);
+        int Crear(ProductoNuevoDto producto, int empleadoId);  // Retorna el ProductoID del producto creado
 
         decimal GetPrecio(int productoId);
+        int? GetProductoIdPorCodigo(string codigo);  // Obtener ProductoID por código
         IReadOnlyList<ProductoInventarioDto> GetActivosPorCategoria(int categoriaId);
 
         /// <summary>Obtiene productos activos de una categoría. Si categoriaId es null, retorna lista vacía (regla de negocio).</summary>

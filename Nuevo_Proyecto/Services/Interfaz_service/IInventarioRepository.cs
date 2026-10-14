@@ -9,9 +9,10 @@ namespace Nuevo_Proyecto.Services.Interfaz_service
         IReadOnlyList<ProductoInventarioDto> GetActivosPorCategoria(int categoriaId);
         IReadOnlyList<ProductoInventarioDto> Buscar(string texto);
         IReadOnlyList<ProductoInventarioDto> BuscarPorCodigoExacto(string codigo);
+        IReadOnlyList<ProductoInventarioDto> BuscarPorCodigoONombreProducto(string termino);
         IReadOnlyList<MovimientoInventarioDto> GetMovimientos(DateTime? desde, DateTime? hasta);
 
-        int Reactivar(string codigo, int stock, int minimo, int empleadoId);
+        int Reactivar(string codigo, int stock, int minimo, int empleadoId, string motivo);
 
         /// <param name="descripcion">null = conservar la descripción actual.</param>
         int Actualizar(int productoId, string nombre, int categoriaId, int unidadId, string? descripcion,

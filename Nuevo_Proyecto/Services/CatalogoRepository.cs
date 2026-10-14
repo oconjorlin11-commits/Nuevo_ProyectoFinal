@@ -45,7 +45,7 @@ namespace Nuevo_Proyecto.Services
         public IReadOnlyList<LookupDto> GetEmpleadosActivos()
         {
             using var db = _factory.CreateDbContext();
-            return db.Empleados.AsNoTracking().Where(e => e.Activo == true).OrderBy(e => e.Nombre)
+            return db.Empleados.AsNoTracking().Where(e => e.Activo == true).OrderBy(e => e.Codigo)
                 .Select(e => new LookupDto { Id = e.EmpleadoId, Nombre = e.Nombre }).ToList();
         }
     }

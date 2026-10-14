@@ -15,6 +15,14 @@ namespace Nuevo_Proyecto.Presenters
         private readonly ICatalogoRepository _catalogos;
         private readonly IEmpleadoRepository _empleados;
 
+        // Propiedad para capturar el ID del ultimo producto creado (para auditoría)
+        public int? UltimoProductoIDCreado { get; private set; }
+
+        // Propiedades para capturar los datos del producto creado (para auditoría)
+        public string UltimoProductoNombre { get; private set; } = string.Empty;
+        public string UltimoProductoCodigo { get; private set; } = string.Empty;
+        public decimal UltimoProductoPrecio { get; private set; } = 0;
+
         public ProductosPresenter(IProductoView view,
                                   IProductoRepository? productos = null,
                                   ICatalogoRepository? catalogos = null,
@@ -128,6 +136,14 @@ namespace Nuevo_Proyecto.Presenters
                     StockInicial = _view.stockInicial,
                     StockMinimo = _view.StockMinimo
                 }, SesionActual.EmpleadoId);
+
+                // Capturar el ID del producto recién creado
+                UltimoProductoIDCreado = _productos.GetProductoIdPorCodigo(codigo);
+
+                // Capturar los datos del producto para auditoría
+                UltimoProductoNombre = nombre;
+                UltimoProductoCodigo = codigo;
+                UltimoProductoPrecio = _view.PrecioVenta;
 
                 _view.showMessage("Producto e inventario inicial guardados exitosamente.", "Éxito", false);
                 _view.ResetFields();

@@ -14,7 +14,6 @@ namespace Nuevo_Proyecto.Views.Interfaces
         string Direccion { get; set; }
         string Nota { get; set; }
         bool Activo { get; set; }
-        string AutorizadoPor { get; set; }
 
         event EventHandler? GuardarClicked;
         event EventHandler? CancelarClicked;

@@ -1,5 +1,7 @@
 using Nuevo_Proyecto.Presenters;
 using Nuevo_Proyecto.Views.Interfaces;
+using Nuevo_Proyecto.Services;
+using Nuevo_Proyecto.Services.Helpers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -21,7 +23,6 @@ namespace Nuevo_Proyecto.Models.Views
         public string Direccion { get => txtDireccionClient.Text; set => txtDireccionClient.Text = value; }
         public string Nota { get => cmboxNota.Text; set => cmboxNota.Text = value; }
         public bool Activo { get => checboxActico.Checked; set => checboxActico.Checked = value; }
-        public string AutorizadoPor { get => cmboxAutizado.Text; set => cmboxAutizado.Text = value; }
 
         public event EventHandler? GuardarClicked;
         public event EventHandler? CancelarClicked;
@@ -45,7 +46,6 @@ namespace Nuevo_Proyecto.Models.Views
             txtTelefonoClient.TextChanged += (s, ev) => UpdateControlsState();
             txtDireccionClient.TextChanged += (s, ev) => UpdateControlsState();
             cmboxNota.TextChanged += (s, ev) => UpdateControlsState();
-            cmboxAutizado.SelectedIndexChanged += (s, ev) => UpdateControlsState();
             checboxActico.CheckedChanged += (s, ev) => UpdateControlsState();
         }
 
@@ -96,15 +96,21 @@ namespace Nuevo_Proyecto.Models.Views
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(cmboxAutizado.Text) || cmboxAutizado.Text == "Selecciona un personal encargado")
-            {
-                MessageBox.Show("Debes seleccionar un personal encargado.", "Campo vacío", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                cmboxAutizado.Focus();
-                return;
-            }
-
             // Si todos los campos están completos, delegar al presenter
             GuardarClicked?.Invoke(this, EventArgs.Empty);
+
+            // Registrar auditoría con el ClienteID recién creado
+            var auditoriaService = new AuditoriaService();
+            auditoriaService.RegistrarAuditoria(
+                seccion: "Clientes",
+                accion: "CREAR",
+                usuario: SesionActual.NombreUsuario ?? "Desconocido",
+                rolUsuario: SesionActual.Usuario?.Cargo ?? "Usuario",
+                registroID: _presenter.UltimoClienteIDCreado,  // Pasar el ClienteID creado
+                usuarioAutorizador: SesionActual.UsuarioAutorizador,  // Pasar el autorizado
+                detalle: $"Cliente: {txtNombreClient.Text}, Teléfono: {txtTelefonoClient.Text}",
+                descripcion: $"Nuevo cliente creado: {txtNombreClient.Text}"
+            );
         }
 
         private void NuevoCliente_Load(object sender, EventArgs e)
@@ -119,14 +125,6 @@ namespace Nuevo_Proyecto.Models.Views
             cmboxNota.DropDownStyle = ComboBoxStyle.DropDown;
             cmboxNota.SelectedIndex = -1;
             cmboxNota.Text = "Selecciona una nota";
-
-            // Cargar autorizados (solo Cajeros y Admins)
-            var autorizados = _presenter.GetUsuariosCajerosAdmins();
-            cmboxAutizado.DataSource = autorizados;
-            cmboxAutizado.DisplayMember = "Nombre";
-            cmboxAutizado.ValueMember = "Codigo";
-            cmboxAutizado.SelectedIndex = -1;
-            cmboxAutizado.Text = "Selecciona un personal encargado";
 
             checboxActico.Checked = true;
             // Inicializar estado de controles
@@ -160,8 +158,6 @@ namespace Nuevo_Proyecto.Models.Views
             Direccion = string.Empty;
             cmboxNota.SelectedIndex = -1;
             cmboxNota.Text = "Selecciona una nota";
-            cmboxAutizado.SelectedIndex = -1;
-            cmboxAutizado.Text = "Selecciona un personal encargado";
             Activo = true;
         }
 

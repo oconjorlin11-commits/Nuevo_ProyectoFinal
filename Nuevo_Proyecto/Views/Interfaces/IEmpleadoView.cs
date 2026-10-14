@@ -18,6 +18,7 @@ namespace Nuevo_Proyecto.Views.Interfaces
         DateTime? FechaIngreso { get; set; }
         bool Activo { get; set; }
         string BuscarTexto { get; set; }
+        bool HayMultiplesResultados { get; set; }
 
         event EventHandler? EditarClicked;
         event EventHandler? EliminarClicked;

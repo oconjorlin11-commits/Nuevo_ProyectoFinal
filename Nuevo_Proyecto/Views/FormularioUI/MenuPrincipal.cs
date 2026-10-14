@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Nuevo_Proyecto.Services;
 using Nuevo_Proyecto.Services.Helpers;
 using Nuevo_Proyecto.Views.FormularioUI;
 
@@ -14,6 +15,8 @@ namespace Nuevo_Proyecto.Models.Views
 {
     public partial class MenuPrincipal : Form
     {
+        private string _seccionActual = ""; // Para rastrear qué sección se está accediendo
+
         public MenuPrincipal()
         {
             InitializeComponent();
@@ -80,6 +83,7 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void btnEmpleados_Click(object sender, EventArgs e)
         {
+            _seccionActual = "Empleados";
             if (!VerificarAcceso())
                 return;
             CargarFormulario(new Empleados());
@@ -87,6 +91,7 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void btnInventario_Click(object sender, EventArgs e)
         {
+            _seccionActual = "Inventario";
             if (!VerificarAcceso())
                 return;
             CargarFormulario(new Inventario());
@@ -94,6 +99,7 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void btnReportes_Click(object sender, EventArgs e)
         {
+            _seccionActual = "Reportes";
             if (!VerificarAcceso())
                 return;
             CargarFormulario(new Reportes());
@@ -105,10 +111,43 @@ namespace Nuevo_Proyecto.Models.Views
             if (SesionActual.EsAdministrador)
                 return true;
 
-            // Mostrar dialogo de verificacion de permisos
-            var verificacion = new VerificacionPermisos(SesionActual.NombreUsuario);
+            // Mostrar mensaje inicial explicando que necesita permiso de administrador
+            DialogResult resultado = MessageBox.Show(
+                "Para poder acceder a esta sección primero necesita tener un permiso de administrador.\n\n" +
+                "¿Desea ingresar las credenciales de un administrador?",
+                "Permiso Requerido",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Information
+            );
+
+            if (resultado != DialogResult.Yes)
+                return false;
+
+            // Mostrar dialogo de verificacion de usuario
+            var verificacion = new Verificacion_de_usuario();
             if (verificacion.ShowDialog(this) == DialogResult.OK)
             {
+                // 👉 Guardar el nombre del admin que fue verificado en la sesión
+                SesionActual.UsuarioAutorizador = verificacion.AdminNombreVerificado;
+
+                // Registrar la auditoría cuando se otorga acceso temporal
+                var auditoriaService = new AuditoriaService();
+                auditoriaService.RegistrarAuditoria(
+                    seccion: _seccionActual,
+                    accion: "ACCESO_TEMPORAL",
+                    usuario: SesionActual.NombreUsuario ?? "Desconocido",
+                    rolUsuario: SesionActual.Usuario?.Cargo ?? "Usuario",
+                    descripcion: $"Acceso temporal a {_seccionActual} otorgado por usuario autorizado ({SesionActual.UsuarioAutorizador})"
+                );
+
+                // Mostrar mensaje de acceso temporal
+                MessageBox.Show(
+                    "Tienes solo permiso para ver esta sección temporalmente.\n\n" +
+                    "Ya después se te quitará el acceso.",
+                    "Acceso Temporal",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information
+                );
                 return true;
             }
 
