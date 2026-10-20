@@ -28,6 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Inventario));
             btnEliminarInvent = new Button();
             dataGridInventario = new DataGridView();
             txtBucarInvet = new TextBox();
@@ -52,21 +54,28 @@
             txtStock = new TextBox();
             label11 = new Label();
             checkBoxInventario = new CheckBox();
+            pictureBox1 = new PictureBox();
+            imageList1 = new ImageList(components);
+            label7 = new Label();
+            groupBox1 = new GroupBox();
             ((System.ComponentModel.ISupportInitialize)dataGridInventario).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
+            groupBox1.SuspendLayout();
             SuspendLayout();
             // 
             // btnEliminarInvent
             // 
             btnEliminarInvent.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnEliminarInvent.BackColor = Color.DarkGray;
+            btnEliminarInvent.BackColor = Color.DarkRed;
             btnEliminarInvent.FlatStyle = FlatStyle.Flat;
             btnEliminarInvent.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnEliminarInvent.ForeColor = Color.FromArgb(250, 247, 241);
+            btnEliminarInvent.Image = Properties.Resources._32officeicons_3_89720__1_;
             btnEliminarInvent.ImageAlign = ContentAlignment.MiddleLeft;
-            btnEliminarInvent.Location = new Point(1505, 1001);
-            btnEliminarInvent.Margin = new Padding(4);
+            btnEliminarInvent.Location = new Point(920, 622);
+            btnEliminarInvent.Margin = new Padding(2);
             btnEliminarInvent.Name = "btnEliminarInvent";
-            btnEliminarInvent.Size = new Size(246, 83);
+            btnEliminarInvent.Size = new Size(151, 52);
             btnEliminarInvent.TabIndex = 26;
             btnEliminarInvent.Text = "Eliminar";
             btnEliminarInvent.UseVisualStyleBackColor = false;
@@ -78,22 +87,23 @@
             dataGridInventario.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dataGridInventario.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
             dataGridInventario.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridInventario.Location = new Point(34, 401);
-            dataGridInventario.Margin = new Padding(4);
+            dataGridInventario.Location = new Point(21, 376);
+            dataGridInventario.Margin = new Padding(2);
             dataGridInventario.Name = "dataGridInventario";
             dataGridInventario.RowHeadersWidth = 62;
-            dataGridInventario.Size = new Size(1717, 544);
+            dataGridInventario.Size = new Size(1057, 233);
             dataGridInventario.TabIndex = 25;
             // 
             // txtBucarInvet
             // 
             txtBucarInvet.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            txtBucarInvet.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            txtBucarInvet.Font = new Font("Segoe UI", 10.8F, FontStyle.Italic);
             txtBucarInvet.ForeColor = Color.FromArgb(38, 38, 38);
-            txtBucarInvet.Location = new Point(1422, 45);
-            txtBucarInvet.Margin = new Padding(4);
+            txtBucarInvet.Location = new Point(813, 31);
+            txtBucarInvet.Margin = new Padding(2);
             txtBucarInvet.Name = "txtBucarInvet";
-            txtBucarInvet.Size = new Size(329, 50);
+            txtBucarInvet.PlaceholderText = "Buscar";
+            txtBucarInvet.Size = new Size(265, 31);
             txtBucarInvet.TabIndex = 24;
             // 
             // label4
@@ -102,10 +112,10 @@
             label4.AutoSize = true;
             label4.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label4.ForeColor = Color.FromArgb(38, 38, 38);
-            label4.Location = new Point(1249, 51);
-            label4.Margin = new Padding(4, 0, 4, 0);
+            label4.Location = new Point(733, 32);
+            label4.Margin = new Padding(2, 0, 2, 0);
             label4.Name = "label4";
-            label4.Size = new Size(125, 45);
+            label4.Size = new Size(77, 28);
             label4.TabIndex = 23;
             label4.Text = "Buscar:";
             // 
@@ -115,10 +125,10 @@
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI", 14F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label1.ForeColor = Color.FromArgb(153, 40, 35);
-            label1.Location = new Point(34, 49);
-            label1.Margin = new Padding(4, 0, 4, 0);
+            label1.Location = new Point(90, 32);
+            label1.Margin = new Padding(2, 0, 2, 0);
             label1.Name = "label1";
-            label1.Size = new Size(206, 51);
+            label1.Size = new Size(132, 32);
             label1.TabIndex = 22;
             label1.Text = "Inventario";
             // 
@@ -128,37 +138,39 @@
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label2.ForeColor = Color.FromArgb(38, 38, 38);
-            label2.Location = new Point(719, 50);
-            label2.Margin = new Padding(4, 0, 4, 0);
+            label2.Location = new Point(409, 37);
+            label2.Margin = new Padding(2, 0, 2, 0);
             label2.Name = "label2";
-            label2.Size = new Size(169, 45);
+            label2.Size = new Size(103, 28);
             label2.TabIndex = 29;
             label2.Text = "Categoria:";
             // 
             // cmboxCategoriaInve
             // 
             cmboxCategoriaInve.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            cmboxCategoriaInve.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            cmboxCategoriaInve.Font = new Font("Segoe UI", 10.8F, FontStyle.Italic);
             cmboxCategoriaInve.ForeColor = Color.FromArgb(38, 38, 38);
             cmboxCategoriaInve.FormattingEnabled = true;
-            cmboxCategoriaInve.Location = new Point(890, 46);
-            cmboxCategoriaInve.Margin = new Padding(4);
+            cmboxCategoriaInve.Location = new Point(516, 31);
+            cmboxCategoriaInve.Margin = new Padding(2);
             cmboxCategoriaInve.Name = "cmboxCategoriaInve";
-            cmboxCategoriaInve.Size = new Size(329, 53);
+            cmboxCategoriaInve.Size = new Size(204, 33);
             cmboxCategoriaInve.TabIndex = 30;
+            cmboxCategoriaInve.Text = "Buscar por Categoria";
             // 
             // btnEditarInventar
             // 
-            btnEditarInventar.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnEditarInventar.BackColor = Color.Green;
+            btnEditarInventar.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnEditarInventar.BackColor = Color.DarkGreen;
             btnEditarInventar.FlatStyle = FlatStyle.Flat;
             btnEditarInventar.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnEditarInventar.ForeColor = Color.FromArgb(250, 247, 241);
+            btnEditarInventar.Image = Properties.Resources.edit_validated256_25237;
             btnEditarInventar.ImageAlign = ContentAlignment.MiddleLeft;
-            btnEditarInventar.Location = new Point(334, 1001);
-            btnEditarInventar.Margin = new Padding(4);
+            btnEditarInventar.Location = new Point(720, 622);
+            btnEditarInventar.Margin = new Padding(2);
             btnEditarInventar.Name = "btnEditarInventar";
-            btnEditarInventar.Size = new Size(246, 83);
+            btnEditarInventar.Size = new Size(151, 52);
             btnEditarInventar.TabIndex = 33;
             btnEditarInventar.Text = "Editar";
             btnEditarInventar.UseVisualStyleBackColor = false;
@@ -166,29 +178,32 @@
             // 
             // btnNuevoProduct
             // 
-            btnNuevoProduct.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnNuevoProduct.BackColor = Color.DarkGray;
+            btnNuevoProduct.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnNuevoProduct.BackColor = Color.Green;
             btnNuevoProduct.FlatStyle = FlatStyle.Flat;
             btnNuevoProduct.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnNuevoProduct.ForeColor = Color.FromArgb(250, 247, 241);
+            btnNuevoProduct.Image = (Image)resources.GetObject("btnNuevoProduct.Image");
             btnNuevoProduct.ImageAlign = ContentAlignment.MiddleLeft;
-            btnNuevoProduct.Location = new Point(34, 1001);
-            btnNuevoProduct.Margin = new Padding(4);
+            btnNuevoProduct.Location = new Point(507, 622);
+            btnNuevoProduct.Margin = new Padding(2);
             btnNuevoProduct.Name = "btnNuevoProduct";
-            btnNuevoProduct.Size = new Size(246, 83);
+            btnNuevoProduct.Size = new Size(151, 52);
             btnNuevoProduct.TabIndex = 34;
             btnNuevoProduct.Text = "Nuevo Prod.";
+            btnNuevoProduct.TextAlign = ContentAlignment.MiddleRight;
             btnNuevoProduct.UseVisualStyleBackColor = false;
             btnNuevoProduct.Click += btnNuevoProduct_Click;
             // 
             // txtProductosInven
             // 
-            txtProductosInven.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            txtProductosInven.Font = new Font("Segoe UI", 10.8F, FontStyle.Italic);
             txtProductosInven.ForeColor = Color.FromArgb(38, 38, 38);
-            txtProductosInven.Location = new Point(88, 316);
-            txtProductosInven.Margin = new Padding(4);
+            txtProductosInven.Location = new Point(123, 99);
+            txtProductosInven.Margin = new Padding(2);
             txtProductosInven.Name = "txtProductosInven";
-            txtProductosInven.Size = new Size(270, 50);
+            txtProductosInven.PlaceholderText = "Nombre Producto";
+            txtProductosInven.Size = new Size(168, 31);
             txtProductosInven.TabIndex = 38;
             // 
             // label3
@@ -196,21 +211,22 @@
             label3.AutoSize = true;
             label3.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label3.ForeColor = Color.FromArgb(38, 38, 38);
-            label3.Location = new Point(143, 271);
-            label3.Margin = new Padding(4, 0, 4, 0);
+            label3.Location = new Point(10, 99);
+            label3.Margin = new Padding(2, 0, 2, 0);
             label3.Name = "label3";
-            label3.Size = new Size(168, 45);
+            label3.Size = new Size(109, 28);
             label3.TabIndex = 37;
-            label3.Text = "Productos";
+            label3.Text = "Productos:";
             // 
             // txtCodigoInvent
             // 
-            txtCodigoInvent.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            txtCodigoInvent.Font = new Font("Segoe UI", 10.8F, FontStyle.Italic);
             txtCodigoInvent.ForeColor = Color.FromArgb(38, 38, 38);
-            txtCodigoInvent.Location = new Point(88, 186);
-            txtCodigoInvent.Margin = new Padding(4);
+            txtCodigoInvent.Location = new Point(123, 37);
+            txtCodigoInvent.Margin = new Padding(2);
             txtCodigoInvent.Name = "txtCodigoInvent";
-            txtCodigoInvent.Size = new Size(270, 50);
+            txtCodigoInvent.PlaceholderText = "000";
+            txtCodigoInvent.Size = new Size(168, 31);
             txtCodigoInvent.TabIndex = 36;
             // 
             // label5
@@ -218,22 +234,22 @@
             label5.AutoSize = true;
             label5.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label5.ForeColor = Color.FromArgb(38, 38, 38);
-            label5.Location = new Point(161, 141);
-            label5.Margin = new Padding(4, 0, 4, 0);
+            label5.Location = new Point(10, 37);
+            label5.Margin = new Padding(2, 0, 2, 0);
             label5.Name = "label5";
-            label5.Size = new Size(124, 45);
+            label5.Size = new Size(82, 28);
             label5.TabIndex = 35;
-            label5.Text = "Codigo";
+            label5.Text = "Codigo:";
             // 
             // cmboxCategorias
             // 
-            cmboxCategorias.Font = new Font("Segoe UI", 12F);
+            cmboxCategorias.Font = new Font("Segoe UI", 10.8F, FontStyle.Italic);
             cmboxCategorias.ForeColor = Color.FromArgb(38, 38, 38);
             cmboxCategorias.FormattingEnabled = true;
-            cmboxCategorias.Location = new Point(391, 186);
-            cmboxCategorias.Margin = new Padding(4);
+            cmboxCategorias.Location = new Point(123, 164);
+            cmboxCategorias.Margin = new Padding(2);
             cmboxCategorias.Name = "cmboxCategorias";
-            cmboxCategorias.Size = new Size(270, 53);
+            cmboxCategorias.Size = new Size(168, 33);
             cmboxCategorias.TabIndex = 42;
             cmboxCategorias.Text = "Todas";
             // 
@@ -242,22 +258,22 @@
             label8.AutoSize = true;
             label8.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label8.ForeColor = Color.FromArgb(38, 38, 38);
-            label8.Location = new Point(446, 141);
-            label8.Margin = new Padding(4, 0, 4, 0);
+            label8.Location = new Point(10, 164);
+            label8.Margin = new Padding(2, 0, 2, 0);
             label8.Name = "label8";
-            label8.Size = new Size(175, 45);
+            label8.Size = new Size(103, 28);
             label8.TabIndex = 41;
-            label8.Text = "Categorias";
+            label8.Text = "Categoria:";
             // 
             // cmboxUnidad
             // 
-            cmboxUnidad.Font = new Font("Segoe UI", 12F);
+            cmboxUnidad.Font = new Font("Segoe UI", 10.8F, FontStyle.Italic);
             cmboxUnidad.ForeColor = Color.FromArgb(38, 38, 38);
             cmboxUnidad.FormattingEnabled = true;
-            cmboxUnidad.Location = new Point(697, 184);
-            cmboxUnidad.Margin = new Padding(4);
+            cmboxUnidad.Location = new Point(468, 164);
+            cmboxUnidad.Margin = new Padding(2);
             cmboxUnidad.Name = "cmboxUnidad";
-            cmboxUnidad.Size = new Size(270, 53);
+            cmboxUnidad.Size = new Size(168, 33);
             cmboxUnidad.TabIndex = 46;
             cmboxUnidad.Text = "Todas";
             // 
@@ -266,21 +282,22 @@
             label6.AutoSize = true;
             label6.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label6.ForeColor = Color.FromArgb(38, 38, 38);
-            label6.Location = new Point(779, 141);
-            label6.Margin = new Padding(4, 0, 4, 0);
+            label6.Location = new Point(324, 164);
+            label6.Margin = new Padding(2, 0, 2, 0);
             label6.Name = "label6";
-            label6.Size = new Size(125, 45);
+            label6.Size = new Size(82, 28);
             label6.TabIndex = 45;
-            label6.Text = "Unidad";
+            label6.Text = "Unidad:";
             // 
             // txtPrecioVentas
             // 
-            txtPrecioVentas.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            txtPrecioVentas.Font = new Font("Segoe UI", 10.8F, FontStyle.Italic);
             txtPrecioVentas.ForeColor = Color.FromArgb(38, 38, 38);
-            txtPrecioVentas.Location = new Point(385, 315);
-            txtPrecioVentas.Margin = new Padding(4);
+            txtPrecioVentas.Location = new Point(468, 37);
+            txtPrecioVentas.Margin = new Padding(2);
             txtPrecioVentas.Name = "txtPrecioVentas";
-            txtPrecioVentas.Size = new Size(270, 50);
+            txtPrecioVentas.PlaceholderText = "C$ 000.00";
+            txtPrecioVentas.Size = new Size(168, 31);
             txtPrecioVentas.TabIndex = 44;
             // 
             // label9
@@ -288,21 +305,22 @@
             label9.AutoSize = true;
             label9.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label9.ForeColor = Color.FromArgb(38, 38, 38);
-            label9.Location = new Point(417, 271);
-            label9.Margin = new Padding(4, 0, 4, 0);
+            label9.Location = new Point(324, 40);
+            label9.Margin = new Padding(2, 0, 2, 0);
             label9.Name = "label9";
-            label9.Size = new Size(217, 45);
+            label9.Size = new Size(140, 28);
             label9.TabIndex = 43;
-            label9.Text = "Precio Ventas";
+            label9.Text = "Precio Ventas:";
             // 
             // txtMinimo
             // 
-            txtMinimo.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            txtMinimo.Font = new Font("Segoe UI", 10.8F, FontStyle.Italic);
             txtMinimo.ForeColor = Color.FromArgb(38, 38, 38);
-            txtMinimo.Location = new Point(697, 316);
-            txtMinimo.Margin = new Padding(4);
+            txtMinimo.Location = new Point(468, 99);
+            txtMinimo.Margin = new Padding(2);
             txtMinimo.Name = "txtMinimo";
-            txtMinimo.Size = new Size(270, 50);
+            txtMinimo.PlaceholderText = "10";
+            txtMinimo.Size = new Size(168, 31);
             txtMinimo.TabIndex = 50;
             // 
             // label10
@@ -310,21 +328,22 @@
             label10.AutoSize = true;
             label10.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label10.ForeColor = Color.FromArgb(38, 38, 38);
-            label10.Location = new Point(770, 271);
-            label10.Margin = new Padding(4, 0, 4, 0);
+            label10.Location = new Point(324, 102);
+            label10.Margin = new Padding(2, 0, 2, 0);
             label10.Name = "label10";
-            label10.Size = new Size(132, 45);
+            label10.Size = new Size(87, 28);
             label10.TabIndex = 49;
-            label10.Text = "Minimo";
+            label10.Text = "Minimo:";
             // 
             // txtStock
             // 
-            txtStock.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            txtStock.Font = new Font("Segoe UI", 10.8F, FontStyle.Italic);
             txtStock.ForeColor = Color.FromArgb(38, 38, 38);
-            txtStock.Location = new Point(1009, 187);
-            txtStock.Margin = new Padding(4);
+            txtStock.Location = new Point(743, 37);
+            txtStock.Margin = new Padding(2);
             txtStock.Name = "txtStock";
-            txtStock.Size = new Size(270, 50);
+            txtStock.PlaceholderText = "00";
+            txtStock.Size = new Size(168, 31);
             txtStock.TabIndex = 48;
             // 
             // label11
@@ -332,46 +351,92 @@
             label11.AutoSize = true;
             label11.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label11.ForeColor = Color.FromArgb(38, 38, 38);
-            label11.Location = new Point(1082, 142);
-            label11.Margin = new Padding(4, 0, 4, 0);
+            label11.Location = new Point(672, 40);
+            label11.Margin = new Padding(2, 0, 2, 0);
             label11.Name = "label11";
-            label11.Size = new Size(99, 45);
+            label11.Size = new Size(67, 28);
             label11.TabIndex = 47;
-            label11.Text = "Stock";
+            label11.Text = "Stock:";
             // 
             // checkBoxInventario
             // 
             checkBoxInventario.AutoSize = true;
             checkBoxInventario.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
-            checkBoxInventario.Location = new Point(1022, 315);
-            checkBoxInventario.Margin = new Padding(4);
+            checkBoxInventario.Location = new Point(672, 99);
+            checkBoxInventario.Margin = new Padding(2);
             checkBoxInventario.Name = "checkBoxInventario";
-            checkBoxInventario.Size = new Size(150, 49);
+            checkBoxInventario.Size = new Size(94, 32);
             checkBoxInventario.TabIndex = 51;
             checkBoxInventario.Text = "Estado";
             checkBoxInventario.UseVisualStyleBackColor = true;
             // 
+            // pictureBox1
+            // 
+            pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
+            pictureBox1.Location = new Point(21, 18);
+            pictureBox1.Name = "pictureBox1";
+            pictureBox1.Size = new Size(64, 64);
+            pictureBox1.SizeMode = PictureBoxSizeMode.AutoSize;
+            pictureBox1.TabIndex = 56;
+            pictureBox1.TabStop = false;
+            // 
+            // imageList1
+            // 
+            imageList1.ColorDepth = ColorDepth.Depth32Bit;
+            imageList1.ImageSize = new Size(16, 16);
+            imageList1.TransparentColor = Color.Transparent;
+            // 
+            // label7
+            // 
+            label7.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            label7.AutoSize = true;
+            label7.Font = new Font("Segoe UI", 12F, FontStyle.Bold | FontStyle.Italic);
+            label7.ForeColor = Color.FromArgb(38, 38, 38);
+            label7.Location = new Point(21, 336);
+            label7.Margin = new Padding(2, 0, 2, 0);
+            label7.Name = "label7";
+            label7.Size = new Size(188, 28);
+            label7.TabIndex = 57;
+            label7.Text = "Lista de Inventario";
+            // 
+            // groupBox1
+            // 
+            groupBox1.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            groupBox1.BackColor = Color.FromArgb(250, 247, 241);
+            groupBox1.Controls.Add(label5);
+            groupBox1.Controls.Add(txtCodigoInvent);
+            groupBox1.Controls.Add(label3);
+            groupBox1.Controls.Add(checkBoxInventario);
+            groupBox1.Controls.Add(txtProductosInven);
+            groupBox1.Controls.Add(txtStock);
+            groupBox1.Controls.Add(txtMinimo);
+            groupBox1.Controls.Add(label11);
+            groupBox1.Controls.Add(label8);
+            groupBox1.Controls.Add(cmboxUnidad);
+            groupBox1.Controls.Add(label10);
+            groupBox1.Controls.Add(label6);
+            groupBox1.Controls.Add(cmboxCategorias);
+            groupBox1.Controls.Add(label9);
+            groupBox1.Controls.Add(txtPrecioVentas);
+            groupBox1.Font = new Font("Segoe UI", 12F, FontStyle.Bold | FontStyle.Italic);
+            groupBox1.ForeColor = Color.FromArgb(38, 38, 38);
+            groupBox1.Location = new Point(21, 105);
+            groupBox1.Name = "groupBox1";
+            groupBox1.Size = new Size(1057, 216);
+            groupBox1.TabIndex = 58;
+            groupBox1.TabStop = false;
+            groupBox1.Text = "Datos del Inventario";
+            groupBox1.Enter += groupBox1_Enter;
+            // 
             // Inventario
             // 
-            AutoScaleDimensions = new SizeF(13F, 32F);
+            AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(232, 221, 206);
-            ClientSize = new Size(1785, 1133);
-            Controls.Add(checkBoxInventario);
-            Controls.Add(txtMinimo);
-            Controls.Add(label10);
-            Controls.Add(txtStock);
-            Controls.Add(label11);
-            Controls.Add(cmboxUnidad);
-            Controls.Add(label6);
-            Controls.Add(txtPrecioVentas);
-            Controls.Add(label9);
-            Controls.Add(cmboxCategorias);
-            Controls.Add(label8);
-            Controls.Add(txtProductosInven);
-            Controls.Add(label3);
-            Controls.Add(txtCodigoInvent);
-            Controls.Add(label5);
+            ClientSize = new Size(1098, 689);
+            Controls.Add(groupBox1);
+            Controls.Add(label7);
+            Controls.Add(pictureBox1);
             Controls.Add(btnNuevoProduct);
             Controls.Add(btnEditarInventar);
             Controls.Add(cmboxCategoriaInve);
@@ -381,12 +446,16 @@
             Controls.Add(txtBucarInvet);
             Controls.Add(label4);
             Controls.Add(label1);
+            Cursor = Cursors.Hand;
             FormBorderStyle = FormBorderStyle.None;
-            Margin = new Padding(4);
+            Margin = new Padding(2);
             Name = "Inventario";
             Text = "Inventario";
             Load += Inventario_Load;
             ((System.ComponentModel.ISupportInitialize)dataGridInventario).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
+            groupBox1.ResumeLayout(false);
+            groupBox1.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -416,5 +485,9 @@
         private TextBox txtStock;
         private Label label11;
         private CheckBox checkBoxInventario;
+        private PictureBox pictureBox1;
+        private ImageList imageList1;
+        private Label label7;
+        private GroupBox groupBox1;
     }
 }

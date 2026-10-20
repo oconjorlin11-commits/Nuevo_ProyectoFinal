@@ -366,15 +366,15 @@ namespace Nuevo_Proyecto.Models.Views
 
             dataGridInventario.DataSource = dtInventario;
 
-                                    // Ordenar por cÃ³digo de forma explÃ­cita
-                                    if (dtInventario.Rows.Count > 0)
-                                    {
-                                                DataView dv = new DataView(dtInventario);
-                                                dv.Sort = "Codigo ASC";
-                                                dataGridInventario.DataSource = dv;
-                                    }
+            // Ordenar por cÃ³digo de forma explÃ­cita
+            if (dtInventario.Rows.Count > 0)
+            {
+                DataView dv = new DataView(dtInventario);
+                dv.Sort = "Codigo ASC";
+                dataGridInventario.DataSource = dv;
+            }
 
-            
+
 
             //  Opciones de seleccin
             dataGridInventario.ReadOnly = true;
@@ -847,7 +847,7 @@ namespace Nuevo_Proyecto.Models.Views
             // 1️⃣ RECHAZAR FRASES CLARAMENTE SIN RAZÓN VÁLIDA
             var frasesAbsurdas = new[]
             {
-                "porque sí", "porque si", "me dio la gana", "me dio gana", 
+                "porque sí", "porque si", "me dio la gana", "me dio gana",
                 "sin razón", "sin motivo", "sin justificación", "sin justificacion",
                 "al azar", "capricho", "aleatoriamente", "simplemente", "solo"
             };
@@ -872,8 +872,8 @@ namespace Nuevo_Proyecto.Models.Views
                 if (motivoLower.Contains(patron))
                 {
                     // Si culpa a una persona, debe tener razón objetiva
-                    var razonObjetiva = new[] { "daño", "roto", "caducado", "vencido", "robo", "perdida", 
-                        "obsoleto", "error", "defecto", "fallo", "politica", "norma", "auditoría", 
+                    var razonObjetiva = new[] { "daño", "roto", "caducado", "vencido", "robo", "perdida",
+                        "obsoleto", "error", "defecto", "fallo", "politica", "norma", "auditoría",
                         "stock", "inventario", "control" };
                     bool tieneRazon = false;
                     foreach (var r in razonObjetiva)
@@ -932,7 +932,7 @@ namespace Nuevo_Proyecto.Models.Views
                         return false;
                 }
 
-                if (palabra.Length > 3 && (palabra.EndsWith("cad") || palabra.EndsWith("dañ") || 
+                if (palabra.Length > 3 && (palabra.EndsWith("cad") || palabra.EndsWith("dañ") ||
                     palabra.EndsWith("rust") || palabra.EndsWith("prod")) && palabra.Length < 8)
                 {
                     if (!palabra.Equals("stock"))
@@ -1004,7 +1004,7 @@ namespace Nuevo_Proyecto.Models.Views
             }
         }
 
-        private void dataGridInventario_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e) 
+        private void dataGridInventario_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
             try
             {
@@ -1143,8 +1143,12 @@ namespace Nuevo_Proyecto.Models.Views
             }
         }
 
+        private void groupBox1_Enter(object sender, EventArgs e)
+        {
+
+        }
     }
-    
+
 }
 
 

@@ -179,5 +179,15 @@ namespace Nuevo_Proyecto.Views.FormularioUI
         {
 
         }
+
+        private void GbVerificacion_Enter(object sender, EventArgs e)
+        {
+
+        }
+
+        private void Verificacion_de_usuario_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }

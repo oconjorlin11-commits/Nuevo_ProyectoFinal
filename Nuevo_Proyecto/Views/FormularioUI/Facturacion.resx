@@ -117,4 +117,52 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="btnLimpiarAll.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        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
+        gg==
+</value>
+  </data>
+  <data name="btnQuitarLinea.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
+        vgAADr4B6kKxwAAAAmNJREFUWEftlU9rE0EYxqd691o/gJTuNhqVpjvZSdJDsZBMCv45qV/BD6AnwUsP
+        PXrxnINULx6EnrS7WAUtVU+KUCWI5k+NoJ6tRp4Rg312t+xmp+DBBx5YNu/7/GZnZ98I8V9jqL/kTX7S
+        frXfrJyFzfWSN8l1VvWxXpnqaX+lp9V2V6ufvWZl+LfNPa22UYNa7h9beLKOVq2uVrsMTTRqtWrl3pWd
+        pr/Y02oQAaS1VgNkcG4q9ZvqUler75HQjEZGR/uXOX9fYdU24H+MrNQ7gfeWa9uTrNWg3SgdZV5EOHCR
+        ZlvWqsW8PcLnk+m0Z7VWu/t+ouY75ybb1v4Kc0cyg4QbLLur1VvmGuHwxU042wYjdkBhnnMx3L9xNZc5
+        zyyiUa4xX+BPhQvhz1+/5TLnwR2tzjFfdBvqPBce1ALAYr54t+hd4MKDWgBYzBdb1SLGb7T4/r1c5jww
+        wGK+eFSannpfL0cawvJMLnMeGGAxX1wX4tDrhdkv3GDbYIDFfKOnlRN34l6DLSMbDOaOFHpO/c2ZUqTR
+        lpENBnNHGgox8VgVXnxo+JHmvEbmhiq8BIO5e/Sw5NQ2q8UfNl8FspCJbObFal06y8/nT5lGDstqZCAr
+        lM4ycxKFUxpId3WzVjRbx6FpjV5khNJdTTz5SborxOGg7Nza8Avm8GTZDdSiB73IQBbnp1Yw514MpLvz
+        RB0fvlqYNYMkbjG4h99Qg1r0oJfzxtLa3LEjgXSvhdJtY7rhyZ5Vi8Ot+ZPGuMa939PPbaMWPZxjQxMP
+        5PTpQLpX1j3nZihnbsO4xj38hhpu+qf1C7dCKlGR1stSAAAAAElFTkSuQmCC
+</value>
+  </data>
 </root>

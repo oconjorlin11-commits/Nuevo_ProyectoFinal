@@ -255,8 +255,8 @@ namespace Nuevo_Proyecto.Models.Views
             }
 
             // Validar cambios
-            if (Nombre.Trim() == _nombreEmpleadoOriginal && 
-                Cargo == string.Empty && 
+            if (Nombre.Trim() == _nombreEmpleadoOriginal &&
+                Cargo == string.Empty &&
                 Cedula == string.Empty &&
                 Telefono == string.Empty &&
                 Salario == 0)
@@ -364,38 +364,38 @@ namespace Nuevo_Proyecto.Models.Views
                 MinimizeBox = false
             };
 
-            Label lbl = new Label 
-            { 
-                Text = titulo, 
-                Left = 10, 
-                Top = 15, 
-                Width = 520, 
-                AutoSize = true 
+            Label lbl = new Label
+            {
+                Text = titulo,
+                Left = 10,
+                Top = 15,
+                Width = 520,
+                AutoSize = true
             };
-            TextBox txt = new TextBox 
-            { 
-                Left = 10, 
-                Top = 40, 
-                Width = 520, 
-                Height = 70, 
+            TextBox txt = new TextBox
+            {
+                Left = 10,
+                Top = 40,
+                Width = 520,
+                Height = 70,
                 Multiline = true,
                 AcceptsReturn = true
             };
-            Button btnOk = new Button 
-            { 
-                Text = "Aceptar", 
-                Left = 380, 
-                Top = 120, 
-                Width = 70, 
-                DialogResult = DialogResult.OK 
+            Button btnOk = new Button
+            {
+                Text = "Aceptar",
+                Left = 380,
+                Top = 120,
+                Width = 70,
+                DialogResult = DialogResult.OK
             };
-            Button btnCancel = new Button 
-            { 
-                Text = "Cancelar", 
-                Left = 460, 
-                Top = 120, 
-                Width = 70, 
-                DialogResult = DialogResult.Cancel 
+            Button btnCancel = new Button
+            {
+                Text = "Cancelar",
+                Left = 460,
+                Top = 120,
+                Width = 70,
+                DialogResult = DialogResult.Cancel
             };
 
             formMotivo.Controls.Add(lbl);
@@ -420,6 +420,16 @@ namespace Nuevo_Proyecto.Models.Views
                 e.Value = activo ? "Trabajando" : "Despedido";
                 e.FormattingApplied = true;
             }
+        }
+
+        private void txtCedulaEmpl_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void groupBox1_Enter(object sender, EventArgs e)
+        {
+
         }
     }
 }

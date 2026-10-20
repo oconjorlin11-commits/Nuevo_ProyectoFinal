@@ -28,6 +28,7 @@ namespace Nuevo_Proyecto.Models.Views
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MenuPrincipal));
             pnlIcono = new Panel();
             pictureBoxIcono = new PictureBox();
             btnSalir = new Button();
@@ -58,16 +59,18 @@ namespace Nuevo_Proyecto.Models.Views
             pnlIcono.Controls.Add(pictureBoxIcono);
             pnlIcono.Dock = DockStyle.Top;
             pnlIcono.Location = new Point(0, 0);
+            pnlIcono.Margin = new Padding(2);
             pnlIcono.Name = "pnlIcono";
-            pnlIcono.Size = new Size(305, 145);
+            pnlIcono.Size = new Size(244, 116);
             pnlIcono.TabIndex = 0;
             // 
             // pictureBoxIcono
             // 
             pictureBoxIcono.Image = Properties.Resources.Copilot_20260806_000247;
-            pictureBoxIcono.Location = new Point(45, 3);
+            pictureBoxIcono.Location = new Point(36, 2);
+            pictureBoxIcono.Margin = new Padding(2);
             pictureBoxIcono.Name = "pictureBoxIcono";
-            pictureBoxIcono.Size = new Size(231, 142);
+            pictureBoxIcono.Size = new Size(185, 114);
             pictureBoxIcono.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBoxIcono.TabIndex = 0;
             pictureBoxIcono.TabStop = false;
@@ -78,14 +81,16 @@ namespace Nuevo_Proyecto.Models.Views
             btnSalir.Dock = DockStyle.Bottom;
             btnSalir.FlatAppearance.BorderSize = 0;
             btnSalir.FlatStyle = FlatStyle.Flat;
-            btnSalir.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
+            btnSalir.Font = new Font("Segoe UI Black", 12F, FontStyle.Bold);
             btnSalir.ForeColor = Color.FromArgb(250, 247, 241);
-            btnSalir.Image = Properties.Resources._4213459_common_door_exit_logout_out_signout_115411;
+            btnSalir.Image = (Image)resources.GetObject("btnSalir.Image");
             btnSalir.ImageAlign = ContentAlignment.MiddleLeft;
-            btnSalir.Location = new Point(0, 890);
+            btnSalir.Location = new Point(0, 712);
+            btnSalir.Margin = new Padding(2);
             btnSalir.Name = "btnSalir";
-            btnSalir.Size = new Size(305, 80);
+            btnSalir.Size = new Size(244, 64);
             btnSalir.TabIndex = 6;
+            btnSalir.Text = "Salír";
             btnSalir.UseVisualStyleBackColor = false;
             btnSalir.Click += btnSalir_Click;
             // 
@@ -97,8 +102,9 @@ namespace Nuevo_Proyecto.Models.Views
             panel2.Controls.Add(pnlIcono);
             panel2.Dock = DockStyle.Left;
             panel2.Location = new Point(0, 0);
+            panel2.Margin = new Padding(2);
             panel2.Name = "panel2";
-            panel2.Size = new Size(305, 970);
+            panel2.Size = new Size(244, 776);
             panel2.TabIndex = 7;
             // 
             // panel3
@@ -110,9 +116,10 @@ namespace Nuevo_Proyecto.Models.Views
             panel3.Controls.Add(btnFacturacion);
             panel3.Controls.Add(btnInicio);
             panel3.Dock = DockStyle.Top;
-            panel3.Location = new Point(0, 145);
+            panel3.Location = new Point(0, 116);
+            panel3.Margin = new Padding(2);
             panel3.Name = "panel3";
-            panel3.Size = new Size(305, 520);
+            panel3.Size = new Size(244, 416);
             panel3.TabIndex = 1;
             // 
             // btnReportes
@@ -125,9 +132,10 @@ namespace Nuevo_Proyecto.Models.Views
             btnReportes.ForeColor = Color.FromArgb(250, 247, 241);
             btnReportes.Image = Properties.Resources.custom_reports256_24920;
             btnReportes.ImageAlign = ContentAlignment.MiddleLeft;
-            btnReportes.Location = new Point(0, 400);
+            btnReportes.Location = new Point(0, 320);
+            btnReportes.Margin = new Padding(2);
             btnReportes.Name = "btnReportes";
-            btnReportes.Size = new Size(305, 80);
+            btnReportes.Size = new Size(244, 64);
             btnReportes.TabIndex = 11;
             btnReportes.Text = "Reportes";
             btnReportes.UseVisualStyleBackColor = false;
@@ -143,9 +151,10 @@ namespace Nuevo_Proyecto.Models.Views
             btnInventario.ForeColor = Color.FromArgb(250, 247, 241);
             btnInventario.Image = Properties.Resources.business_inventory_maintenance_product_box_boxes_2326;
             btnInventario.ImageAlign = ContentAlignment.MiddleLeft;
-            btnInventario.Location = new Point(0, 320);
+            btnInventario.Location = new Point(0, 256);
+            btnInventario.Margin = new Padding(2);
             btnInventario.Name = "btnInventario";
-            btnInventario.Size = new Size(305, 80);
+            btnInventario.Size = new Size(244, 64);
             btnInventario.TabIndex = 10;
             btnInventario.Text = "Inventario";
             btnInventario.UseVisualStyleBackColor = false;
@@ -161,9 +170,10 @@ namespace Nuevo_Proyecto.Models.Views
             btnEmpleados.ForeColor = Color.FromArgb(250, 247, 241);
             btnEmpleados.Image = Properties.Resources.businessapplication_edit_male_user_thepencil_theclient_negocio_2321;
             btnEmpleados.ImageAlign = ContentAlignment.MiddleLeft;
-            btnEmpleados.Location = new Point(0, 240);
+            btnEmpleados.Location = new Point(0, 192);
+            btnEmpleados.Margin = new Padding(2);
             btnEmpleados.Name = "btnEmpleados";
-            btnEmpleados.Size = new Size(305, 80);
+            btnEmpleados.Size = new Size(244, 64);
             btnEmpleados.TabIndex = 9;
             btnEmpleados.Text = "Empleados";
             btnEmpleados.UseVisualStyleBackColor = false;
@@ -179,9 +189,10 @@ namespace Nuevo_Proyecto.Models.Views
             btnClientes.ForeColor = Color.FromArgb(250, 247, 241);
             btnClientes.Image = Properties.Resources.users_clients_group_16774;
             btnClientes.ImageAlign = ContentAlignment.MiddleLeft;
-            btnClientes.Location = new Point(0, 160);
+            btnClientes.Location = new Point(0, 128);
+            btnClientes.Margin = new Padding(2);
             btnClientes.Name = "btnClientes";
-            btnClientes.Size = new Size(305, 80);
+            btnClientes.Size = new Size(244, 64);
             btnClientes.TabIndex = 8;
             btnClientes.Text = "Clientes";
             btnClientes.UseVisualStyleBackColor = false;
@@ -195,11 +206,12 @@ namespace Nuevo_Proyecto.Models.Views
             btnFacturacion.FlatStyle = FlatStyle.Flat;
             btnFacturacion.Font = new Font("Segoe UI Black", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnFacturacion.ForeColor = Color.FromArgb(250, 247, 241);
-            btnFacturacion.Image = Properties.Resources._269672_receipt_and_card_icon;
+            btnFacturacion.Image = (Image)resources.GetObject("btnFacturacion.Image");
             btnFacturacion.ImageAlign = ContentAlignment.MiddleLeft;
-            btnFacturacion.Location = new Point(0, 80);
+            btnFacturacion.Location = new Point(0, 64);
+            btnFacturacion.Margin = new Padding(2);
             btnFacturacion.Name = "btnFacturacion";
-            btnFacturacion.Size = new Size(305, 80);
+            btnFacturacion.Size = new Size(244, 64);
             btnFacturacion.TabIndex = 7;
             btnFacturacion.Text = "Facturacion";
             btnFacturacion.UseVisualStyleBackColor = false;
@@ -216,8 +228,9 @@ namespace Nuevo_Proyecto.Models.Views
             btnInicio.Image = Properties.Resources.kfm_home_150961;
             btnInicio.ImageAlign = ContentAlignment.MiddleLeft;
             btnInicio.Location = new Point(0, 0);
+            btnInicio.Margin = new Padding(2);
             btnInicio.Name = "btnInicio";
-            btnInicio.Size = new Size(305, 80);
+            btnInicio.Size = new Size(244, 64);
             btnInicio.TabIndex = 6;
             btnInicio.Text = "Inicio";
             btnInicio.UseVisualStyleBackColor = false;
@@ -231,18 +244,20 @@ namespace Nuevo_Proyecto.Models.Views
             pnlBarra.Controls.Add(dateTimePicker1);
             pnlBarra.Controls.Add(label1);
             pnlBarra.Dock = DockStyle.Top;
-            pnlBarra.Location = new Point(305, 0);
+            pnlBarra.Location = new Point(244, 0);
+            pnlBarra.Margin = new Padding(2);
             pnlBarra.Name = "pnlBarra";
-            pnlBarra.Size = new Size(1378, 85);
+            pnlBarra.Size = new Size(1102, 68);
             pnlBarra.TabIndex = 8;
             // 
             // pictureBoxUsuario
             // 
             pictureBoxUsuario.Dock = DockStyle.Right;
             pictureBoxUsuario.Image = Properties.Resources.customer_person_people_man_you_1625;
-            pictureBoxUsuario.Location = new Point(1271, 0);
+            pictureBoxUsuario.Location = new Point(1016, 0);
+            pictureBoxUsuario.Margin = new Padding(2);
             pictureBoxUsuario.Name = "pictureBoxUsuario";
-            pictureBoxUsuario.Size = new Size(107, 85);
+            pictureBoxUsuario.Size = new Size(86, 68);
             pictureBoxUsuario.SizeMode = PictureBoxSizeMode.CenterImage;
             pictureBoxUsuario.TabIndex = 3;
             pictureBoxUsuario.TabStop = false;
@@ -251,32 +266,36 @@ namespace Nuevo_Proyecto.Models.Views
             // 
             lblUsuario.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
             lblUsuario.AutoSize = true;
-            lblUsuario.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblUsuario.Font = new Font("Segoe UI", 12F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             lblUsuario.ForeColor = Color.FromArgb(38, 38, 38);
-            lblUsuario.Location = new Point(1154, 31);
+            lblUsuario.Location = new Point(876, 23);
+            lblUsuario.Margin = new Padding(2, 0, 2, 0);
             lblUsuario.Name = "lblUsuario";
-            lblUsuario.Size = new Size(97, 32);
+            lblUsuario.Size = new Size(85, 28);
             lblUsuario.TabIndex = 2;
             lblUsuario.Text = "Usuario";
             // 
             // dateTimePicker1
             // 
-            dateTimePicker1.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            dateTimePicker1.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            dateTimePicker1.CalendarTrailingForeColor = Color.DarkGray;
             dateTimePicker1.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            dateTimePicker1.Location = new Point(765, 26);
+            dateTimePicker1.Location = new Point(612, 21);
+            dateTimePicker1.Margin = new Padding(2);
             dateTimePicker1.Name = "dateTimePicker1";
-            dateTimePicker1.Size = new Size(300, 39);
+            dateTimePicker1.Size = new Size(241, 34);
             dateTimePicker1.TabIndex = 1;
             // 
             // label1
             // 
             label1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             label1.AutoSize = true;
-            label1.Font = new Font("Segoe UI", 14F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label1.Font = new Font("Segoe UI Black", 13.8F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             label1.ForeColor = Color.FromArgb(38, 38, 38);
-            label1.Location = new Point(16, 26);
+            label1.Location = new Point(13, 21);
+            label1.Margin = new Padding(2, 0, 2, 0);
             label1.Name = "label1";
-            label1.Size = new Size(489, 38);
+            label1.Size = new Size(417, 31);
             label1.TabIndex = 0;
             label1.Text = "Sistema De Facturacion e Inventario";
             // 
@@ -285,19 +304,23 @@ namespace Nuevo_Proyecto.Models.Views
             pnlPrincipal.BackColor = Color.FromArgb(232, 221, 206);
             pnlPrincipal.Dock = DockStyle.Fill;
             pnlPrincipal.Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            pnlPrincipal.Location = new Point(305, 85);
+            pnlPrincipal.Location = new Point(244, 68);
+            pnlPrincipal.Margin = new Padding(2);
             pnlPrincipal.Name = "pnlPrincipal";
-            pnlPrincipal.Size = new Size(1378, 885);
+            pnlPrincipal.Size = new Size(1102, 708);
             pnlPrincipal.TabIndex = 9;
             // 
             // MenuPrincipal
             // 
-            AutoScaleDimensions = new SizeF(10F, 25F);
+            AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1683, 970);
+            ClientSize = new Size(1346, 776);
             Controls.Add(pnlPrincipal);
             Controls.Add(pnlBarra);
             Controls.Add(panel2);
+            Cursor = Cursors.Hand;
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            Margin = new Padding(2);
             Name = "MenuPrincipal";
             Text = "MenuPrincipal";
             Load += MenuPrincipal_Load;

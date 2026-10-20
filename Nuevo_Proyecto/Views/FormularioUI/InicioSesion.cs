@@ -79,5 +79,10 @@ namespace Nuevo_Proyecto.Models.Views
                 // El diálogo se encarga de mostrar la contraseña
             }
         }
+
+        private void panel2_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
     }
 }

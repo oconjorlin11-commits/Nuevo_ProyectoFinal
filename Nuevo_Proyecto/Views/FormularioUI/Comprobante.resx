@@ -117,4 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="lblGracias.Text" xml:space="preserve">
+    <value>                        ¡EL SABOR QUE ENAMORA, SOLO EN ASADO LA FLACA!
+Gracias por tu compra. Aquí no solo servimos asados, ¡creamos momentos deliciosos! 
+¡Gracias por preferirnos! Tu próximo antojo te espera en Asado La Flaca. </value>
+  </data>
 </root>

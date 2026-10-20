@@ -66,7 +66,7 @@ namespace Nuevo_Proyecto.Views.FormularioUI
             // Rechazar si culpa a persona SIN razón objetiva
             if (motivoLower.Contains("porque el") || motivoLower.Contains("porque la"))
             {
-                var razonesObjetivas = new[] { "ingreso", "error", "corregir", "corregí", "ajust", "cambio", 
+                var razonesObjetivas = new[] { "ingreso", "error", "corregir", "corregí", "ajust", "cambio",
                     "actualiz", "revisar", "corrección", "control", "verificación" };
                 bool tieneRazon = false;
                 foreach (var r in razonesObjetivas)
@@ -143,6 +143,11 @@ namespace Nuevo_Proyecto.Views.FormularioUI
         public new DialogResult ShowDialog()
         {
             return base.ShowDialog();
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

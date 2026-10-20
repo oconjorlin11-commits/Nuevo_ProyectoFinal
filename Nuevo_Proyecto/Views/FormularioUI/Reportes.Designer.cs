@@ -42,7 +42,7 @@
             // 
             // groupBoxReporteVentas
             // 
-            groupBoxReporteVentas.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            groupBoxReporteVentas.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             groupBoxReporteVentas.BackColor = Color.FromArgb(250, 247, 241);
             groupBoxReporteVentas.Controls.Add(dateHasta);
             groupBoxReporteVentas.Controls.Add(dateDesde);
@@ -52,11 +52,11 @@
             groupBoxReporteVentas.Controls.Add(label4);
             groupBoxReporteVentas.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             groupBoxReporteVentas.ForeColor = Color.FromArgb(153, 40, 35);
-            groupBoxReporteVentas.Location = new Point(30, 31);
-            groupBoxReporteVentas.Margin = new Padding(4, 4, 4, 4);
+            groupBoxReporteVentas.Location = new Point(18, 28);
+            groupBoxReporteVentas.Margin = new Padding(2);
             groupBoxReporteVentas.Name = "groupBoxReporteVentas";
-            groupBoxReporteVentas.Padding = new Padding(4, 4, 4, 4);
-            groupBoxReporteVentas.Size = new Size(1720, 936);
+            groupBoxReporteVentas.Padding = new Padding(2);
+            groupBoxReporteVentas.Size = new Size(1058, 576);
             groupBoxReporteVentas.TabIndex = 12;
             groupBoxReporteVentas.TabStop = false;
             groupBoxReporteVentas.Text = "Reportes De Ventas";
@@ -67,10 +67,10 @@
             dateHasta.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             dateHasta.CalendarForeColor = Color.FromArgb(38, 38, 38);
             dateHasta.Font = new Font("Segoe UI", 12F);
-            dateHasta.Location = new Point(821, 45);
-            dateHasta.Margin = new Padding(4, 4, 4, 4);
+            dateHasta.Location = new Point(505, 28);
+            dateHasta.Margin = new Padding(2);
             dateHasta.Name = "dateHasta";
-            dateHasta.Size = new Size(366, 50);
+            dateHasta.Size = new Size(227, 34);
             dateHasta.TabIndex = 37;
             // 
             // dateDesde
@@ -78,21 +78,21 @@
             dateDesde.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             dateDesde.CalendarForeColor = Color.FromArgb(38, 38, 38);
             dateDesde.Font = new Font("Segoe UI", 12F);
-            dateDesde.Location = new Point(321, 45);
-            dateDesde.Margin = new Padding(4, 4, 4, 4);
+            dateDesde.Location = new Point(198, 28);
+            dateDesde.Margin = new Padding(2);
             dateDesde.Name = "dateDesde";
-            dateDesde.Size = new Size(353, 50);
+            dateDesde.Size = new Size(219, 34);
             dateDesde.TabIndex = 36;
             // 
             // dataGridReportes
             // 
+            dataGridReportes.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dataGridReportes.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridReportes.Dock = DockStyle.Bottom;
-            dataGridReportes.Location = new Point(4, 145);
-            dataGridReportes.Margin = new Padding(4, 4, 4, 4);
+            dataGridReportes.Location = new Point(2, 82);
+            dataGridReportes.Margin = new Padding(2);
             dataGridReportes.Name = "dataGridReportes";
             dataGridReportes.RowHeadersWidth = 62;
-            dataGridReportes.Size = new Size(1712, 787);
+            dataGridReportes.Size = new Size(1054, 492);
             dataGridReportes.TabIndex = 34;
             // 
             // btnConsultarReport
@@ -103,10 +103,10 @@
             btnConsultarReport.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnConsultarReport.ForeColor = Color.FromArgb(250, 247, 241);
             btnConsultarReport.ImageAlign = ContentAlignment.MiddleLeft;
-            btnConsultarReport.Location = new Point(1230, 33);
-            btnConsultarReport.Margin = new Padding(4, 4, 4, 4);
+            btnConsultarReport.Location = new Point(757, 21);
+            btnConsultarReport.Margin = new Padding(2);
             btnConsultarReport.Name = "btnConsultarReport";
-            btnConsultarReport.Size = new Size(246, 83);
+            btnConsultarReport.Size = new Size(151, 52);
             btnConsultarReport.TabIndex = 33;
             btnConsultarReport.Text = "Consultar";
             btnConsultarReport.UseVisualStyleBackColor = false;
@@ -118,10 +118,10 @@
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label1.ForeColor = Color.FromArgb(38, 38, 38);
-            label1.Location = new Point(701, 50);
-            label1.Margin = new Padding(4, 0, 4, 0);
+            label1.Location = new Point(431, 31);
+            label1.Margin = new Padding(2, 0, 2, 0);
             label1.Name = "label1";
-            label1.Size = new Size(112, 45);
+            label1.Size = new Size(68, 28);
             label1.TabIndex = 27;
             label1.Text = "Hasta:";
             // 
@@ -131,10 +131,10 @@
             label4.AutoSize = true;
             label4.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label4.ForeColor = Color.FromArgb(38, 38, 38);
-            label4.Location = new Point(185, 50);
-            label4.Margin = new Padding(4, 0, 4, 0);
+            label4.Location = new Point(114, 31);
+            label4.Margin = new Padding(2, 0, 2, 0);
             label4.Name = "label4";
-            label4.Size = new Size(118, 45);
+            label4.Size = new Size(74, 28);
             label4.TabIndex = 28;
             label4.Text = "Desde:";
             // 
@@ -145,26 +145,29 @@
             btnExportaReportes.FlatStyle = FlatStyle.Flat;
             btnExportaReportes.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnExportaReportes.ForeColor = Color.FromArgb(250, 247, 241);
+            btnExportaReportes.Image = Properties.Resources.archivo_pdf;
             btnExportaReportes.ImageAlign = ContentAlignment.MiddleLeft;
-            btnExportaReportes.Location = new Point(30, 1011);
-            btnExportaReportes.Margin = new Padding(4, 4, 4, 4);
+            btnExportaReportes.Location = new Point(18, 626);
+            btnExportaReportes.Margin = new Padding(2);
             btnExportaReportes.Name = "btnExportaReportes";
-            btnExportaReportes.Size = new Size(246, 83);
+            btnExportaReportes.Size = new Size(151, 52);
             btnExportaReportes.TabIndex = 56;
             btnExportaReportes.Text = "Export-PDF";
+            btnExportaReportes.TextAlign = ContentAlignment.MiddleRight;
             btnExportaReportes.UseVisualStyleBackColor = false;
             btnExportaReportes.Click += btnExportaReportes_Click;
             // 
             // Reportes
             // 
-            AutoScaleDimensions = new SizeF(13F, 32F);
+            AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(232, 221, 206);
-            ClientSize = new Size(1785, 1133);
+            ClientSize = new Size(1098, 689);
             Controls.Add(btnExportaReportes);
             Controls.Add(groupBoxReporteVentas);
+            Cursor = Cursors.Hand;
             FormBorderStyle = FormBorderStyle.None;
-            Margin = new Padding(4, 4, 4, 4);
+            Margin = new Padding(2);
             Name = "Reportes";
             Text = "Reportes";
             Load += Reportes_Load;
