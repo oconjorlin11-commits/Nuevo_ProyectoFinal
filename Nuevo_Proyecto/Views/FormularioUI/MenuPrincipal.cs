@@ -30,6 +30,14 @@ namespace Nuevo_Proyecto.Models.Views
             // Datos de la sesión y permisos según el rol
             lblUsuario.Text = SesionActual.NombreEmpleado;
 
+            // Mostrar indicador de modo offline si aplica
+            if (ConnectionStateManager.UsandoSqlite)
+            {
+                Text = "Sistema de Comidería - ⚠️ MODO OFFLINE - Funcionamiento Limitado";
+                lblUsuario.Text += " [OFFLINE]";
+                lblUsuario.ForeColor = System.Drawing.Color.Red;
+            }
+
             // Mostrar saludo de bienvenida
             string rol = SesionActual.EsAdministrador ? "Administrador" : SesionActual.Usuario?.Cargo ?? "Usuario";
             MessageBox.Show(
@@ -42,6 +50,17 @@ namespace Nuevo_Proyecto.Models.Views
             // Desbloquear acceso para todos los usuarios a Empleados y Reportes
             btnEmpleados.Enabled = true; // SesionActual.EsAdministrador;
             btnReportes.Enabled = true; // SesionActual.EsAdministrador;
+
+            // Verificar y mostrar notificaciones de stock crítico SOLO si está online
+            // En modo offline no intentar triggers del servidor
+            if (!ConnectionStateManager.UsandoSqlite)
+            {
+                VerificarStockCritico();
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("Modo offline: se omitieron verificaciones de triggers de servidor");
+            }
 
             // Pantalla de inicio al abrir
             CargarFormulario(new InicioMenu());
@@ -61,9 +80,20 @@ namespace Nuevo_Proyecto.Models.Views
         // (antes este bloque estaba copiado 6 veces).
         private void CargarFormulario(Form formulario)
         {
-            foreach (Control actual in pnlPrincipal.Controls.OfType<Form>().ToList())
+            foreach (Form actual in pnlPrincipal.Controls.OfType<Form>().ToList())
             {
-                pnlPrincipal.Controls.Remove(actual);
+                // Usar Close() para disparar el evento FormClosing correctamente
+                // Esto permite que se muestre el mensaje de advertencia si hay cambios sin guardar
+                actual.Close();
+
+                // Solo remover si Close() no fue cancelado (FormClosing no canceló con e.Cancel = true)
+                if (pnlPrincipal.Controls.Contains(actual))
+                {
+                    // Si Close() fue cancelado, el usuario eligió no cerrar el formulario
+                    // Cancelar la carga del nuevo formulario
+                    return;
+                }
+
                 actual.Dispose();
             }
 
@@ -152,6 +182,45 @@ namespace Nuevo_Proyecto.Models.Views
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Verifica si hay productos con stock crítico y muestra notificación en grande
+        /// Utiliza el trigger trg_StockCritico que actualiza NotificacionesStockCritico automáticamente
+        /// </summary>
+        private void VerificarStockCritico()
+        {
+            try
+            {
+                // Doble verificación: no ejecutar si estamos en modo offline
+                if (ConnectionStateManager.UsandoSqlite)
+                {
+                    System.Diagnostics.Debug.WriteLine("Saltar verificación de stock en modo offline");
+                    return;
+                }
+
+                var repositorio = new NotificacionStockCriticoRepository();
+                var notificaciones = repositorio.ObtenerNotificacionesCriticas();
+
+                if (notificaciones.Count > 0)
+                {
+                    // Mostrar aviso estandarizado primero
+                    MensajeHelper.Advertencia(
+                        $"⚠️ En el inventario hay {notificaciones.Count} producto(s) a punto de vencerse o con stock bajo.\n\n" +
+                        "Vamos a revisar cuáles son para tomar las acciones necesarias.",
+                        "Alerta de Inventario Crítico"
+                    );
+
+                    // Mostrar formulario de alerta en grande con DataGrid
+                    Notificacion_de_stocks alerta = new Notificacion_de_stocks();
+                    alerta.ShowDialog(this);
+                }
+            }
+            catch (Exception ex)
+            {
+                // No detener la aplicación si hay error en verificación de stock
+                System.Diagnostics.Debug.WriteLine($"Error verificando stock crítico: {ex.Message}");
+            }
         }
 
         private void btnSalir_Click(object sender, EventArgs e)

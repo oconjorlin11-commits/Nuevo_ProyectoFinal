@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using Microsoft.EntityFrameworkCore;
 using Nuevo_Proyecto.Services;
 using Nuevo_Proyecto.Services.Interfaz_service;
+using Nuevo_Proyecto.Services.Helpers;
 using Nuevo_Proyecto.Data;
 
 namespace Nuevo_Proyecto.Views.FormularioUI
@@ -133,14 +134,14 @@ namespace Nuevo_Proyecto.Views.FormularioUI
                 // Validar campos
                 if (string.IsNullOrWhiteSpace(TxtUsuarioEspecial.Text))
                 {
-                    MessageBox.Show("Por favor, ingrese el Usuario.", "Campo Obligatorio", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MensajeHelper.Validacion.CampoObligatorio("Usuario");
                     TxtUsuarioEspecial.Focus();
                     return;
                 }
 
                 if (string.IsNullOrWhiteSpace(TxtContraseñaEspecial.Text))
                 {
-                    MessageBox.Show("Por favor, ingrese la Contrasena.", "Campo Obligatorio", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MensajeHelper.Validacion.CampoObligatorio("Contraseña");
                     TxtContraseñaEspecial.Focus();
                     return;
                 }
@@ -170,7 +171,7 @@ namespace Nuevo_Proyecto.Views.FormularioUI
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error: " + ex.Message, "Error del Sistema", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MensajeHelper.ErrorSistema("Error: " + ex.Message);
                 OcultarResultados();
             }
         }

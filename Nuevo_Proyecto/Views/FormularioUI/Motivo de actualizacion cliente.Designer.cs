@@ -57,6 +57,7 @@
             btnCancelar.TabIndex = 0;
             btnCancelar.Text = "Cancelar";
             btnCancelar.UseVisualStyleBackColor = false;
+            btnCancelar.Click += BtnCancelar_Click;
             // 
             // btnAceptar
             // 
@@ -72,6 +73,7 @@
             btnAceptar.TabIndex = 1;
             btnAceptar.Text = "Aceptar";
             btnAceptar.UseVisualStyleBackColor = false;
+            btnAceptar.Click += BtnAceptar_Click;
             // 
             // label2
             // 

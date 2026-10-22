@@ -82,12 +82,35 @@ namespace Nuevo_Proyecto.Views.FormularioUI
                 }
             }
 
-            // Detectar palabras incompletas
-            foreach (var palabra in motivo.Split(" ", System.StringSplitOptions.RemoveEmptyEntries))
+            // Detectar palabras incompletas y rechazar patrones de spam
+            var palabras = motivo.Split(" ", System.StringSplitOptions.RemoveEmptyEntries);
+            var palabrasCortas = new[] { "de", "en", "el", "la", "un", "a", "y", "o", "si", "no", "es", "lo", "se", "le", "al", "su" };
+
+            int palabrasSpam = 0;
+            foreach (var palabra in palabras)
             {
-                if (palabra.Length < 3)
+                // Detectar palabras que sean basura (solo consonantes repetidas, sin vocales)
+                bool esBasura = true;
+                string vocales = "aeiouáéíóuAEIOUÁÉÍÓU";
+
+                if (palabra.Length >= 3)
                 {
-                    var palabrasCortas = new[] { "de", "en", "el", "la", "un", "a", "y", "o", "si", "no", "es", "lo", "se", "le", "al", "su" };
+                    foreach (char c in palabra)
+                    {
+                        if (vocales.Contains(c.ToString()))
+                        {
+                            esBasura = false;
+                            break;
+                        }
+                    }
+
+                    if (esBasura)
+                    {
+                        palabrasSpam++;
+                    }
+                }
+                else if (palabra.Length < 3)
+                {
                     if (!palabrasCortas.Contains(palabra.ToLower()))
                     {
                         MessageBox.Show(
@@ -96,6 +119,15 @@ namespace Nuevo_Proyecto.Views.FormularioUI
                         return false;
                     }
                 }
+            }
+
+            // Rechazar si hay más de 1 palabra de spam
+            if (palabrasSpam > 0)
+            {
+                MessageBox.Show(
+                    "El motivo contiene palabras sin sentido. Por favor ingrese un motivo claro.",
+                    "Motivo inválido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
             }
 
             // Detectar spam (cambios erráticos de mayúscula)
@@ -136,8 +168,18 @@ namespace Nuevo_Proyecto.Views.FormularioUI
 
         private void BtnCancelar_Click(object sender, EventArgs e)
         {
-            this.DialogResult = DialogResult.Cancel;
-            this.Close();
+            DialogResult resultado = MessageBox.Show(
+                "¿Está seguro de que no desea enviar un motivo?",
+                "Confirmar cancelación",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            );
+
+            if (resultado == DialogResult.Yes)
+            {
+                this.DialogResult = DialogResult.Cancel;
+                this.Close();
+            }
         }
 
         public new DialogResult ShowDialog()

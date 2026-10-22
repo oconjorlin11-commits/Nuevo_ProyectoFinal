@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Nuevo_Proyecto.Data;
+using Nuevo_Proyecto.Data.DbSqlite;
 using Nuevo_Proyecto.Models.DTOs;
 using Nuevo_Proyecto.Models.Entities;
 using Nuevo_Proyecto.Services.Helpers;
@@ -15,11 +16,30 @@ namespace Nuevo_Proyecto.Services
 
         private readonly IDbContextFactory<Dev_ComideriaDbContext> _factory;
         private readonly AuditoriaService _auditoria;
+        private readonly ComideriaSqliteContext? _sqliteContext;
 
-        public ClienteRepository(IDbContextFactory<Dev_ComideriaDbContext>? factory = null)
+        public ClienteRepository(
+            IDbContextFactory<Dev_ComideriaDbContext>? factory = null,
+            ComideriaSqliteContext? sqliteContext = null)
         {
             _factory = factory ?? new ComideriaContextFactory();
             _auditoria = new AuditoriaService(_factory);
+            _sqliteContext = sqliteContext;
+        }
+
+        public static ComideriaSqliteContext CreateSqliteContext()
+        {
+            string databasePath = Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "Data",
+                "DbSqlite",
+                "ComideriaLocal.db");
+
+            var options = new DbContextOptionsBuilder<ComideriaSqliteContext>()
+                .UseSqlite($"Data Source={databasePath}")
+                .Options;
+
+            return new ComideriaSqliteContext(options);
         }
 
         private static readonly Expression<Func<Cliente, ClienteDto>> ADto = c => new ClienteDto
@@ -48,6 +68,21 @@ namespace Nuevo_Proyecto.Services
             using var db = _factory.CreateDbContext();
             return db.Clientes.AsNoTracking()
                 .Where(c => c.Codigo == codigoExacto)
+                .OrderBy(c => c.Codigo)
+                .Select(ADto)
+                .ToList();
+        }
+
+        public IReadOnlyList<ClienteDto> BuscarPorCodigoONombre(string termino)
+        {
+            using var db = _factory.CreateDbContext();
+            string terminoNormalizado = termino.ToUpper();
+
+            return db.Clientes.AsNoTracking()
+                .Where(c => 
+                    c.Codigo.ToUpper().Contains(terminoNormalizado) ||
+                    c.Nombre.ToUpper().Contains(terminoNormalizado)
+                )
                 .OrderBy(c => c.Codigo)
                 .Select(ADto)
                 .ToList();
@@ -260,6 +295,174 @@ namespace Nuevo_Proyecto.Services
             };
             db.Clientes.Add(cf);
             return cf;
+        }
+
+        // =========================================================================
+        // Implementación Asíncrona Segregada (Arquitectura MVP de Referencia)
+        // =========================================================================
+
+        public async Task<IReadOnlyList<ClientesDto>> GetAllCustomersAsync()
+        {
+            try
+            {
+                using var db = await _factory.CreateDbContextAsync();
+                return await db.Clientes
+                    .AsNoTracking()
+                    .Where(c => c.Activo == true && c.Codigo != CodigoConsumidorFinal)
+                    .OrderBy(c => c.Codigo)
+                    .Select(c => new ClientesDto
+                    {
+                        Id = c.ClienteId,
+                        Codigo = c.Codigo,
+                        Nombre = c.Nombre,
+                        Telefono = c.Telefono,
+                        Direccion = c.Direccion,
+                        Nota = c.Nota,
+                        Activo = c.Activo ?? false
+                    })
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("No fue posible obtener los clientes.", ex);
+            }
+        }
+
+        public async Task<ClientesDto?> GetCustomerByIdAsync(int clienteId)
+        {
+            try
+            {
+                using var db = await _factory.CreateDbContextAsync();
+                return await db.Clientes
+                    .AsNoTracking()
+                    .Where(c => c.ClienteId == clienteId)
+                    .Select(c => new ClientesDto
+                    {
+                        Id = c.ClienteId,
+                        Codigo = c.Codigo,
+                        Nombre = c.Nombre,
+                        Telefono = c.Telefono,
+                        Direccion = c.Direccion,
+                        Nota = c.Nota,
+                        Activo = c.Activo ?? false
+                    })
+                    .FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"No fue posible obtener el cliente {clienteId}.", ex);
+            }
+        }
+
+        public async Task<int> CreateCustomerAsync(ClienteCreateDto customer)
+        {
+            if (customer == null)
+            {
+                throw new ArgumentNullException(nameof(customer), "La información del cliente no puede ser nula.");
+            }
+
+            try
+            {
+                using var db = await _factory.CreateDbContextAsync();
+                var entity = new Cliente
+                {
+                    Codigo = string.IsNullOrWhiteSpace(customer.Codigo) ? GetSiguienteCodigo() : customer.Codigo,
+                    Nombre = customer.Nombre,
+                    Telefono = customer.Telefono,
+                    Direccion = customer.Direccion ?? "N/A",
+                    Nota = customer.Nota,
+                    Activo = customer.Activo
+                };
+
+                db.Clientes.Add(entity);
+                await db.SaveChangesAsync();
+
+                _auditoria.RegistrarAuditoria(
+                    seccion: "Clientes",
+                    accion: "CREAR",
+                    usuario: SesionActual.NombreUsuario ?? "Desconocido",
+                    rolUsuario: SesionActual.Rol,
+                    usuarioAutorizador: SesionActual.UsuarioAutorizador,
+                    detalle: $"Cliente creado: {entity.Codigo} - {entity.Nombre}",
+                    registroID: entity.ClienteId
+                );
+
+                return entity.ClienteId;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("No fue posible registrar el cliente.", ex);
+            }
+        }
+
+        public async Task UpdateCustomerAsync(int clienteId, ClienteCreateDto customer)
+        {
+            if (customer == null)
+            {
+                throw new ArgumentNullException(nameof(customer));
+            }
+
+            try
+            {
+                using var db = await _factory.CreateDbContextAsync();
+                var entity = await db.Clientes.FirstOrDefaultAsync(c => c.ClienteId == clienteId);
+                if (entity == null)
+                {
+                    throw new InvalidOperationException($"No se encontró el cliente con ID {clienteId}.");
+                }
+
+                entity.Nombre = customer.Nombre;
+                entity.Telefono = customer.Telefono;
+                entity.Direccion = customer.Direccion ?? entity.Direccion;
+                entity.Nota = customer.Nota;
+                entity.Activo = customer.Activo;
+
+                await db.SaveChangesAsync();
+
+                _auditoria.RegistrarAuditoria(
+                    seccion: "Clientes",
+                    accion: "MODIFICAR",
+                    usuario: SesionActual.NombreUsuario ?? "Desconocido",
+                    rolUsuario: SesionActual.Rol,
+                    usuarioAutorizador: SesionActual.UsuarioAutorizador,
+                    detalle: $"Cliente modificado: {entity.Codigo} - {entity.Nombre}",
+                    registroID: entity.ClienteId
+                );
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("No fue posible actualizar el cliente.", ex);
+            }
+        }
+
+        public async Task DeleteCustomerAsync(int clienteId, string? motivo = null)
+        {
+            try
+            {
+                using var db = await _factory.CreateDbContextAsync();
+                var entity = await db.Clientes.FirstOrDefaultAsync(c => c.ClienteId == clienteId);
+                if (entity == null)
+                {
+                    throw new InvalidOperationException($"No se encontró el cliente con ID {clienteId}.");
+                }
+
+                entity.Activo = false;
+                await db.SaveChangesAsync();
+
+                _auditoria.RegistrarAuditoria(
+                    seccion: "Clientes",
+                    accion: "DESACTIVAR",
+                    usuario: SesionActual.NombreUsuario ?? "Desconocido",
+                    rolUsuario: SesionActual.Rol,
+                    usuarioAutorizador: SesionActual.UsuarioAutorizador,
+                    detalle: $"Cliente desactivado: {entity.Codigo} - {entity.Nombre}. Motivo: {motivo ?? "Sin motivo especificado"}",
+                    registroID: entity.ClienteId
+                );
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("No fue posible desactivar el cliente.", ex);
+            }
         }
     }
 }

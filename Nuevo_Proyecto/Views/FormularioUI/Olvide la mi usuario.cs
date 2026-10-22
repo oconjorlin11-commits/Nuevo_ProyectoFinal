@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using Microsoft.EntityFrameworkCore;
 using Nuevo_Proyecto.Services;
 using Nuevo_Proyecto.Services.Interfaz_service;
+using Nuevo_Proyecto.Services.Helpers;
 using Nuevo_Proyecto.Data;
 
 namespace Nuevo_Proyecto.Views.FormularioUI
@@ -144,21 +145,21 @@ namespace Nuevo_Proyecto.Views.FormularioUI
                 // Validar campos
                 if (string.IsNullOrWhiteSpace(TxtUsuarioAdmin.Text))
                 {
-                    MessageBox.Show("Por favor, ingrese el Usuario Admin.", "Campo Obligatorio", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MensajeHelper.Validacion.CampoObligatorio("Usuario Admin");
                     TxtUsuarioAdmin.Focus();
                     return;
                 }
 
                 if (string.IsNullOrWhiteSpace(TxtContraseñaAdmin.Text))
                 {
-                    MessageBox.Show("Por favor, ingrese la Contrasena Admin.", "Campo Obligatorio", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MensajeHelper.Validacion.CampoObligatorio("Contraseña Admin");
                     TxtContraseñaAdmin.Focus();
                     return;
                 }
 
                 if (string.IsNullOrWhiteSpace(TxtInformacionAIngresar.Text))
                 {
-                    MessageBox.Show("Por favor, ingrese el Valor a buscar.", "Campo Obligatorio", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MensajeHelper.Validacion.CampoObligatorio("Valor a buscar");
                     TxtInformacionAIngresar.Focus();
                     return;
                 }
@@ -168,7 +169,7 @@ namespace Nuevo_Proyecto.Views.FormularioUI
 
                 if (!resultadoAuth.Exitoso || resultadoAuth.Sesion == null)
                 {
-                    MessageBox.Show("Las credenciales de administrador son invalidas.", "Autenticacion Fallida", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MensajeHelper.Error("Las credenciales de administrador son inválidas.", "Autenticación fallida");
                     TxtUsuarioAdmin.Focus();
                     return;
                 }
@@ -177,7 +178,7 @@ namespace Nuevo_Proyecto.Views.FormularioUI
                 if (!resultadoAuth.Sesion.Rol.Contains("Admin", StringComparison.OrdinalIgnoreCase) &&
                     !resultadoAuth.Sesion.Cargo.Contains("Admin", StringComparison.OrdinalIgnoreCase))
                 {
-                    MessageBox.Show("Solo los administradores pueden usar esta funcion.", "Acceso Denegado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MensajeHelper.Permiso.AccesoDenegado("usar esta función");
                     return;
                 }
 
@@ -205,7 +206,7 @@ namespace Nuevo_Proyecto.Views.FormularioUI
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error: " + ex.Message, "Error del Sistema", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MensajeHelper.ErrorSistema("Error: " + ex.Message);
                 OcultarResultados();
             }
         }

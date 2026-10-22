@@ -30,7 +30,7 @@ namespace Nuevo_Proyecto.Services
             Salario = e.Salario,
             FechaIngreso = e.Fechaingreso,
             Activo = e.Activo ?? false
-        };
+        };        
 
         public IReadOnlyList<EmpleadoDto> GetActivos()
         {

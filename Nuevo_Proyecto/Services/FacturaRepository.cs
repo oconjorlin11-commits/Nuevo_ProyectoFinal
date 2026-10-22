@@ -41,7 +41,7 @@ namespace Nuevo_Proyecto.Services
         public IReadOnlyList<FacturaResumenDto> GetTodas()
         {
             using var db = _factory.CreateDbContext();
-            return Resumen(db.Facturas.AsNoTracking());
+            return Resumen(db.Facturas.AsNoTracking().Where(f => f.Estado == EstadoActiva));
         }
 
         public IReadOnlyList<FacturaResumenDto> BuscarPorNumero(string prefijoNumero)
@@ -315,14 +315,18 @@ namespace Nuevo_Proyecto.Services
             db.SaveChanges();
             tran.Commit();
 
-            // Registrar auditoría
+            // Registrar auditoría con protección contra valores nulos
+            string nombreEmpleado = string.IsNullOrWhiteSpace(SesionActual.NombreEmpleado) ? "sistema" : SesionActual.NombreEmpleado;
+            string rol = string.IsNullOrWhiteSpace(SesionActual.Rol) ? "Desconocido" : SesionActual.Rol;
+            string clienteInfo = factura.ClienteId > 0 ? $"Cliente ID: {factura.ClienteId}" : "Sin cliente";
+
             _auditoria.RegistrarAccion(
                 seccion: "Facturación",
                 accion: "ANULAR",
                 registroId: factura.FacturaId,
-                usuario: SesionActual.NombreEmpleado,
-                rolUsuario: SesionActual.Rol,
-                detalle: $"Factura: {numero}, Cliente: {factura.Observacion}",
+                usuario: nombreEmpleado,
+                rolUsuario: rol,
+                detalle: $"Factura: {numero}, {clienteInfo}",
                 descripcion: motivo
             );
         }

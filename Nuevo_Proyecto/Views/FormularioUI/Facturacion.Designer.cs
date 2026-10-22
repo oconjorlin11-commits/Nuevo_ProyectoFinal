@@ -478,6 +478,7 @@
             Name = "Facturacion";
             Text = "Facturacion";
             Load += Detalle_Factura_Load;
+            FormClosing += Facturacion_FormClosing;
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
             groupBox2.ResumeLayout(false);

@@ -63,35 +63,35 @@ namespace Nuevo_Proyecto.Models.Views
             // Validar campos antes de guardar
             if (string.IsNullOrWhiteSpace(txtCodigoClient.Text))
             {
-                MessageBox.Show("El código es obligatorio.", "Campo vacío", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MensajeHelper.Validacion.CampoObligatorio("Código");
                 txtCodigoClient.Focus();
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(txtNombreClient.Text))
             {
-                MessageBox.Show("El nombre es obligatorio.", "Campo vacío", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MensajeHelper.Validacion.CampoObligatorio("Nombre");
                 txtNombreClient.Focus();
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(txtTelefonoClient.Text))
             {
-                MessageBox.Show("El teléfono es obligatorio.", "Campo vacío", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MensajeHelper.Validacion.CampoObligatorio("Teléfono");
                 txtTelefonoClient.Focus();
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(txtDireccionClient.Text))
             {
-                MessageBox.Show("La dirección es obligatoria.", "Campo vacío", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MensajeHelper.Validacion.CampoObligatorio("Dirección");
                 txtDireccionClient.Focus();
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(cmboxNota.Text) || cmboxNota.Text == "Selecciona una nota")
             {
-                MessageBox.Show("Debes seleccionar una nota.", "Campo vacío", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MensajeHelper.Validacion.CampoObligatorio("Nota");
                 cmboxNota.Focus();
                 return;
             }
@@ -145,8 +145,14 @@ namespace Nuevo_Proyecto.Models.Views
         // IClienteView - mostrar mensaje
         public void showMessage(string message, string titulo, bool esError)
         {
-            MessageBoxIcon icon = esError ? MessageBoxIcon.Error : MessageBoxIcon.Information;
-            MessageBox.Show(message, titulo, MessageBoxButtons.OK, icon);
+            if (esError)
+            {
+                MensajeHelper.Error(message, titulo);
+            }
+            else
+            {
+                MensajeHelper.Exito(message, titulo);
+            }
         }
 
         // IClienteView - resetear campos
@@ -165,6 +171,37 @@ namespace Nuevo_Proyecto.Models.Views
         public void CloseView()
         {
             this.Close();
+        }
+
+        /// <summary>
+        /// Evento FormClosing para mostrar advertencia si hay datos sin guardar
+        /// </summary>
+        private void NuevoCliente_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // Si la razón de cierre no es una acción del usuario, permitir cerrar
+            if (e.CloseReason != CloseReason.UserClosing)
+                return;
+
+            // Verificar si hay datos incompletos
+            bool hayDatos = !string.IsNullOrWhiteSpace(Nombre) ||
+                            !string.IsNullOrWhiteSpace(Codigo) ||
+                            !string.IsNullOrWhiteSpace(Telefono) ||
+                            !string.IsNullOrWhiteSpace(Direccion) ||
+                            (cmboxNota.SelectedIndex >= 0 && cmboxNota.Text != "Selecciona una nota");
+
+            // Si no hay datos, permitir cerrar
+            if (!hayDatos)
+                return;
+
+            // Mostrar advertencia estandarizada
+            string mensaje = AdvertenciaFormHelper.ObtenerMensajeAdvertencia("Cliente");
+            string titulo = AdvertenciaFormHelper.ObtenerTituloConfirmacion("Cliente");
+
+            DialogResult resultado = MessageBox.Show(mensaje, titulo, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+            // Si el usuario selecciona "No", cancelar el cierre
+            if (resultado == DialogResult.No)
+                e.Cancel = true;
         }
     }
 }

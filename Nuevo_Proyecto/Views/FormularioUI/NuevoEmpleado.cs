@@ -54,8 +54,14 @@ namespace Nuevo_Proyecto.Models.Views
         // IEmpleadoView - mostrar mensaje
         public void showMessage(string message, string titulo, bool esError)
         {
-            MessageBoxIcon icon = esError ? MessageBoxIcon.Error : MessageBoxIcon.Information;
-            MessageBox.Show(message, titulo, MessageBoxButtons.OK, icon);
+            if (esError)
+            {
+                MensajeHelper.Error(message, titulo);
+            }
+            else
+            {
+                MensajeHelper.Exito(message, titulo);
+            }
         }
 
         // IEmpleadoView - resetear campos
@@ -98,42 +104,42 @@ namespace Nuevo_Proyecto.Models.Views
             // Validar campos antes de guardar
             if (string.IsNullOrWhiteSpace(txtCodigoEmple.Text))
             {
-                MessageBox.Show("El código es obligatorio.", "Campo vacío", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MensajeHelper.Validacion.CampoObligatorio("Código");
                 txtCodigoEmple.Focus();
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(txtNombreEmple.Text))
             {
-                MessageBox.Show("El nombre es obligatorio. Formato: Mínimo 2 palabras (ej: Jose Alejandro Ordoñez Medina).", "Campo vacío", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MensajeHelper.Validacion.FormatoInvalido("Nombre", "Mínimo 2 palabras (ej: Jose Alejandro Ordoñez Medina)");
                 txtNombreEmple.Focus();
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(txtCedulaEmpl.Text))
             {
-                MessageBox.Show("La cédula es obligatoria. Formato: xxx-xxxxxx-xxxxA (ej: 561-021007-1000A).", "Campo vacío", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MensajeHelper.Validacion.FormatoInvalido("Cédula", "xxx-xxxxxx-xxxxA (ej: 561-021007-1000A)");
                 txtCedulaEmpl.Focus();
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(txtTelefonoEmple.Text))
             {
-                MessageBox.Show("El teléfono es obligatorio. Formato: xxxx-xxxx (ej: 7635-7836).", "Campo vacío", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MensajeHelper.Validacion.FormatoInvalido("Teléfono", "xxxx-xxxx (ej: 7635-7836)");
                 txtTelefonoEmple.Focus();
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(comboxCargoEmpleado.Text))
             {
-                MessageBox.Show("El cargo es obligatorio. Selecciona o ingresa un cargo.", "Campo vacío", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MensajeHelper.Validacion.CampoObligatorio("Cargo");
                 comboxCargoEmpleado.Focus();
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(txtSalarioEmpleado.Text))
             {
-                MessageBox.Show("El salario es obligatorio. Formato: números con separadores de miles usando coma (ej: 120,25 o 123,123,123).", "Campo vacío", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MensajeHelper.Validacion.FormatoInvalido("Salario", "Números con separadores de miles usando coma (ej: 120,25 o 123,123,123)");
                 txtSalarioEmpleado.Focus();
                 return;
             }
@@ -141,7 +147,7 @@ namespace Nuevo_Proyecto.Models.Views
             // Validar que el salario sea mayor a 1
             if (!decimal.TryParse(txtSalarioEmpleado.Text, out var salario) || salario <= 1)
             {
-                MessageBox.Show("El salario debe ser mayor a 1. Formato: números con separadores de miles usando coma (ej: 120,25 o 123,123,123).", "Valor inválido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MensajeHelper.Validacion.RangoInvalido("Salario", "Debe ser mayor a 1");
                 txtSalarioEmpleado.Focus();
                 return;
             }
@@ -190,6 +196,38 @@ namespace Nuevo_Proyecto.Models.Views
         public void CloseView()
         {
             this.Close();
+        }
+
+        /// <summary>
+        /// Evento FormClosing para mostrar advertencia si hay datos sin guardar
+        /// </summary>
+        private void NuevoEmpleado_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // Si la razón de cierre no es una acción del usuario, permitir cerrar
+            if (e.CloseReason != CloseReason.UserClosing)
+                return;
+
+            // Verificar si hay datos incompletos
+            bool hayDatos = !string.IsNullOrWhiteSpace(txtNombreEmple.Text) ||
+                            !string.IsNullOrWhiteSpace(txtCodigoEmple.Text) ||
+                            !string.IsNullOrWhiteSpace(txtCedulaEmpl.Text) ||
+                            !string.IsNullOrWhiteSpace(txtTelefonoEmple.Text) ||
+                            !string.IsNullOrWhiteSpace(comboxCargoEmpleado.Text) ||
+                            !string.IsNullOrWhiteSpace(txtSalarioEmpleado.Text);
+
+            // Si no hay datos, permitir cerrar
+            if (!hayDatos)
+                return;
+
+            // Mostrar advertencia estandarizada
+            string mensaje = AdvertenciaFormHelper.ObtenerMensajeAdvertencia("Empleado");
+            string titulo = AdvertenciaFormHelper.ObtenerTituloConfirmacion("Empleado");
+
+            DialogResult resultado = MessageBox.Show(mensaje, titulo, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+            // Si el usuario selecciona "No", cancelar el cierre
+            if (resultado == DialogResult.No)
+                e.Cancel = true;
         }
     }
 

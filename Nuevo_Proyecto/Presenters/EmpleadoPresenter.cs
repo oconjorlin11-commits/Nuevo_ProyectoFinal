@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Nuevo_Proyecto.Models.DTOs;
 using Nuevo_Proyecto.Services;
+using Nuevo_Proyecto.Services.Helpers;
 using Nuevo_Proyecto.Services.Interfaz_service;
 using Nuevo_Proyecto.Views.Interfaces;
 
@@ -175,40 +176,39 @@ namespace Nuevo_Proyecto.Presenters
 
             if (codigo.Length == 0 || nombre.Length == 0 || cedula.Length == 0)
             {
-                _nuevoEmpleadoView.showMessage("El código, el nombre y la cédula son obligatorios.", "Validación", true);
+                MensajeHelper.Empleado.CamposObligatorios();
                 return;
             }
 
             if (_nuevoEmpleadoView.Salario <= 1)
             {
-                _nuevoEmpleadoView.showMessage("El salario debe ser mayor a 1.", "Validación", true);
+                MensajeHelper.Empleado.SalarioInvalido();
                 return;
             }
 
             if (codigo.Length > 10 || nombre.Length > 100 || cedula.Length > 20 ||
                 (telefono?.Length ?? 0) > 20 || (cargo?.Length ?? 0) > 50)
             {
-                _nuevoEmpleadoView.showMessage("Algún campo excede el largo permitido (código 10, nombre 100, cédula 20, teléfono 20, cargo 50).",
-                                              "Validación", true);
+                MensajeHelper.Empleado.LongitudCamposExcedida();
                 return;
             }
 
             // Validar formatos específicos
             if (!ValidarFormatoNombre(nombre))
             {
-                _nuevoEmpleadoView.showMessage("El nombre debe contener al menos dos palabras (ej: Jose Alejandro Ordoñez Medina).", "Validación", true);
+                MensajeHelper.Empleado.NombreInvalido();
                 return;
             }
 
             if (!ValidarFormatoCedula(cedula))
             {
-                _nuevoEmpleadoView.showMessage("El formato de cédula es incorrecto. Use el formato: xxx-xxxxxx-xxxxA (ej: 561-021007-1000A).", "Validación", true);
+                MensajeHelper.Empleado.CedulaInvalida();
                 return;
             }
 
             if (telefono != null && !ValidarFormatoTelefono(telefono))
             {
-                _nuevoEmpleadoView.showMessage("El formato de teléfono es incorrecto. Use el formato: xxxx-xxxx (ej: 7635-7836).", "Validación", true);
+                MensajeHelper.Empleado.TelefonoInvalido();
                 return;
             }
 
@@ -216,19 +216,19 @@ namespace Nuevo_Proyecto.Presenters
             {
                 if (_empleados.CodigoExiste(codigo))
                 {
-                    _nuevoEmpleadoView.showMessage($"El código '{codigo}' ya existe. Por favor, ingrese un código único.", "Error", true);
+                    MensajeHelper.Empleado.CodigoDuplicado(codigo);
                     return;
                 }
 
                 if (_empleados.CedulaExiste(cedula))
                 {
-                    _nuevoEmpleadoView.showMessage($"La cédula '{cedula}' ya está registrada en el sistema. No se puede ingresar cédulas duplicadas.", "Error", true);
+                    MensajeHelper.Empleado.CedulaDuplicada(cedula);
                     return;
                 }
 
                 if (telefono != null && _empleados.TelefonoExiste(telefono))
                 {
-                    _nuevoEmpleadoView.showMessage($"El teléfono '{telefono}' ya está en uso por otro empleado. No se puede ingresar teléfonos duplicados.", "Error", true);
+                    MensajeHelper.Empleado.TelefonoDuplicado(telefono);
                     return;
                 }
 
@@ -249,7 +249,7 @@ namespace Nuevo_Proyecto.Presenters
 
                 if (usuarioCreado)
                 {
-                    _nuevoEmpleadoView.showMessage("Empleado y usuario guardados exitosamente.", "Éxito", false);
+                    MensajeHelper.Empleado.GuardadoExitoso();
 
                     // Capturar el ID del empleado recién creado (buscarlo por código)
                     var empleadoCreado = _empleados.BuscarPorCodigo(codigo).FirstOrDefault();
@@ -260,7 +260,7 @@ namespace Nuevo_Proyecto.Presenters
                 }
                 else
                 {
-                    _nuevoEmpleadoView.showMessage("Empleado guardado, pero hubo un error al crear el usuario del sistema.", "Aviso", false);
+                    MensajeHelper.Empleado.UsuarioNoCreado();
                 }
 
                 _nuevoEmpleadoView.ResetFields();
@@ -268,11 +268,11 @@ namespace Nuevo_Proyecto.Presenters
             }
             catch (DbUpdateException ex)
             {
-                _nuevoEmpleadoView.showMessage($"Error al guardar el empleado en la base de datos: {ex.InnerException?.Message ?? ex.Message}", "Error BD", true);
+                MensajeHelper.BaseDatos.ErrorAlGuardar(ex.InnerException?.Message ?? ex.Message);
             }
             catch (Exception ex)
             {
-                _nuevoEmpleadoView.showMessage($"Ocurrió un error inesperado: {ex.Message}", "Error", true);
+                MensajeHelper.BaseDatos.ErrorInesperado(ex.Message);
             }
         }
 
@@ -294,12 +294,12 @@ namespace Nuevo_Proyecto.Presenters
                 bool ok = _empleados.Reactivar(_codigoOriginal);
                 if (ok)
                 {
-                    _view.showMessage("Empleado reactivado correctamente.", "Éxito", false);
+                    MensajeHelper.Empleado.ReactivadoExitoso();
                     RefrescarYLimpiar();
                 }
                 else
                 {
-                    _view.showMessage("No se pudo reactivar el empleado.", "Error", true);
+                    MensajeHelper.Empleado.NoSeReactivo();
                 }
                 return;
             }
@@ -314,7 +314,7 @@ namespace Nuevo_Proyecto.Presenters
 
             if (!huboCambios)
             {
-                _view.showMessage("No se ha hecho ningún cambio.", "Aviso", false);
+                MensajeHelper.Empleado.SinCambios();
                 return;
             }
 
@@ -325,63 +325,63 @@ namespace Nuevo_Proyecto.Presenters
 
             if (string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(cedula))
             {
-                _view.showMessage("El nombre y la cédula son obligatorios.", "Validación", true);
+                MensajeHelper.Validacion.CampoObligatorio("nombre y cédula");
                 return;
             }
 
             if (_view.Salario <= 1)
             {
-                _view.showMessage("El salario debe ser mayor a 1.", "Validación", true);
+                MensajeHelper.Empleado.SalarioInvalido();
                 return;
             }
 
             if (nombre.Length > 100 || cedula.Length > 20 || (telefono?.Length ?? 0) > 20 || (cargo?.Length ?? 0) > 50)
             {
-                _view.showMessage("Algún campo excede el largo permitido.", "Validación", true);
+                MensajeHelper.Empleado.LongitudCamposExcedida();
                 return;
             }
 
             // Validar formatos específicos
             if (!ValidarFormatoNombre(nombre))
             {
-                _view.showMessage("El nombre debe contener al menos dos palabras (ej: Jose Alejandro Ordoñez Medina).", "Validación", true);
+                MensajeHelper.Empleado.NombreInvalido();
                 return;
             }
 
             if (!ValidarFormatoCedula(cedula))
             {
-                _view.showMessage("El formato de cédula es incorrecto. Use el formato: xxx-xxxxxx-xxxxA (ej: 561-021007-1000A).", "Validación", true);
+                MensajeHelper.Empleado.CedulaInvalida();
                 return;
             }
 
             if (telefono != null && !ValidarFormatoTelefono(telefono))
             {
-                _view.showMessage("El formato de teléfono es incorrecto. Use el formato: xxxx-xxxx (ej: 7635-7836).", "Validación", true);
+                MensajeHelper.Empleado.TelefonoInvalido();
                 return;
             }
 
             // Validar que cédula y teléfono no estén duplicados (excluyendo el empleado actual)
             if (_empleados.CedulaExiste(cedula, _codigoOriginal))
             {
-                _view.showMessage($"La cédula '{cedula}' ya está registrada en otro empleado. No se puede ingresar cédulas duplicadas.", "Error", true);
+                MensajeHelper.Empleado.CedulaDuplicada(cedula);
                 return;
             }
 
             if (telefono != null && _empleados.TelefonoExiste(telefono, _codigoOriginal))
             {
-                _view.showMessage($"El teléfono '{telefono}' ya está en uso por otro empleado. No se puede ingresar teléfonos duplicados.", "Error", true);
+                MensajeHelper.Empleado.TelefonoDuplicado(telefono);
                 return;
             }
 
             bool okUpdate = _empleados.Actualizar(_codigoOriginal, nombre, cargo, cedula, telefono, _view.Salario);
             if (okUpdate)
             {
-                _view.showMessage("Empleado actualizado correctamente.", "Éxito", false);
+                MensajeHelper.Empleado.ActualizadoExitoso();
                 RefrescarYLimpiar();
             }
             else
             {
-                _view.showMessage("No se pudo actualizar el empleado.", "Error", true);
+                MensajeHelper.Empleado.NoSeActualizo();
             }
         }
 
@@ -391,19 +391,19 @@ namespace Nuevo_Proyecto.Presenters
 
             if (string.IsNullOrEmpty(_codigoOriginal))
             {
-                _view.showMessage("Debe seleccionar un empleado primero.", "Aviso", true);
+                MensajeHelper.Empleado.SeleccionarPrimero();
                 return;
             }
 
             bool ok = _empleados.Desactivar(_codigoOriginal);
             if (ok)
             {
-                _view.showMessage("Empleado despedido (inactivado) correctamente.", "Éxito", false);
+                MensajeHelper.Empleado.EliminandoExitoso();
                 RefrescarYLimpiar();
             }
             else
             {
-                _view.showMessage("No se pudo despedir al empleado.", "Error", true);
+                MensajeHelper.Empleado.NoSeElimino();
             }
         }
 
@@ -423,12 +423,13 @@ namespace Nuevo_Proyecto.Presenters
             }
 
             // Determinar si es búsqueda por código o nombre
-            bool esCodigoFormat = termino.All(c => char.IsLetterOrDigit(c) || c == '-');
+            // Códigos tienen guion (ej: "EMP-001"), nombres no
+            bool esCodigoFormat = termino.Contains('-');
 
             // Validar longitud mínima según tipo de búsqueda
-            // Códigos: mínimo 6 caracteres (ej: "emp-00")
-            // Nombres: mínimo 4 caracteres
-            if ((esCodigoFormat && termino.Length < 6) || (!esCodigoFormat && termino.Length < 4))
+            // Códigos: mínimo 1 carácter
+            // Nombres: mínimo 1 carácter
+            if (termino.Length < 1)
             {
                 // No mostrar nada, DataGrid vacío (sin mezclar con activos)
                 _view.HayMultiplesResultados = false;

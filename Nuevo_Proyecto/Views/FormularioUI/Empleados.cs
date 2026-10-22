@@ -18,6 +18,8 @@ namespace Nuevo_Proyecto.Models.Views
         private readonly EmpleadoRepository _empleadoRepository;
         private string _codigoEmpleadoOriginal = string.Empty;
         private string _nombreEmpleadoOriginal = string.Empty;
+        private bool _datosModificados = false;
+        private string _datosOriginales = string.Empty;
 
         public Empleados()
         {
@@ -208,8 +210,58 @@ namespace Nuevo_Proyecto.Models.Views
                         Convert.ToDateTime(dataRow["FechaIngreso"]),
                         Convert.ToBoolean(dataRow["Activo"])
                     );
+
+                    // 🔖 Guardar estado original e inicializar detección de cambios
+                    GuardarDatosOriginalesEmpleado();
+                    ActivarDeteccionCambiosEmpleado();
                 }
             }
+        }
+
+        /// <summary>
+        /// Guarda los datos actuales como estado original para comparar después
+        /// </summary>
+        private void GuardarDatosOriginalesEmpleado()
+        {
+            _datosOriginales = $"{Codigo}|{Nombre}|{Cedula}|{Telefono}|{Cargo}|{Salario}|{FechaIngreso:yyyy-MM-dd}|{Activo}";
+            _datosModificados = false;
+        }
+
+        /// <summary>
+        /// Activa los listeners para detectar cambios en los controles
+        /// </summary>
+        private void ActivarDeteccionCambiosEmpleado()
+        {
+            txtNombreEmpl.TextChanged += OnDatosChangedEmpleado;
+            txtCedulaEmpl.TextChanged += OnDatosChangedEmpleado;
+            txtTelefonoEmpl.TextChanged += OnDatosChangedEmpleado;
+            txtSalarioEmpl.TextChanged += OnDatosChangedEmpleado;
+            cmboxCargoEmpl.TextChanged += OnDatosChangedEmpleado;
+            checkBoxEmpleado.CheckedChanged += OnDatosChangedEmpleado;
+        }
+
+        /// <summary>
+        /// Handler para detectar cualquier cambio en los datos
+        /// </summary>
+        private void OnDatosChangedEmpleado(object sender, EventArgs e)
+        {
+            if (!_datosModificados)
+            {
+                _datosModificados = true;
+            }
+        }
+
+        /// <summary>
+        /// Desactiva los listeners de detección de cambios
+        /// </summary>
+        private void DesactivarDeteccionCambiosEmpleado()
+        {
+            txtNombreEmpl.TextChanged -= OnDatosChangedEmpleado;
+            txtCedulaEmpl.TextChanged -= OnDatosChangedEmpleado;
+            txtTelefonoEmpl.TextChanged -= OnDatosChangedEmpleado;
+            txtSalarioEmpl.TextChanged -= OnDatosChangedEmpleado;
+            cmboxCargoEmpl.TextChanged -= OnDatosChangedEmpleado;
+            checkBoxEmpleado.CheckedChanged -= OnDatosChangedEmpleado;
         }
 
         private void btnNuevoEmpleado_Click(object sender, EventArgs e)
@@ -430,6 +482,33 @@ namespace Nuevo_Proyecto.Models.Views
         private void groupBox1_Enter(object sender, EventArgs e)
         {
 
+        }
+
+        /// <summary>
+        /// Evento FormClosing para mostrar advertencia si hay cambios sin guardar
+        /// </summary>
+        private void Empleados_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // Si hay datos modificados, mostrar advertencia
+            if (_datosModificados)
+            {
+                string mensaje = AdvertenciaFormHelper.ObtenerMensajeAdvertencia("Empleado", esEdicion: true);
+                string titulo = AdvertenciaFormHelper.ObtenerTituloConfirmacion("Empleado", esEdicion: true);
+
+                DialogResult resultado = MessageBox.Show(mensaje, titulo, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+                // Si el usuario selecciona "No", cancelar el cierre
+                if (resultado == DialogResult.No)
+                {
+                    e.Cancel = true;
+                }
+                else
+                {
+                    // Si selecciona "Sí", limpiar estado y permitir cerrar
+                    DesactivarDeteccionCambiosEmpleado();
+                    _datosModificados = false;
+                }
+            }
         }
     }
 }

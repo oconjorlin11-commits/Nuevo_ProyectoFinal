@@ -60,59 +60,59 @@ namespace Nuevo_Proyecto.Presenters
 
             if (codigo.Length == 0 || nombre.Length == 0)
             {
-                _view.showMessage("El código y el nombre son obligatorios.", "Validacion", true);
+                MensajeHelper.Producto.CodigoNombreObligatorios();
                 return;
             }
 
             // Validar que el nombre no exceda 20 caracteres
             if (nombre.Length > 20)
             {
-                _view.showMessage("El nombre del producto no puede exceder 20 caracteres.", "Validacion", true);
+                MensajeHelper.Producto.NombreExcedidoLongitud();
                 return;
             }
 
             // Validar que no exista otro producto con el mismo nombre
             if (_productos.NombreExiste(nombre))
             {
-                _view.showMessage($"Ya existe un producto con el nombre '{nombre}'. Por favor, ingrese un nombre único.", "Error", true);
+                MensajeHelper.Producto.NombreDuplicado(nombre);
                 return;
             }
 
             // Validar que no exista un producto con nombre similar (ej: aguacate vs aguacates)
             if (_productos.NombreEsSimilar(nombre))
             {
-                _view.showMessage($"Existe un producto con un nombre muy similar a '{nombre}'. Por favor, ingrese un nombre completamente diferente.", "Error", true);
+                MensajeHelper.Producto.NombreSimilarExistente(nombre);
                 return;
             }
 
             // Validar que la descripción no exceda 20 caracteres
             if ((descripcion?.Length ?? 0) > 20)
             {
-                _view.showMessage("La descripción del producto no puede exceder 20 caracteres.", "Validacion", true);
+                MensajeHelper.Producto.DescripcionExcedidoLongitud();
                 return;
             }
 
             if (_view.CategoriaId <= 0 || _view.UnidadId <= 0)
             {
-                _view.showMessage("Seleccione la categoría y la unidad del producto.", "Validacion", true);
+                MensajeHelper.Producto.CategoriaUnidadRequeridas();
                 return;
             }
 
             if (_view.PrecioVenta <= 0)
             {
-                _view.showMessage("El precio de venta debe ser mayor a cero.", "Validacion", true);
+                MensajeHelper.Producto.PrecioInvalido();
                 return;
             }
 
             if (_view.stockInicial < 0 || _view.StockMinimo < 0)
             {
-                _view.showMessage("El stock inicial y el stock mínimo no pueden ser negativos.", "Validacion", true);
+                MensajeHelper.Producto.StockInvalido();
                 return;
             }
 
             if (codigo.Length > 10)
             {
-                _view.showMessage("El código no puede exceder 10 caracteres.", "Validacion", true);
+                MensajeHelper.Producto.CodigoExcedidoLongitud();
                 return;
             }
 
@@ -120,7 +120,7 @@ namespace Nuevo_Proyecto.Presenters
             {
                 if (_productos.CodigoExiste(codigo))
                 {
-                    _view.showMessage($"El código '{codigo}' ya existe. Por favor, ingrese un código único.", "Error", true);
+                    MensajeHelper.Producto.CodigoDuplicado(codigo);
                     return;
                 }
 
@@ -145,16 +145,16 @@ namespace Nuevo_Proyecto.Presenters
                 UltimoProductoCodigo = codigo;
                 UltimoProductoPrecio = _view.PrecioVenta;
 
-                _view.showMessage("Producto e inventario inicial guardados exitosamente.", "Éxito", false);
+                MensajeHelper.Producto.GuardadoExitoso();
                 _view.ResetFields();
             }
             catch (DbUpdateException ex)
             {
-                _view.showMessage($"Error de base de datos : {ex.InnerException?.Message ?? ex.Message}", "Error BD", true);
+                MensajeHelper.BaseDatos.ErrorAlGuardar(ex.InnerException?.Message ?? ex.Message);
             }
             catch (Exception ex)
             {
-                _view.showMessage($"Ocurrio un error inesperado: {ex.Message}", "Error Crítico", true);
+                MensajeHelper.BaseDatos.ErrorInesperado(ex.Message);
             }
         }
     }

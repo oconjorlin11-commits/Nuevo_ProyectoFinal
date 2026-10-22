@@ -105,8 +105,18 @@ namespace Nuevo_Proyecto.Views.FormularioUI
 
         private void BtnCancelar_Click(object sender, EventArgs e)
         {
-            this.DialogResult = DialogResult.Cancel;
-            this.Close();
+            DialogResult resultado = MessageBox.Show(
+                "¿Está seguro de que no desea enviar un motivo?",
+                "Confirmar cancelación",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            );
+
+            if (resultado == DialogResult.Yes)
+            {
+                this.DialogResult = DialogResult.Cancel;
+                this.Close();
+            }
         }
 
         public new DialogResult ShowDialog()

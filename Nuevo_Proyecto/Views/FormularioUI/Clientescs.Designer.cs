@@ -366,6 +366,7 @@
             Name = "Clientescs";
             Text = "Clientescs";
             Load += Clientescs_Load;
+            FormClosing += Clientescs_FormClosing;
             ((System.ComponentModel.ISupportInitialize)dataGridClientes).EndInit();
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();

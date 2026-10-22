@@ -92,12 +92,13 @@ namespace Nuevo_Proyecto.Presenters
             }
 
             // Determinar si es búsqueda por código o nombre
-            bool esCodigoFormat = terminoBusqueda.All(c => char.IsLetterOrDigit(c) || c == '-');
+            // Códigos tienen guion (ej: "PROD-001"), nombres no
+            bool esCodigoFormat = terminoBusqueda.Contains('-');
 
             // Validar longitud mínima según tipo de búsqueda
-            // Códigos: mínimo 6 caracteres (ej: "prod-00")
-            // Nombres: mínimo 4 caracteres
-            if ((esCodigoFormat && terminoBusqueda.Length < 6) || (!esCodigoFormat && terminoBusqueda.Length < 4))
+            // Códigos: mínimo 1 carácter
+            // Nombres: mínimo 1 carácter
+            if (terminoBusqueda.Length < 1)
             {
                 // No mostrar nada, DataGrid vacío (sin mezclar con activos)
                 _view.HayMultiplesResultados = false;

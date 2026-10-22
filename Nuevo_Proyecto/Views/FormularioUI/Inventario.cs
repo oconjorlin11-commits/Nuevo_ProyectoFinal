@@ -28,6 +28,8 @@ namespace Nuevo_Proyecto.Models.Views
         private int StockOriginal;
         private int StockMinimoOriginal;
         private int CategoriaOriginalID;
+        private bool _datosModificados = false;
+        private string _datosOriginales = string.Empty;
         private int UnidadOriginalID;
         private bool EstadoOriginal;
         private int EmpleadoID;
@@ -633,7 +635,7 @@ namespace Nuevo_Proyecto.Models.Views
             //  Paso 5: validar si hubo cambios
             if (!HayCambios())
             {
-                MessageBox.Show("No se ha hecho ningún cambio.");
+                MensajeHelper.Advertencia("No se ha hecho ningún cambio. Debe modificar al menos un campo antes de editar.", "Sin cambios");
                 return;
             }
 
@@ -699,23 +701,6 @@ namespace Nuevo_Proyecto.Models.Views
                         detalle: $"Producto: {txtProductosInven.Text}, Stock: {stock}, Precio: {precioVenta}",
                         descripcion: observacion
                     );
-
-                    // Actualizar la fila visible en el grid para reflejar la observación
-                    foreach (DataGridViewRow r in dataGridInventario.Rows)
-                    {
-                        try
-                        {
-                            if (r.Cells["ProductoID"].Value != null && Convert.ToInt32(r.Cells["ProductoID"].Value) == ProductoIDOriginal)
-                            {
-                                if (r.Cells["Observacion"] != null)
-                                    r.Cells["Observacion"].Value = observacion;
-                            }
-                        }
-                        catch
-                        {
-                            // ignorar errores de actualización de celda
-                        }
-                    }
                 }
                 LimpiarDespuesDeAccion();
             }
@@ -1139,6 +1124,83 @@ namespace Nuevo_Proyecto.Models.Views
                 if (row.DataBoundItem is DataRowView drv)
                 {
                     CargarDatosEdicion(drv.Row);
+
+                    // 🔖 Guardar estado original e inicializar detección de cambios
+                    GuardarDatosOriginalesProducto();
+                    ActivarDeteccionCambiosProducto();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Guarda los datos actuales como estado original para comparar después
+        /// </summary>
+        private void GuardarDatosOriginalesProducto()
+        {
+            _datosOriginales = $"{ProductoIDOriginal}|{CodigoOriginal}|{NombreOriginal}|{PrecioVentaOriginal}|{StockOriginal}|{StockMinimoOriginal}|{CategoriaOriginalID}";
+            _datosModificados = false;
+        }
+
+        /// <summary>
+        /// Activa los listeners para detectar cambios en los controles
+        /// </summary>
+        private void ActivarDeteccionCambiosProducto()
+        {
+            txtCodigoInvent.TextChanged += OnDatosChangedProducto;
+            txtProductosInven.TextChanged += OnDatosChangedProducto;
+            txtPrecioVentas.TextChanged += OnDatosChangedProducto;
+            txtStock.TextChanged += OnDatosChangedProducto;
+            txtMinimo.TextChanged += OnDatosChangedProducto;
+            cmboxCategorias.TextChanged += OnDatosChangedProducto;
+        }
+
+        /// <summary>
+        /// Handler para detectar cualquier cambio en los datos
+        /// </summary>
+        private void OnDatosChangedProducto(object sender, EventArgs e)
+        {
+            if (!_datosModificados)
+            {
+                _datosModificados = true;
+            }
+        }
+
+        /// <summary>
+        /// Desactiva los listeners de detección de cambios
+        /// </summary>
+        private void DesactivarDeteccionCambiosProducto()
+        {
+            txtCodigoInvent.TextChanged -= OnDatosChangedProducto;
+            txtProductosInven.TextChanged -= OnDatosChangedProducto;
+            txtPrecioVentas.TextChanged -= OnDatosChangedProducto;
+            txtStock.TextChanged -= OnDatosChangedProducto;
+            txtMinimo.TextChanged -= OnDatosChangedProducto;
+            cmboxCategorias.TextChanged -= OnDatosChangedProducto;
+        }
+
+        /// <summary>
+        /// Evento FormClosing para mostrar advertencia si hay cambios sin guardar
+        /// </summary>
+        private void Inventario_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // Si hay datos modificados, mostrar advertencia
+            if (_datosModificados)
+            {
+                string mensaje = AdvertenciaFormHelper.ObtenerMensajeAdvertencia("Producto", esEdicion: true);
+                string titulo = AdvertenciaFormHelper.ObtenerTituloConfirmacion("Producto", esEdicion: true);
+
+                DialogResult resultado = MessageBox.Show(mensaje, titulo, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+                // Si el usuario selecciona "No", cancelar el cierre
+                if (resultado == DialogResult.No)
+                {
+                    e.Cancel = true;
+                }
+                else
+                {
+                    // Si selecciona "Sí", limpiar estado y permitir cerrar
+                    DesactivarDeteccionCambiosProducto();
+                    _datosModificados = false;
                 }
             }
         }

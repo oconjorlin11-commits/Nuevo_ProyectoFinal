@@ -452,6 +452,7 @@
             Name = "Inventario";
             Text = "Inventario";
             Load += Inventario_Load;
+            FormClosing += Inventario_FormClosing;
             ((System.ComponentModel.ISupportInitialize)dataGridInventario).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             groupBox1.ResumeLayout(false);

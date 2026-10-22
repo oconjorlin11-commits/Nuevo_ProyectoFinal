@@ -416,6 +416,7 @@
             Name = "Empleados";
             Text = "Empleados";
             Load += Empleados_Load;
+            FormClosing += Empleados_FormClosing;
             ((System.ComponentModel.ISupportInitialize)dataGridEmpleados).EndInit();
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();

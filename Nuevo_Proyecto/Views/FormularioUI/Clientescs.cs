@@ -4,12 +4,15 @@ using System.Drawing;
 using System.Windows.Forms;
 using Nuevo_Proyecto.Presenters;
 using Nuevo_Proyecto.Views.Interfaces;
+using Nuevo_Proyecto.Services.Helpers;
 
 namespace Nuevo_Proyecto.Models.Views
 {
     public partial class Clientescs : Form, IClienteView
     {
         private readonly ClientePresenter _presenter;
+        private bool _datosModificados = false;
+        private string _datosOriginales = string.Empty;
 
         public Clientescs()
         {
@@ -48,6 +51,7 @@ namespace Nuevo_Proyecto.Models.Views
         }
         public bool Activo { get => checboxClient.Checked; set => checboxClient.Checked = value; }
         public string BuscarTexto { get => txtBuscarClient.Text; set => txtBuscarClient.Text = value; }
+        public bool HayMultiplesResultados { get; set; }
 
         // =========================================================================
         // Eventos que la vista UI notifica al presentador
@@ -113,6 +117,7 @@ namespace Nuevo_Proyecto.Models.Views
 
             ConfigurarDataGridView();
             dataGridClientes.CellFormatting += datagrewClientes_CellFormatting;
+            dataGridClientes.SelectionChanged += dataGridClientes_SelectionChanged;
 
             _presenter.InicializarVista();
         }
@@ -184,8 +189,74 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void dataGridClientes_SelectionChanged(object sender, EventArgs e)
         {
-            // El DataGrid es solo de observación, no tiene funcionalidad de búsqueda o filtro
-            // No se carga información en los campos de edición desde el grid
+            // Solo cargar campos si hay múltiples resultados (resultado de búsqueda)
+            if (!HayMultiplesResultados)
+                return;
+
+            if (dataGridClientes.SelectedRows.Count > 0)
+            {
+                var row = dataGridClientes.SelectedRows[0];
+                if (row.DataBoundItem is DataRowView drv)
+                {
+                    var dataRow = drv.Row;
+                    _presenter?.SeleccionarCliente(
+                        dataRow["Codigo"]?.ToString() ?? string.Empty,
+                        dataRow["Nombre"]?.ToString() ?? string.Empty,
+                        dataRow["Telefono"]?.ToString(),
+                        dataRow["Direccion"]?.ToString() ?? string.Empty,
+                        dataRow["Nota"]?.ToString(),
+                        dataRow["Activo"] != null && dataRow["Activo"] != DBNull.Value && Convert.ToBoolean(dataRow["Activo"])
+                    );
+
+                    // 🔖 Guardar estado original y inicializar detección de cambios
+                    GuardarDatosOriginales();
+                    ActivarDeteccionCambios();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Guarda los datos actuales como estado original para comparar después
+        /// </summary>
+        private void GuardarDatosOriginales()
+        {
+            _datosOriginales = $"{Codigo}|{Nombre}|{Telefono}|{Direccion}|{Nota}|{Activo}";
+            _datosModificados = false;
+        }
+
+        /// <summary>
+        /// Activa los listeners para detectar cambios en los controles
+        /// </summary>
+        private void ActivarDeteccionCambios()
+        {
+            txtNombreClient.TextChanged += OnDatosChanged;
+            txtTelefonoClient.TextChanged += OnDatosChanged;
+            txtDireccionClient.TextChanged += OnDatosChanged;
+            cmboxNotasClient.TextChanged += OnDatosChanged;
+            checboxClient.CheckedChanged += OnDatosChanged;
+        }
+
+        /// <summary>
+        /// Handler para detectar cualquier cambio en los datos
+        /// </summary>
+        private void OnDatosChanged(object sender, EventArgs e)
+        {
+            if (!_datosModificados)
+            {
+                _datosModificados = true;
+            }
+        }
+
+        /// <summary>
+        /// Desactiva los listeners de detección de cambios
+        /// </summary>
+        private void DesactivarDeteccionCambios()
+        {
+            txtNombreClient.TextChanged -= OnDatosChanged;
+            txtTelefonoClient.TextChanged -= OnDatosChanged;
+            txtDireccionClient.TextChanged -= OnDatosChanged;
+            cmboxNotasClient.TextChanged -= OnDatosChanged;
+            checboxClient.CheckedChanged -= OnDatosChanged;
         }
 
         private void datagrewClientes_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
@@ -207,6 +278,33 @@ namespace Nuevo_Proyecto.Models.Views
         private void groupBox1_Enter(object sender, EventArgs e)
         {
 
+        }
+
+        /// <summary>
+        /// Evento FormClosing para mostrar advertencia si hay cambios sin guardar
+        /// </summary>
+        private void Clientescs_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // Si hay datos modificados, mostrar advertencia
+            if (_datosModificados)
+            {
+                string mensaje = AdvertenciaFormHelper.ObtenerMensajeAdvertencia("Cliente", esEdicion: true);
+                string titulo = AdvertenciaFormHelper.ObtenerTituloConfirmacion("Cliente", esEdicion: true);
+
+                DialogResult resultado = MessageBox.Show(mensaje, titulo, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+                // Si el usuario selecciona "No", cancelar el cierre
+                if (resultado == DialogResult.No)
+                {
+                    e.Cancel = true;
+                }
+                else
+                {
+                    // Si selecciona "Sí", limpiar estado y permitir cerrar
+                    DesactivarDeteccionCambios();
+                    _datosModificados = false;
+                }
+            }
         }
     }
 }

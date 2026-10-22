@@ -6,6 +6,7 @@ namespace Nuevo_Proyecto.Services.Interfaz_service
     {
         IReadOnlyList<ClienteDto> GetActivos();
         IReadOnlyList<ClienteDto> BuscarPorCodigo(string prefijoCodigo);
+        IReadOnlyList<ClienteDto> BuscarPorCodigoONombre(string termino);
         IReadOnlyList<string> GetNotas();
         string GetSiguienteCodigo();
         bool CodigoExiste(string codigo);
@@ -23,5 +24,14 @@ namespace Nuevo_Proyecto.Services.Interfaz_service
         /// Devuelve null si es válido, o un mensaje de error si no.
         /// </summary>
         string? ValidarNuevoCliente(string codigo, string nombre, string? telefono, string? direccion, string? nota);
+
+        // =========================================================================
+        // Métodos Asíncronos Segregados (Arquitectura MVP de Referencia)
+        // =========================================================================
+        Task<IReadOnlyList<ClientesDto>> GetAllCustomersAsync();
+        Task<ClientesDto?> GetCustomerByIdAsync(int clienteId);
+        Task<int> CreateCustomerAsync(ClienteCreateDto customer);
+        Task UpdateCustomerAsync(int clienteId, ClienteCreateDto customer);
+        Task DeleteCustomerAsync(int clienteId, string? motivo = null);
     }
 }

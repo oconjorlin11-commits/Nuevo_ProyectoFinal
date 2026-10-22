@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Nuevo_Proyecto.Presenters;
 using Nuevo_Proyecto.Services.Helpers;
+using Nuevo_Proyecto.Views.FormularioUI;
 using Nuevo_Proyecto.Views.Helpers;
 using Nuevo_Proyecto.Views.Interfaces;
 
@@ -157,6 +158,10 @@ namespace Nuevo_Proyecto.Models.Views
             {
                 frmComprobante.ShowDialog();
             }
+
+            // 👉 Limpiar búsqueda y refrescar
+            txtBuscarFact.Text = string.Empty;
+            CargarTodasLasFacturas();
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -218,29 +223,69 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void AnularFacturaSeleccionada()
         {
-            var fila = dataGridFacturasEmitidas.CurrentRow;
-            var numero = fila?.Cells["Numero"].Value?.ToString();
-            if (string.IsNullOrWhiteSpace(numero))
+            string busqueda = txtBuscarFact.Text.Trim();
+
+            // Validar 1: Si no hay búsqueda (se cargaron todas las facturas)
+            if (string.IsNullOrWhiteSpace(busqueda))
             {
-                showMessage("Seleccione una factura.", "Aviso", false);
+                showMessage("No puede anular una factura sin antes buscarla. Ingrese el código o fecha de la factura.",
+                    "Búsqueda requerida", false);
                 return;
             }
 
-            var motivo = PromptDialog.Pedir("Anular factura", $"Motivo de la anulación de {numero}:");
-            if (motivo == null) return;
-
-            if (MessageBox.Show($"¿Anular la factura {numero}? Se devolverá el stock al inventario.",
-                    "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes) return;
-
-            try
+            // Validar 2: Verificar que el usuario haya seleccionado una fila explícitamente
+            if (dataGridFacturasEmitidas.SelectedRows.Count == 0)
             {
-                _presenter.AnularFactura(numero, motivo);
-                showMessage($"Factura {numero} anulada.", "Listo", false);
-                CargarTodasLasFacturas();
+                showMessage("Seleccione una factura específica en la grilla para proceder con la anulación.",
+                    "Selección requerida", false);
+                return;
             }
-            catch (Exception ex)
+
+            // Validar 3: Obtener la fila seleccionada
+            DataGridViewRow filaSeleccionada = dataGridFacturasEmitidas.SelectedRows[0];
+            string numero = filaSeleccionada.Cells["Numero"].Value?.ToString();
+
+            if (string.IsNullOrWhiteSpace(numero))
             {
-                showMessage(ex.Message, "No se pudo anular", true);
+                showMessage("No se pudo obtener el número de factura. Intente de nuevo.", "Error", true);
+                return;
+            }
+
+            // Validar 4: Verificar que el DataGrid tiene datos (resultado de búsqueda)
+            if (dataGridFacturasEmitidas.Rows.Count == 0)
+            {
+                showMessage("No hay facturas en la búsqueda. Realice una búsqueda válida.", "Aviso", false);
+                return;
+            }
+
+            // ✅ Todas las validaciones pasaron - Mostrar formulario de motivo
+            using (var formMotivo = new Motivo_de_anulcion_de_factura())
+            {
+                if (formMotivo.ShowDialog() != DialogResult.OK)
+                    return;
+
+                string motivo = formMotivo.Motivo?.Trim() ?? string.Empty;
+                if (string.IsNullOrWhiteSpace(motivo))
+                    return;
+
+                // Confirmación final antes de anular
+                if (MessageBox.Show($"¿Está SEGURO de anular la factura {numero}?\n\nSe devolverá el stock al inventario y la operación se registrará en auditoría.",
+                        "Confirmar anulación", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes) 
+                    return;
+
+                try
+                {
+                    _presenter.AnularFactura(numero, motivo);
+                    showMessage($"Factura {numero} anulada correctamente. Stock devuelto al inventario.", "Listo", false);
+
+                    // 👉 Limpiar búsqueda y refrescar
+                    txtBuscarFact.Text = string.Empty;
+                    CargarTodasLasFacturas();
+                }
+                catch (Exception ex)
+                {
+                    showMessage(ex.Message, "No se pudo anular", true);
+                }
             }
         }
 

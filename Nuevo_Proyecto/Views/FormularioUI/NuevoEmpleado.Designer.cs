@@ -332,6 +332,7 @@
             Name = "NuevoEmpleado";
             Text = "NuevoEmpleado";
             Load += NuevoEmpleado_Load;
+            FormClosing += NuevoEmpleado_FormClosing;
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             panel1.ResumeLayout(false);
             panel1.PerformLayout();

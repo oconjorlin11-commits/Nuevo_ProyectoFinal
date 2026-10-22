@@ -2,6 +2,7 @@ using Microsoft.Data.SqlClient;
 using Nuevo_Proyecto.Catalogos;
 using Nuevo_Proyecto.Models.Entities;
 using Nuevo_Proyecto.Presenters;
+using Nuevo_Proyecto.Services.Helpers;
 using Nuevo_Proyecto.Views.Interfaces;
 using System;
 using System.Data;
@@ -19,6 +20,7 @@ namespace Nuevo_Proyecto.Models.Views
     public partial class Facturacion : Form, Nuevo_Proyecto.Views.Interfaces.IFacturacionView
     {
         private readonly FacturacionPresenter _presenter;
+        private bool _datosModificados = false;
 
         public Facturacion()
         {
@@ -91,6 +93,12 @@ namespace Nuevo_Proyecto.Models.Views
             cmboxAtendidoPor.DisplayMember = "Nombre";
             cmboxAtendidoPor.ValueMember = "EmpleadoID";
             cmboxAtendidoPor.SelectedIndex = -1;
+
+            // Preseleccionar automáticamente el usuario que inició sesión
+            if (SesionActual.EmpleadoId > 0)
+            {
+                cmboxAtendidoPor.SelectedValue = SesionActual.EmpleadoId;
+            }
         }
 
         public void LoadClientes(DataTable clientes)
@@ -248,6 +256,7 @@ namespace Nuevo_Proyecto.Models.Views
 
                 dataGridDetallesFacturas.Rows.Clear();
                 ResetFields();
+                _datosModificados = false;
             }
             catch (Exception ex)
             {
@@ -361,6 +370,9 @@ namespace Nuevo_Proyecto.Models.Views
             // Insertar en el DataGridView (incluye Estado)
             AgregarLineaDetalle(productoID, nombreProducto, cantidad, precioUnitario, subtotal);
 
+            // Marcar que hay cambios sin guardar
+            _datosModificados = true;
+
             CalcularTotales();
 
             // Limpiar selección de producto y cantidad
@@ -378,6 +390,34 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
         {
+        }
+
+        /// <summary>
+        /// Evento FormClosing para mostrar advertencia si hay cambios sin guardar
+        /// </summary>
+        private void Facturacion_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // Si hay datos modificados (productos agregados pero no guardados), mostrar advertencia
+            if (_datosModificados)
+            {
+                DialogResult resultado = MessageBox.Show(
+                    "Tiene productos agregados pero no guardados. ¿Está seguro de que no desea continuar facturando?",
+                    "Confirmar cancelación",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning
+                );
+
+                // Si el usuario selecciona "No", cancelar el cierre
+                if (resultado == DialogResult.No)
+                {
+                    e.Cancel = true;
+                }
+                else
+                {
+                    // Si selecciona "Sí", limpiar estado y permitir cerrar
+                    _datosModificados = false;
+                }
+            }
         }
     }
 }

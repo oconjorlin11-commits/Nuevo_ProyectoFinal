@@ -24,7 +24,7 @@ namespace Nuevo_Proyecto.Presenters
         {
             if (_intentosFallidos >= MaxIntentos)
             {
-                _view.showMessage("Demasiados intentos fallidos. Cierre la aplicación e inténtelo de nuevo.", "Acceso bloqueado", true);
+                MensajeHelper.Seguridad.IntentosAgotados();
                 return;
             }
 
@@ -33,7 +33,7 @@ namespace Nuevo_Proyecto.Presenters
             if (!resultado.Exitoso || resultado.Sesion == null)
             {
                 _intentosFallidos++;
-                _view.showMessage(resultado.Mensaje, "Acceso denegado", true);
+                MensajeHelper.Error(resultado.Mensaje, "Acceso denegado");
                 _view.Contrasena = string.Empty;
                 return;
             }

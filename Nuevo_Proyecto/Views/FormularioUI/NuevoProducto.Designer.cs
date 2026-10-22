@@ -361,6 +361,7 @@
             Name = "NuevoProducto";
             Text = "NuevoProducto";
             Load += NuevoProducto_Load;
+            FormClosing += NuevoProducto_FormClosing;
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             panel1.ResumeLayout(false);
             panel1.PerformLayout();

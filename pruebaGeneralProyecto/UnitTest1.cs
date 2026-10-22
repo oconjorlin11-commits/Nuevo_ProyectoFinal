@@ -358,15 +358,71 @@ namespace pruebaGeneralProyecto
         public IReadOnlyList<ClienteDto> GetActivos() => Clientes.Where(c => c.Activo).ToList();
         public IReadOnlyList<ClienteDto> BuscarPorCodigo(string prefijoCodigo) =>
             Clientes.Where(c => c.Codigo.StartsWith(prefijoCodigo, StringComparison.OrdinalIgnoreCase)).ToList();
+        public IReadOnlyList<ClienteDto> BuscarPorCodigoONombre(string termino) =>
+            Clientes.Where(c => c.Codigo.Contains(termino, StringComparison.OrdinalIgnoreCase) || c.Nombre.Contains(termino, StringComparison.OrdinalIgnoreCase)).ToList();
         public IReadOnlyList<string> GetNotas() => new List<string>();
         public string GetSiguienteCodigo() => "CLI-" + (Clientes.Count + 1).ToString("D3");
         public bool CodigoExiste(string codigo) => Clientes.Any(c => c.Codigo.Equals(codigo, StringComparison.OrdinalIgnoreCase));
         public bool TelefonoExiste(string telefono) => Clientes.Any(c => c.Telefono?.Equals(telefono) ?? false);
-        public void Crear(ClienteDto cliente) => Clientes.Add(cliente);
-        public bool Actualizar(string codigo, string nombre, string? telefono, string? direccion, string? nota) => true;
-        public bool Desactivar(string codigo) => true;
-        public bool Reactivar(string codigo) => true;
+        public int Crear(ClienteDto cliente)
+        {
+            Clientes.Add(cliente);
+            return Clientes.Count;
+        }
+        public bool Actualizar(string codigo, string nombre, string? telefono, string? direccion, string? nota, string? motivo = null) => true;
+        public bool Desactivar(string codigo, string? motivo = null) => true;
+        public bool Reactivar(string codigo, string? motivo = null) => true;
         public ClienteDto ObtenerOCrearConsumidorFinal() => new ClienteDto { Codigo = "CF-001", Nombre = "Consumidor Final" };
         public string? ValidarNuevoCliente(string codigo, string nombre, string? telefono, string? direccion, string? nota) => null; // Simulación: siempre válido
+
+        public Task<IReadOnlyList<ClientesDto>> GetAllCustomersAsync()
+        {
+            IReadOnlyList<ClientesDto> list = Clientes.Select(c => new ClientesDto
+            {
+                Id = c.ClienteId,
+                Codigo = c.Codigo,
+                Nombre = c.Nombre,
+                Telefono = c.Telefono,
+                Direccion = c.Direccion,
+                Nota = c.Nota,
+                Activo = c.Activo
+            }).ToList();
+            return Task.FromResult(list);
+        }
+
+        public Task<ClientesDto?> GetCustomerByIdAsync(int clienteId)
+        {
+            var c = Clientes.FirstOrDefault(x => x.ClienteId == clienteId);
+            ClientesDto? dto = c == null ? null : new ClientesDto
+            {
+                Id = c.ClienteId,
+                Codigo = c.Codigo,
+                Nombre = c.Nombre,
+                Telefono = c.Telefono,
+                Direccion = c.Direccion,
+                Nota = c.Nota,
+                Activo = c.Activo
+            };
+            return Task.FromResult(dto);
+        }
+
+        public Task<int> CreateCustomerAsync(ClienteCreateDto customer)
+        {
+            Clientes.Add(new ClienteDto
+            {
+                ClienteId = Clientes.Count + 1,
+                Codigo = customer.Codigo,
+                Nombre = customer.Nombre,
+                Telefono = customer.Telefono,
+                Direccion = customer.Direccion,
+                Nota = customer.Nota,
+                Activo = customer.Activo
+            });
+            return Task.FromResult(Clientes.Count);
+        }
+
+        public Task UpdateCustomerAsync(int clienteId, ClienteCreateDto customer) => Task.CompletedTask;
+
+        public Task DeleteCustomerAsync(int clienteId, string? motivo = null) => Task.CompletedTask;
     }
 }

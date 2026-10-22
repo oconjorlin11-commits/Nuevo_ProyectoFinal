@@ -172,15 +172,10 @@ namespace Nuevo_Proyecto.Presenters
                 return true;
 
             // Mostrar diálogo solicitando credenciales de admin
-            DialogResult resultado = MessageBox.Show(
+            if (!MensajeHelper.Confirmacion(
                 "Para editar o eliminar un cliente necesita permiso de administrador.\n\n" +
                 "¿Desea ingresar las credenciales de un administrador?",
-                "Permiso Requerido",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Information
-            );
-
-            if (resultado != DialogResult.Yes)
+                "Permiso requerido"))
                 return false;
 
             // Mostrar diálogo de verificación de usuario
@@ -264,7 +259,7 @@ namespace Nuevo_Proyecto.Presenters
             // Validar campos básicos
             if (string.IsNullOrEmpty(codigo))
             {
-                _nuevoClienteView.showMessage("⚠️ El código debe completarse.", "Falta llenar", true);
+                MensajeHelper.Cliente.CodigoRequerido();
                 return;
             }
 
@@ -272,7 +267,7 @@ namespace Nuevo_Proyecto.Presenters
             string? errorValidacion = _clientes.ValidarNuevoCliente(codigo, nombre, telefono, direccion, nota);
             if (errorValidacion != null)
             {
-                _nuevoClienteView.showMessage($"⚠️ {errorValidacion}", "Validación", true);
+                MensajeHelper.Error(errorValidacion, "Validación");
                 return;
             }
 
@@ -280,7 +275,7 @@ namespace Nuevo_Proyecto.Presenters
             {
                 if (_clientes.CodigoExiste(codigo))
                 {
-                    _nuevoClienteView.showMessage($"⚠️ El código '{codigo}' ya existe. Por favor, ingrese un código único.", "Error", true);
+                    MensajeHelper.Cliente.CodigoDuplicado(codigo);
                     return;
                 }
 
@@ -301,17 +296,17 @@ namespace Nuevo_Proyecto.Presenters
                     UltimoClienteIDCreado = clienteCreado.ClienteId;
                 }
 
-                _nuevoClienteView.showMessage("✓ Cliente guardado exitosamente.", "Éxito", false);
+                MensajeHelper.Cliente.GuardadoExitoso();
                 _nuevoClienteView.ResetFields();
                 try { _nuevoClienteView.CloseView(); } catch { /* la vista puede no ser modal */ }
             }
             catch (DbUpdateException ex)
             {
-                _nuevoClienteView.showMessage($"❌ Error de base de datos: {ex.InnerException?.Message ?? ex.Message}", "Error BD", true);
+                MensajeHelper.BaseDatos.ErrorAlGuardar(ex.InnerException?.Message ?? ex.Message);
             }
             catch (Exception ex)
             {
-                _nuevoClienteView.showMessage($"❌ Error inesperado: {ex.Message}", "Error", true);
+                MensajeHelper.BaseDatos.ErrorInesperado(ex.Message);
             }
         }
 
@@ -323,7 +318,7 @@ namespace Nuevo_Proyecto.Presenters
 
             if (string.IsNullOrEmpty(_codigoOriginal))
             {
-                _view.showMessage("Debe seleccionar un cliente primero.", "Aviso", true);
+                MensajeHelper.Cliente.SeleccionarPrimero();
                 return;
             }
 
@@ -338,14 +333,14 @@ namespace Nuevo_Proyecto.Presenters
 
             if (!huboCambios)
             {
-                _view.showMessage("No se ha hecho ningún cambio. Debe modificar al menos un campo antes de editar.", "Aviso", false);
+                MensajeHelper.Cliente.SinCambios();
                 return;
             }
 
             // Paso 2: LUEGO verificar permisos de administrador
             if (!VerificarAccesoAdmin())
             {
-                _view.showMessage("No tiene permisos para modificar clientes. Se requiere autorización de un administrador.", "Permiso Denegado", true);
+                MensajeHelper.Seguridad.PermisoModificarDenegado();
                 return;
             }
 
@@ -355,7 +350,7 @@ namespace Nuevo_Proyecto.Presenters
                 string motivo = SolicitarMotivoActualizacionCliente();
                 if (string.IsNullOrWhiteSpace(motivo))
                 {
-                    _view.showMessage("Debe proporcionar un motivo válido para reactivar el cliente.", "Motivo requerido", true);
+                    MensajeHelper.Motivo.MotivoRequerido("reactivar el cliente");
                     return;
                 }
 
@@ -364,17 +359,17 @@ namespace Nuevo_Proyecto.Presenters
                     bool okReactivar = _clientes.Reactivar(_codigoOriginal, motivo);
                     if (okReactivar)
                     {
-                        _view.showMessage("Cliente reactivado correctamente.", "Éxito", false);
+                        MensajeHelper.Cliente.ReactivadoExitoso();
                         RefrescarYLimpiar();
                     }
                     else
                     {
-                        _view.showMessage("No se pudo reactivar el cliente.", "Error", true);
+                        MensajeHelper.Cliente.NoSeReactivo();
                     }
                 }
                 catch (Exception ex)
                 {
-                    _view.showMessage($"Error al reactivar: {ex.Message}", "Error", true);
+                    MensajeHelper.BaseDatos.ErrorAlActualizar(ex.Message);
                 }
                 return;
             }
@@ -387,13 +382,13 @@ namespace Nuevo_Proyecto.Presenters
 
             if (string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(direccion))
             {
-                _view.showMessage("El nombre y la dirección son obligatorios.", "Validación", true);
+                MensajeHelper.Cliente.NombreDireccionObligatorios();
                 return;
             }
 
             if (nombre.Length > 100 || direccion.Length > 200 || (telefono?.Length ?? 0) > 20 || (nota?.Length ?? 0) > 200)
             {
-                _view.showMessage("Algún campo excede el largo permitido.", "Validación", true);
+                MensajeHelper.Cliente.LongitudCamposExcedida();
                 return;
             }
 
@@ -401,7 +396,7 @@ namespace Nuevo_Proyecto.Presenters
             string motivoModificacion = SolicitarMotivoActualizacionCliente();
             if (string.IsNullOrWhiteSpace(motivoModificacion))
             {
-                _view.showMessage("Debe proporcionar un motivo válido para modificar el cliente.", "Motivo requerido", true);
+                MensajeHelper.Motivo.MotivoRequerido("modificar el cliente");
                 return;
             }
 
@@ -411,17 +406,17 @@ namespace Nuevo_Proyecto.Presenters
                 bool okUpdate = _clientes.Actualizar(_codigoOriginal, nombre, telefono, direccion, nota, motivoModificacion);
                 if (okUpdate)
                 {
-                    _view.showMessage("Cliente actualizado correctamente.", "Éxito", false);
+                    MensajeHelper.Cliente.ActualizadoExitoso();
                     RefrescarYLimpiar();
                 }
                 else
                 {
-                    _view.showMessage("No se pudo actualizar el cliente.", "Error", true);
+                    MensajeHelper.Cliente.NoSeActualizo();
                 }
             }
             catch (Exception ex)
             {
-                _view.showMessage($"Error al actualizar: {ex.Message}", "Error", true);
+                MensajeHelper.BaseDatos.ErrorAlActualizar(ex.Message);
             }
         }
 
@@ -431,22 +426,12 @@ namespace Nuevo_Proyecto.Presenters
 
             if (string.IsNullOrEmpty(_codigoOriginal))
             {
-                _view.showMessage("Debe seleccionar un cliente primero.", "Aviso", true);
+                MensajeHelper.Cliente.SeleccionarPrimero();
                 return;
             }
 
             // Paso 1: Confirmación inicial antes de pedir credenciales
-            DialogResult confirmDialog = MessageBox.Show(
-                "¿Desea dar de baja permanentemente el cliente?\n\n" +
-                $"Código: {_codigoOriginal}\n" +
-                $"Nombre: {_nombreOriginal}\n\n" +
-                "Deberá ingresar una razón válida y justificada.",
-                "Confirmar baja de cliente",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question
-            );
-
-            if (confirmDialog != DialogResult.Yes)
+            if (!MensajeHelper.Operacion.ConfirmarEliminacion("cliente", $"{_nombreOriginal} (Código: {_codigoOriginal})"))
             {
                 return;
             }
@@ -454,7 +439,7 @@ namespace Nuevo_Proyecto.Presenters
             // Paso 2: Verificar permisos de administrador
             if (!VerificarAccesoAdmin())
             {
-                _view.showMessage("No tiene permisos para eliminar clientes.", "Permiso Denegado", true);
+                MensajeHelper.Seguridad.PermisoEliminarDenegado();
                 return;
             }
 
@@ -462,7 +447,7 @@ namespace Nuevo_Proyecto.Presenters
             string motivo = SolicitarMotivoEliminacionCliente();
             if (string.IsNullOrWhiteSpace(motivo))
             {
-                _view.showMessage("Debe proporcionar un motivo válido para dar de baja el cliente.", "Motivo requerido", true);
+                MensajeHelper.Motivo.MotivoRequerido("dar de baja el cliente");
                 return;
             }
 
@@ -471,17 +456,17 @@ namespace Nuevo_Proyecto.Presenters
                 bool ok = _clientes.Desactivar(_codigoOriginal, motivo);
                 if (ok)
                 {
-                    _view.showMessage("Cliente eliminado (inactivado) correctamente.", "Éxito", false);
+                    MensajeHelper.Cliente.EliminandoExitoso();
                     RefrescarYLimpiar();
                 }
                 else
                 {
-                    _view.showMessage("No se pudo eliminar el cliente.", "Error", true);
+                    MensajeHelper.Cliente.NoSeElimino();
                 }
             }
             catch (Exception ex)
             {
-                _view.showMessage($"Error al eliminar: {ex.Message}", "Error", true);
+                MensajeHelper.BaseDatos.ErrorAlEliminar(ex.Message);
             }
         }
 
@@ -489,26 +474,53 @@ namespace Nuevo_Proyecto.Presenters
         {
             if (_view == null) return;
 
-            string codigo = _view.BuscarTexto?.Trim() ?? string.Empty;
+            string termino = _view.BuscarTexto?.Trim() ?? string.Empty;
 
-            if (string.IsNullOrEmpty(codigo))
+            if (string.IsNullOrEmpty(termino))
             {
                 // Si el textbox está vacío, mostrar solo los activos y limpiar campos
+                _view.HayMultiplesResultados = false;
                 CargarClientesActivos();
                 LimpiarCampos();
                 return;
             }
 
-            // Buscar código EXACTO en activos e inactivos
-            var resultados = _clientes.BuscarPorCodigo(codigo);
+            // Determinar si es búsqueda por código o nombre
+            // Códigos tienen guion (ej: "CLI-001"), nombres no
+            bool esCodigoFormat = termino.Contains('-');
+
+            // Validar longitud mínima según tipo de búsqueda
+            // Códigos: mínimo 1 carácter
+            // Nombres: mínimo 1 carácter
+            if (termino.Length < 1)
+            {
+                // No mostrar nada, DataGrid vacío (sin mezclar con activos)
+                _view.HayMultiplesResultados = false;
+                var dtVacio = DataTableMapper.Clientes(Enumerable.Empty<ClienteDto>());
+                _view.MostrarClientes(dtVacio);
+                LimpiarCampos();
+                return;
+            }
+
+            // Buscar por código O nombre (parcial) - busca en TODO
+            var resultados = _clientes.BuscarPorCodigoONombre(termino);
             var dt = DataTableMapper.Clientes(resultados);
 
-            if (dt.Rows.Count > 0)
+            if (dt.Rows.Count == 0)
             {
-                // Mostrar resultado exacto encontrado
+                // No hay coincidencias - mostrar tabla vacía
+                _view.HayMultiplesResultados = false;
+                _view.MostrarClientes(dt);
+                LimpiarCampos();
+                return;
+            }
+
+            if (dt.Rows.Count == 1)
+            {
+                // Una única coincidencia - cargar automáticamente
+                _view.HayMultiplesResultados = false;
                 _view.MostrarClientes(dt);
 
-                // Cargar el resultado en los campos de edición
                 var row = dt.Rows[0];
                 SeleccionarCliente(
                     row["Codigo"]?.ToString() ?? string.Empty,
@@ -521,8 +533,9 @@ namespace Nuevo_Proyecto.Presenters
             }
             else
             {
-                // Si no hay resultado exacto, mostrar solo los activos
-                CargarClientesActivos();
+                // Múltiples coincidencias - mostrar en DataGrid para elegir
+                _view.HayMultiplesResultados = true;
+                _view.MostrarClientes(dt);
                 LimpiarCampos();
             }
         }

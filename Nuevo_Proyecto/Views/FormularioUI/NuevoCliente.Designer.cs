@@ -280,6 +280,7 @@
             Name = "NuevoCliente";
             Text = "NuevoCliente";
             Load += NuevoCliente_Load;
+            FormClosing += NuevoCliente_FormClosing;
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             panel1.ResumeLayout(false);
             panel1.PerformLayout();

@@ -17,6 +17,7 @@ namespace Nuevo_Proyecto.Views.Interfaces
         string Nota { get; set; }
         bool Activo { get; set; }
         string BuscarTexto { get; set; }
+        bool HayMultiplesResultados { get; set; }
 
         // Eventos notificados al presentador
         event EventHandler? EditarClicked;

@@ -43,8 +43,14 @@ namespace Nuevo_Proyecto.Models.Views
 
         public void showMessage(string message, string titulo, bool esError)
         {
-            MessageBoxIcon icon = esError ? MessageBoxIcon.Error : MessageBoxIcon.Information;
-            MessageBox.Show(message, titulo, MessageBoxButtons.OK, icon);
+            if (esError)
+            {
+                MensajeHelper.Error(message, titulo);
+            }
+            else
+            {
+                MensajeHelper.Exito(message, titulo);
+            }
         }
 
         public void ResetFields()
@@ -70,50 +76,50 @@ namespace Nuevo_Proyecto.Models.Views
 
             if (string.IsNullOrWhiteSpace(txtCodigoProduc.Text))
             {
-                MessageBox.Show("Debe ingresar un Codigo  al producto.");
+                MensajeHelper.Validacion.CampoObligatorio("Código");
                 return false;
             }
 
             if (string.IsNullOrWhiteSpace(txtNombreProduct.Text))
             {
-                MessageBox.Show("Debe ingresar un nombre de producto.");
+                MensajeHelper.Validacion.CampoObligatorio("Nombre");
                 return false;
             }
 
             if (!decimal.TryParse(txtPrecioProduct.Text, out decimal precioVenta) || precioVenta <= 0)
             {
-                MessageBox.Show("Debe ingresar un precio de venta válido.");
+                MensajeHelper.Validacion.RangoInvalido("Precio de venta", "Debe ser mayor a 0");
                 return false;
             }
 
             if (!int.TryParse(txtStockInicial.Text, out int stock) || stock < 0)
             {
-                MessageBox.Show("Debe ingresar un stock inicial válido.");
+                MensajeHelper.Validacion.RangoInvalido("Stock inicial", "No puede ser negativo");
                 return false;
             }
 
             if (!int.TryParse(txtStockMinimo.Text, out int minimo) || minimo < 0)
             {
-                MessageBox.Show("Debe ingresar un stock mínimo válido.");
+                MensajeHelper.Validacion.RangoInvalido("Stock mínimo", "No puede ser negativo");
                 return false;
             }
 
             if (cmboxCategoriaProduc.SelectedValue == null || (int)cmboxCategoriaProduc.SelectedValue < 0)
             {
-                MessageBox.Show("Debe seleccionar una categoría.");
+                MensajeHelper.Validacion.CampoObligatorio("Categoría");
                 return false;
             }
 
             if (cmboxUnidadProduct.SelectedValue == null || (int)cmboxUnidadProduct.SelectedValue < 0)
             {
-                MessageBox.Show("Debe seleccionar una unidad.");
+                MensajeHelper.Validacion.CampoObligatorio("Unidad de medida");
                 return false;
             }
 
             // 👉 Validar que el producto esté marcado como activo
             if (!checkBoxProductosActi.Checked)
             {
-                MessageBox.Show("El producto debe estar marcado como ACTIVO para poder guardarse.");
+                MensajeHelper.Advertencia("El producto debe estar marcado como ACTIVO para poder guardarse.", "Producto inactivo");
                 return false;
             }
 
@@ -165,7 +171,7 @@ namespace Nuevo_Proyecto.Models.Views
             // 👉 Verificar que el usuario actual sea admin (validación en el presenter)
             if (!SesionActual.EsAdministrador)
             {
-                MessageBox.Show("Solo un usuario con permiso ADMIN puede guardar productos.");
+                MensajeHelper.Permiso.AccesoDenegado("crear productos");
                 return;
             }
 
@@ -195,6 +201,44 @@ namespace Nuevo_Proyecto.Models.Views
             // Cerrar el formulario con success para que Inventario lo detecte y refresque
             this.DialogResult = DialogResult.OK;
             this.Close();
+        }
+
+        /// <summary>
+        /// Evento FormClosing para mostrar advertencia si hay datos sin guardar
+        /// </summary>
+        private void NuevoProducto_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // Si la razón de cierre no es una acción del usuario, permitir cerrar
+            if (e.CloseReason != CloseReason.UserClosing)
+                return;
+
+            // Si DialogResult ya está configurado (guardó exitosamente), permitir cerrar
+            if (this.DialogResult == DialogResult.OK)
+                return;
+
+            // Verificar si hay datos incompletos
+            bool hayDatos = !string.IsNullOrWhiteSpace(Nombre) ||
+                            !string.IsNullOrWhiteSpace(Codigo) ||
+                            CategoriaId > 0 ||
+                            UnidadId > 0 ||
+                            !string.IsNullOrWhiteSpace(Descripcion) ||
+                            PrecioVenta > 0 ||
+                            stockInicial > 0 ||
+                            StockMinimo > 0;
+
+            // Si no hay datos, permitir cerrar
+            if (!hayDatos)
+                return;
+
+            // Mostrar advertencia estandarizada
+            string mensaje = AdvertenciaFormHelper.ObtenerMensajeAdvertencia("Producto");
+            string titulo = AdvertenciaFormHelper.ObtenerTituloConfirmacion("Producto");
+
+            DialogResult resultado = MessageBox.Show(mensaje, titulo, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+            // Si el usuario selecciona "No", cancelar el cierre
+            if (resultado == DialogResult.No)
+                e.Cancel = true;
         }
     }
 }
