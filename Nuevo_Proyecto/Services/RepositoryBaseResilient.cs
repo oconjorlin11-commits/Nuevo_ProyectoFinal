@@ -35,9 +35,9 @@ namespace Nuevo_Proyecto.Services
         {
             try
             {
-                if (ConnectionStateManager.UsandoSqlite)
+                if (!ConnectionStateManager.VerificarConexionAlServidor())
                 {
-                    throw new InvalidOperationException("Usando SQLite como fallback");
+                    throw new InvalidOperationException("SQL Server no disponible. Se debe usar SQLite temporal como fallback.");
                 }
 
                 using (var db = _factory.CreateDbContext())

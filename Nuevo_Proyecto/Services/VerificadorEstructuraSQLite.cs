@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Nuevo_Proyecto.Data;
 using Nuevo_Proyecto.Data.DbSqlite;
 using System;
+using System.Data;
 
 namespace Nuevo_Proyecto.Services
 {
@@ -79,9 +80,27 @@ namespace Nuevo_Proyecto.Services
         {
             try
             {
-                var result = context.Database.SqlQueryRaw<int>(
-                    $"SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='{nombreTabla}'")
-                    .FirstOrDefault();
+                var connection = context.Database.GetDbConnection();
+                var wasClosed = connection.State == ConnectionState.Closed;
+                if (wasClosed)
+                {
+                    connection.Open();
+                }
+
+                using var command = connection.CreateCommand();
+                command.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = @nombreTabla";
+                var parameter = command.CreateParameter();
+                parameter.ParameterName = "@nombreTabla";
+                parameter.Value = nombreTabla;
+                command.Parameters.Add(parameter);
+
+                var scalar = command.ExecuteScalar();
+                var result = scalar is null ? 0 : Convert.ToInt32(scalar);
+
+                if (wasClosed)
+                {
+                    connection.Close();
+                }
 
                 return result > 0;
             }

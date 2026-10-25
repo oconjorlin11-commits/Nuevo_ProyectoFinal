@@ -51,14 +51,14 @@ namespace Nuevo_Proyecto.Models.Views
 
 
 
-        private void btnCancelarClient_Click(object sender, EventArgs e)
+        private void btnCancelarClient_Click(object? sender, EventArgs e)
         {
             // Notify presenter to reset fields if subscribed
             CancelarClicked?.Invoke(this, EventArgs.Empty);
             this.Close();
         }
 
-        private void btnGuardarClient_Click(object sender, EventArgs e)
+        private void btnGuardarClient_Click(object? sender, EventArgs e)
         {
             // Validar campos antes de guardar
             if (string.IsNullOrWhiteSpace(txtCodigoClient.Text))
@@ -113,7 +113,7 @@ namespace Nuevo_Proyecto.Models.Views
             );
         }
 
-        private void NuevoCliente_Load(object sender, EventArgs e)
+        private void NuevoCliente_Load(object? sender, EventArgs e)
         {
             // Obtener datos iniciales desde el presenter
             txtCodigoClient.Text = _presenter.GetNextCodigoCliente();
@@ -176,7 +176,7 @@ namespace Nuevo_Proyecto.Models.Views
         /// <summary>
         /// Evento FormClosing para mostrar advertencia si hay datos sin guardar
         /// </summary>
-        private void NuevoCliente_FormClosing(object sender, FormClosingEventArgs e)
+        private void NuevoCliente_FormClosing(object? sender, FormClosingEventArgs e)
         {
             // Si la razón de cierre no es una acción del usuario, permitir cerrar
             if (e.CloseReason != CloseReason.UserClosing)

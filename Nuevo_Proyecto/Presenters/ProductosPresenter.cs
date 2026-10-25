@@ -54,6 +54,12 @@ namespace Nuevo_Proyecto.Presenters
 
         private void OnGuardarClicked(object? sender, EventArgs e)
         {
+            if (!SesionActual.EsAdministrador)
+            {
+                MensajeHelper.Permiso.AccesoDenegado("crear productos");
+                return;
+            }
+
             string codigo = _view.Codigo?.Trim() ?? string.Empty;
             string nombre = _view.Nombre?.Trim() ?? string.Empty;
             string? descripcion = string.IsNullOrWhiteSpace(_view.Descripcion) ? null : _view.Descripcion.Trim();

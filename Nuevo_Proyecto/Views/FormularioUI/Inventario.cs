@@ -1,4 +1,4 @@
-Ôªøusing Nuevo_Proyecto.Catalogos;
+using Nuevo_Proyecto.Catalogos;
 using Nuevo_Proyecto.Presenters;
 using Nuevo_Proyecto.Services;
 using Nuevo_Proyecto.Services.Helpers;
@@ -52,7 +52,7 @@ namespace Nuevo_Proyecto.Models.Views
             dataGridInventario.CellFormatting += dataGridInventario_CellFormatting;
             dataGridInventario.DataError += DataGridInventario_DataError;
             dataGridInventario.DataBindingComplete += (s, e) => { if (dataGridInventario.Columns.Contains("Activo")) dataGridInventario.Columns["Activo"]!.HeaderText = "Estado"; };
-            // Suscribir selecci√≥n de fila en el DataGrid
+            // Suscribir selecciÛn de fila en el DataGrid
             dataGridInventario.SelectionChanged += dataGridInventario_SelectionChanged;
             // Suscribir textbox de bsqueda (nombre en diseador: txtBucarInvet)
             txtBucarInvet.TextChanged += txtBuscarInventario_TextChanged;
@@ -68,7 +68,7 @@ namespace Nuevo_Proyecto.Models.Views
             // Crear un nuevo DataTable con el mismo esquema
             var dt = new DataTable();
 
-            // Copiar definici√É¬≥n de columnas
+            // Copiar definici√≥n de columnas
             foreach (DataColumn col in source.Columns)
             {
                 dt.Columns.Add(col.ColumnName, col.DataType);
@@ -79,7 +79,7 @@ namespace Nuevo_Proyecto.Models.Views
             {
                 try
                 {
-                    // Validar que tenga c√É¬≥digo v√É¬°lido
+                    // Validar que tenga c√≥digo v√°lido
                     var codigo = r["Codigo"];
                     if (codigo == null || codigo == DBNull.Value || string.IsNullOrWhiteSpace(codigo.ToString()))
                     {
@@ -135,7 +135,7 @@ namespace Nuevo_Proyecto.Models.Views
 
         public void MostrarInventario(DataTable dt)
         {
-            // Limpiar filas vac√≠as o sin informaci√≥n v√°lida
+            // Limpiar filas vacÌas o sin informaciÛn v·lida
             if (dt != null && dt.Rows.Count > 0)
             {
                 for (int i = dt.Rows.Count - 1; i >= 0; i--)
@@ -145,7 +145,7 @@ namespace Nuevo_Proyecto.Models.Views
                         var codigo = dt.Rows[i]["Codigo"];
                         var nombre = dt.Rows[i]["Nombre"];
 
-                        // Remover si no tiene c√≥digo Y nombre v√°lidos
+                        // Remover si no tiene cÛdigo Y nombre v·lidos
                         if ((codigo == null || codigo == DBNull.Value || string.IsNullOrWhiteSpace(codigo.ToString())) ||
                             (nombre == null || nombre == DBNull.Value || string.IsNullOrWhiteSpace(nombre.ToString())))
                         {
@@ -162,7 +162,7 @@ namespace Nuevo_Proyecto.Models.Views
 
             dataGridInventario.DataSource = dt;
 
-            // Aplicar ordenamiento por C√≥digo
+            // Aplicar ordenamiento por CÛdigo
             if (dt != null && dt.Rows.Count > 0)
             {
                 DataView dv = new DataView(dt);
@@ -293,15 +293,14 @@ namespace Nuevo_Proyecto.Models.Views
             PrecioVentaOriginal = 0;
             StockOriginal = 0;
 
-            // Limpiar b√∫squeda y recargar productos activos con stock
+            // Limpiar b˙squeda y recargar productos activos con stock
             BuscarTexto = string.Empty;
-            var dtActualizado = FilterOnlyWithStock(_presenter.ObtenerInventarioActivo());
-            dataGridInventario.DataSource = dtActualizado;
+            dataGridInventario.DataSource = _presenter.ObtenerInventarioActivoConStock();
             StockMinimoOriginal = 0;
             EstadoOriginal = false;
         }
 
-        private void btnNuevoProduct_Click(object sender, EventArgs e)
+        private void btnNuevoProduct_Click(object? sender, EventArgs e)
         {
 
             using (NuevoProducto frm_NuevoProducto = new NuevoProducto())
@@ -316,7 +315,7 @@ namespace Nuevo_Proyecto.Models.Views
 
 
 
-        private void Inventario_Load(object sender, EventArgs e)
+        private void Inventario_Load(object? sender, EventArgs e)
         {
             // Registrar acceso a Inventario
             _auditoria.RegistrarAccion(
@@ -331,19 +330,13 @@ namespace Nuevo_Proyecto.Models.Views
             ConfigurardataGridInventario();
 
             //  Llenar combo de unidades
-            cmboxUnidad.DisplayMember = "Nombre";
-            cmboxUnidad.ValueMember = "UnidadID";
-            cmboxUnidad.DataSource = _presenter.GetUnidades();
+            ComboBoxBindingHelper.Bind(cmboxUnidad, _presenter.GetUnidades(), "Nombre", "UnidadID");
 
             //  Llenar combo de categoras para edicin tambin
-            cmboxCategorias.DisplayMember = "Nombre";
-            cmboxCategorias.ValueMember = "CategoriaID";
-            cmboxCategorias.DataSource = _presenter.GetCategoriasActivas();
+            ComboBoxBindingHelper.Bind(cmboxCategorias, _presenter.GetCategoriasActivas(), "Nombre", "CategoriaID");
 
             //  Llenar combo de categoras solo con activas
-            cmboxCategoriaInve.DisplayMember = "Nombre";
-            cmboxCategoriaInve.ValueMember = "CategoriaID";
-            cmboxCategoriaInve.DataSource = _presenter.GetCategoriasActivas();
+            ComboBoxBindingHelper.Bind(cmboxCategoriaInve, _presenter.GetCategoriasActivas(), "Nombre", "CategoriaID");
 
             // Insertar opcin "Todas"
             DataTable dt = (DataTable)cmboxCategoriaInve.DataSource;
@@ -354,9 +347,9 @@ namespace Nuevo_Proyecto.Models.Views
             cmboxCategoriaInve.SelectedIndex = 0;
 
             //  Mostrar inventario solo activo y con stock al inicio
-            var dtInventario = FilterOnlyWithStock(_presenter.ObtenerInventarioActivo());
+            var dtInventario = _presenter.ObtenerInventarioActivoConStock();
 
-            // Limpiar filas vac√É¬≠as (sin c√É¬≥digo de producto)
+            // Limpiar filas vac√≠as (sin c√≥digo de producto)
             for (int i = dtInventario.Rows.Count - 1; i >= 0; i--)
             {
                 var codigo = dtInventario.Rows[i]["Codigo"];
@@ -368,7 +361,7 @@ namespace Nuevo_Proyecto.Models.Views
 
             dataGridInventario.DataSource = dtInventario;
 
-            // Ordenar por c√É¬≥digo de forma expl√É¬≠cita
+            // Ordenar por c√≥digo de forma expl√≠cita
             if (dtInventario.Rows.Count > 0)
             {
                 DataView dv = new DataView(dtInventario);
@@ -384,8 +377,8 @@ namespace Nuevo_Proyecto.Models.Views
             dataGridInventario.MultiSelect = false;
             dataGridInventario.AllowUserToAddRows = false;
 
-            // Suscribirse a selecciÔøΩn de fila en el DataGrid
-            // // Solo b√É¬∫squeda por textbox, no por clic en grid  // Deshabilitado: solo buscar por textbox
+            // Suscribirse a selecci?n de fila en el DataGrid
+            // // Solo b√∫squeda por textbox, no por clic en grid  // Deshabilitado: solo buscar por textbox
         }
 
         private void DataGridInventario_CellClick(object? sender, DataGridViewCellEventArgs e)
@@ -413,7 +406,7 @@ namespace Nuevo_Proyecto.Models.Views
             BuscarChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        private void btnEditarInventar_Click(object sender, EventArgs e)
+        private void btnEditarInventar_Click(object? sender, EventArgs e)
         {
             //  Paso 1: verificar si hay producto cargado
             if (ProductoIDOriginal == 0 || string.IsNullOrEmpty(CodigoOriginal))
@@ -441,15 +434,15 @@ namespace Nuevo_Proyecto.Models.Views
                 return;
             }
 
-            // IMPORTANTE: La rama de REACTIVACI√ìN debe evaluarse PRIMERO, antes de cualquier otra validaci√≥n
-            // Detectar intento de reactivaci√≥n: EstadoOriginal=false (inactivo)
+            // IMPORTANTE: La rama de REACTIVACI”N debe evaluarse PRIMERO, antes de cualquier otra validaciÛn
+            // Detectar intento de reactivaciÛn: EstadoOriginal=false (inactivo)
             bool intentaReactivar = !EstadoOriginal;
 
-            //  Paso 3: l√≥gica especial para reactivaci√≥n
+            //  Paso 3: lÛgica especial para reactivaciÛn
             if (intentaReactivar)
             {
-                // ‚úÖ VALIDACI√ìN CR√çTICA: El checkbox DEBE estar checked para poder reactivar
-                // Si no est√° checked, NO mostrar el formulario de motivo
+                // ? VALIDACI”N CRÕTICA: El checkbox DEBE estar checked para poder reactivar
+                // Si no est· checked, NO mostrar el formulario de motivo
                 if (!checkBoxInventario.Checked)
                 {
                     MessageBox.Show(
@@ -463,36 +456,36 @@ namespace Nuevo_Proyecto.Models.Views
                     return;
                 }
 
-                // Validaci√≥n 1: si el producto fue dado de baja, el stock actual debe estar en 0
+                // ValidaciÛn 1: si el producto fue dado de baja, el stock actual debe estar en 0
                 if (StockOriginal > 0)
                 {
                     MessageBox.Show(
-                        $"El producto fue dado de baja pero a√∫n tiene Stock:{StockOriginal}.\n" +
+                        $"El producto fue dado de baja pero a˙n tiene Stock:{StockOriginal}.\n" +
                         "Cuando se da de baja un producto, el Stock debe quedar en 0.",
                         "Verificar estado de baja"
                     );
                     return;
                 }
 
-                // Validaci√≥n 2: Stock debe ser mayor a 0
+                // ValidaciÛn 2: Stock debe ser mayor a 0
                 if (stock <= 0)
                 {
                     MessageBox.Show(
                         $"Debe ingresar un Stock mayor a 0.\n" +
-                        $"Stock M√≠nimo requerido: {StockMinimoOriginal}",
-                        "Stock inv√°lido"
+                        $"Stock MÌnimo requerido: {StockMinimoOriginal}",
+                        "Stock inv·lido"
                     );
                     return;
                 }
 
-                // Validaci√≥n 3: M√≠nimo debe ser mayor a 0
+                // ValidaciÛn 3: MÌnimo debe ser mayor a 0
                 if (minimo <= 0)
                 {
-                    MessageBox.Show("Stock M√≠nimo debe ser mayor a 0.");
+                    MessageBox.Show("Stock MÌnimo debe ser mayor a 0.");
                     return;
                 }
 
-                // Validaci√≥n 4: Stock ingresado debe ser MAYOR al Stock actual (0)
+                // ValidaciÛn 4: Stock ingresado debe ser MAYOR al Stock actual (0)
                 if (stock <= StockOriginal)
                 {
                     MessageBox.Show(
@@ -503,18 +496,18 @@ namespace Nuevo_Proyecto.Models.Views
                     return;
                 }
 
-                // Validaci√≥n 5: Stock debe ser >= M√≠nimo
+                // ValidaciÛn 5: Stock debe ser >= MÌnimo
                 if (stock < minimo)
                 {
                     MessageBox.Show(
-                        $"El Stock ingresado ({stock}) debe ser mayor o igual al Stock M√≠nimo ({minimo}).",
+                        $"El Stock ingresado ({stock}) debe ser mayor o igual al Stock MÌnimo ({minimo}).",
                         "Stock insuficiente para reactivar"
                     );
                     return;
                 }
 
-                // ‚úÖ SOLO AQU√ç - Todas las validaciones pasaron, pedir motivo de reactivaci√≥n
-                // En este punto: Checkbox EST√Å checked, Stock es v√°lido y mayor al m√≠nimo
+                // ? SOLO AQUÕ - Todas las validaciones pasaron, pedir motivo de reactivaciÛn
+                // En este punto: Checkbox EST¡ checked, Stock es v·lido y mayor al mÌnimo
                 var formMotivoReactivacion = new Motivo_de_actualizacion_Inventario();
                 if (formMotivoReactivacion.ShowDialog() != DialogResult.OK)
                 {
@@ -523,10 +516,10 @@ namespace Nuevo_Proyecto.Models.Views
 
                 string motivoReactivacion = formMotivoReactivacion.Motivo;
 
-                // Validaci√≥n final: rechazar motivos vac√≠os o inv√°lidos
+                // ValidaciÛn final: rechazar motivos vacÌos o inv·lidos
                 if (string.IsNullOrWhiteSpace(motivoReactivacion))
                 {
-                    MessageBox.Show("El motivo de reactivaci√≥n no puede estar vac√≠o.", "Motivo requerido");
+                    MessageBox.Show("El motivo de reactivaciÛn no puede estar vacÌo.", "Motivo requerido");
                     return;
                 }
 
@@ -546,10 +539,10 @@ namespace Nuevo_Proyecto.Models.Views
                 }
                 catch (InvalidOperationException ex)
                 {
-                    // Capturar espec√≠ficamente las excepciones de validaci√≥n de motivo
+                    // Capturar especÌficamente las excepciones de validaciÛn de motivo
                     MessageBox.Show(
                         ex.Message,
-                        "Motivo no v√°lido",
+                        "Motivo no v·lido",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Warning
                     );
@@ -562,28 +555,28 @@ namespace Nuevo_Proyecto.Models.Views
                 return;
             }
 
-            //  Paso 4: bloquear cambios en C√≥digo
+            //  Paso 4: bloquear cambios en CÛdigo
             if (CodigoOriginal != txtCodigoInvent.Text)
             {
-                MessageBox.Show("No se puede editar el c√≥digo del producto.");
+                MessageBox.Show("No se puede editar el cÛdigo del producto.");
                 txtCodigoInvent.Text = CodigoOriginal;
                 return;
             }
 
-            // Paso 4.5: Detectar intento de cambio de estado (EN CUALQUIER DIRECCI√ìN)
+            // Paso 4.5: Detectar intento de cambio de estado (EN CUALQUIER DIRECCI”N)
             bool cambioDeEstado = EstadoOriginal != checkBoxInventario.Checked;
 
             if (cambioDeEstado)
             {
-                // Si intenta cambiar estado, verificar qu√© tipo de cambio
-                bool esDesactivacion = EstadoOriginal && !checkBoxInventario.Checked;  // activo ‚Üí inactivo
-                bool esReactivacion = !EstadoOriginal && checkBoxInventario.Checked;  // inactivo ‚Üí activo
+                // Si intenta cambiar estado, verificar quÈ tipo de cambio
+                bool esDesactivacion = EstadoOriginal && !checkBoxInventario.Checked;  // activo ? inactivo
+                bool esReactivacion = !EstadoOriginal && checkBoxInventario.Checked;  // inactivo ? activo
 
                 if (esDesactivacion)
                 {
-                    // La desactivaci√≥n SOLO se hace a trav√©s de "Eliminar", NO en "Editar"
+                    // La desactivaciÛn SOLO se hace a travÈs de "Eliminar", NO en "Editar"
                     MessageBox.Show(
-                        "Para desactivar un producto, use el bot√≥n 'Eliminar'.",
+                        "Para desactivar un producto, use el botÛn 'Eliminar'.",
                         "Cambio de estado no permitido"
                     );
                     checkBoxInventario.Checked = EstadoOriginal;
@@ -592,21 +585,21 @@ namespace Nuevo_Proyecto.Models.Views
 
                 if (esReactivacion)
                 {
-                    // La reactivaci√≥n S√ç es permitida en "Editar", pero con validaciones rigurosas
+                    // La reactivaciÛn SÕ es permitida en "Editar", pero con validaciones rigurosas
 
                     if (stock <= 0)
                     {
                         MessageBox.Show(
                             $"Para reactivar el producto, debe ingresar un Stock mayor a 0.\n" +
-                            $"Stock M√≠nimo requerido: {StockMinimoOriginal}",
-                            "Stock inv√°lido"
+                            $"Stock MÌnimo requerido: {StockMinimoOriginal}",
+                            "Stock inv·lido"
                         );
                         return;
                     }
 
                     if (minimo <= 0)
                     {
-                        MessageBox.Show("Stock M√≠nimo debe ser mayor a 0.");
+                        MessageBox.Show("Stock MÌnimo debe ser mayor a 0.");
                         return;
                     }
 
@@ -620,11 +613,11 @@ namespace Nuevo_Proyecto.Models.Views
                         return;
                     }
 
-                    // Stock debe ser mayor o igual al m√≠nimo
+                    // Stock debe ser mayor o igual al mÌnimo
                     if (stock < minimo)
                     {
                         MessageBox.Show(
-                            $"El Stock ingresado ({stock}) debe ser mayor o igual al Stock M√≠nimo ({minimo}).",
+                            $"El Stock ingresado ({stock}) debe ser mayor o igual al Stock MÌnimo ({minimo}).",
                             "Stock insuficiente para reactivar"
                         );
                         return;
@@ -635,12 +628,12 @@ namespace Nuevo_Proyecto.Models.Views
             //  Paso 5: validar si hubo cambios
             if (!HayCambios())
             {
-                MensajeHelper.Advertencia("No se ha hecho ning√∫n cambio. Debe modificar al menos un campo antes de editar.", "Sin cambios");
+                MensajeHelper.Advertencia("No se ha hecho ning˙n cambio. Debe modificar al menos un campo antes de editar.", "Sin cambios");
                 return;
             }
 
             //  Paso 6: mostrar formulario de motivo SOLO si hay cambios reales
-            // El UsuarioAutorizador ya fue obtenido en Inventario_Load y est√° guardado en SesionActual
+            // El UsuarioAutorizador ya fue obtenido en Inventario_Load y est· guardado en SesionActual
 
             var tipoCambio = TipoMovimientoHelper.DetectarTipoCambio(
                 txtProductosInven.Text,
@@ -659,7 +652,7 @@ namespace Nuevo_Proyecto.Models.Views
                 StockMinimoOriginal
             );
 
-            // Crear y mostrar el formulario de motivo de actualizaci√≥n
+            // Crear y mostrar el formulario de motivo de actualizaciÛn
             var formMotivo = new Motivo_de_actualizacion_Inventario();
             if (formMotivo.ShowDialog() == DialogResult.OK)
             {
@@ -678,7 +671,7 @@ namespace Nuevo_Proyecto.Models.Views
                     txtProductosInven.Text,
                     Convert.ToInt32(cmboxCategorias.SelectedValue),
                     Convert.ToInt32(cmboxUnidad.SelectedValue),
-                    null,   // descripci√≥n: se conserva la actual
+                    null,   // descripciÛn: se conserva la actual
                     precioVenta,
                     checkBoxInventario.Checked,
                     stock,
@@ -690,7 +683,7 @@ namespace Nuevo_Proyecto.Models.Views
                 MessageBox.Show(filasUpdate > 0 ? "Producto actualizado correctamente." : "No se pudo actualizar.");
                 if (filasUpdate > 0)
                 {
-                    // Registrar auditor√≠a
+                    // Registrar auditorÌa
                     _auditoria.RegistrarAccion(
                         seccion: "Inventario",
                         accion: "MODIFICAR",
@@ -706,7 +699,7 @@ namespace Nuevo_Proyecto.Models.Views
             }
         }
 
-        private void btnEliminarInvent_Click(object sender, EventArgs e)
+        private void btnEliminarInvent_Click(object? sender, EventArgs e)
         {
             //  Paso 1: verificar si hay producto cargado
             if (ProductoIDOriginal == 0 || string.IsNullOrEmpty(CodigoOriginal))
@@ -715,12 +708,12 @@ namespace Nuevo_Proyecto.Models.Views
                 return;
             }
 
-            //  Paso 2: Confirmaci√≥n inicial antes de mostrar formulario
+            //  Paso 2: ConfirmaciÛn inicial antes de mostrar formulario
             DialogResult confirmDialog = MessageBox.Show(
-                $"¬øDesea dar de baja permanentemente el producto:\n\n" +
-                $"C√≥digo: {CodigoOriginal}\n" +
+                $"øDesea dar de baja permanentemente el producto:\n\n" +
+                $"CÛdigo: {CodigoOriginal}\n" +
                 $"Nombre: {NombreOriginal}\n\n" +
-                $"Deber√° ingresar una raz√≥n v√°lida y justificada.",
+                $"Deber· ingresar una razÛn v·lida y justificada.",
                 "Confirmar baja de producto",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question
@@ -732,7 +725,7 @@ namespace Nuevo_Proyecto.Models.Views
             }
 
             //  Paso 3: pedir motivo de baja
-            // El UsuarioAutorizador ya fue obtenido en Inventario_Load y est√° guardado en SesionActual
+            // El UsuarioAutorizador ya fue obtenido en Inventario_Load y est· guardado en SesionActual
 
             // Crear y mostrar el formulario de motivo de baja del producto
             var formMotivoBaja = new Motivo_de_la_baja_del_producto();
@@ -740,20 +733,20 @@ namespace Nuevo_Proyecto.Models.Views
             {
                 string motivo = formMotivoBaja.Motivo.Trim();
 
-                // ‚úÖ VALIDACI√ìN CR√çTICA: Rechazar motivos inv√°lidos o sin raz√≥n real
+                // ? VALIDACI”N CRÕTICA: Rechazar motivos inv·lidos o sin razÛn real
                 if (string.IsNullOrWhiteSpace(motivo))
                 {
                     MessageBox.Show("No se puede dar de baja sin especificar un motivo.", "Motivo requerido");
                     return;
                 }
 
-                // Validar que el motivo sea real (no frases como "porque s√≠", "me dio la gana", etc.)
+                // Validar que el motivo sea real (no frases como "porque sÌ", "me dio la gana", etc.)
                 if (!EsMotivoValidoParaBaja(motivo))
                 {
                     MessageBox.Show(
-                        "El motivo ingresado no es v√°lido. Debe indicar una raz√≥n real y justificada.\n\n" +
-                        "Motivos v√°lidos: da√±o, caducidad, robo, obsolescencia, etc.",
-                        "Motivo sin justificaci√≥n v√°lida"
+                        "El motivo ingresado no es v·lido. Debe indicar una razÛn real y justificada.\n\n" +
+                        "Motivos v·lidos: daÒo, caducidad, robo, obsolescencia, etc.",
+                        "Motivo sin justificaciÛn v·lida"
                     );
                     return;
                 }
@@ -763,7 +756,7 @@ namespace Nuevo_Proyecto.Models.Views
                     EmpleadoID = SesionActual.EmpleadoId;
 
                     int filas = _presenter.InhabilitarProducto(
-                        ProductoIDOriginal,   //  usa el ID cargado en b√∫squeda
+                        ProductoIDOriginal,   //  usa el ID cargado en b˙squeda
                         EmpleadoID,
                         motivo
                     );
@@ -772,7 +765,7 @@ namespace Nuevo_Proyecto.Models.Views
 
                     if (filas > 0)
                     {
-                        // Registrar auditor√≠a
+                        // Registrar auditorÌa
                         _auditoria.RegistrarAccion(
                             seccion: "Inventario",
                             accion: "ELIMINAR",
@@ -789,10 +782,10 @@ namespace Nuevo_Proyecto.Models.Views
                 }
                 catch (InvalidOperationException ex)
                 {
-                    // Capturar espec√≠ficamente las excepciones de validaci√≥n de motivo
+                    // Capturar especÌficamente las excepciones de validaciÛn de motivo
                     MessageBox.Show(
                         ex.Message,
-                        "Motivo no v√°lido",
+                        "Motivo no v·lido",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Warning
                     );
@@ -805,12 +798,12 @@ namespace Nuevo_Proyecto.Models.Views
         }
 
         /// <summary>
-        /// Valida motivos de ACTUALIZACI√ìN - M√ÅS FLEXIBLE
-        /// Permite motivos operacionales sin palabras clave espec√≠ficas
+        /// Valida motivos de ACTUALIZACI”N - M¡S FLEXIBLE
+        /// Permite motivos operacionales sin palabras clave especÌficas
         /// </summary>
         /// <summary>
-        /// Valida motivos de BAJA/ELIMINACI√ìN - M√ÅS RESTRICTIVO
-        /// Requiere razones espec√≠ficas y v√°lidas
+        /// Valida motivos de BAJA/ELIMINACI”N - M¡S RESTRICTIVO
+        /// Requiere razones especÌficas y v·lidas
         /// </summary>
         private bool EsMotivoValidoParaBaja(string motivo)
         {
@@ -819,7 +812,7 @@ namespace Nuevo_Proyecto.Models.Views
 
             motivo = motivo.Trim();
 
-            // M√≠nimo 10 caracteres
+            // MÌnimo 10 caracteres
             if (motivo.Length < 10)
                 return false;
 
@@ -829,11 +822,11 @@ namespace Nuevo_Proyecto.Models.Views
 
             var motivoLower = motivo.ToLower();
 
-            // 1Ô∏è‚É£ RECHAZAR FRASES CLARAMENTE SIN RAZ√ìN V√ÅLIDA
+            // 1?? RECHAZAR FRASES CLARAMENTE SIN RAZ”N V¡LIDA
             var frasesAbsurdas = new[]
             {
-                "porque s√≠", "porque si", "me dio la gana", "me dio gana",
-                "sin raz√≥n", "sin motivo", "sin justificaci√≥n", "sin justificacion",
+                "porque sÌ", "porque si", "me dio la gana", "me dio gana",
+                "sin razÛn", "sin motivo", "sin justificaciÛn", "sin justificacion",
                 "al azar", "capricho", "aleatoriamente", "simplemente", "solo"
             };
 
@@ -843,22 +836,22 @@ namespace Nuevo_Proyecto.Models.Views
                     return false;
             }
 
-            // 2Ô∏è‚É£ DETECTAR EVASIONES INTELIGENTES - Culpar a personas 
+            // 2?? DETECTAR EVASIONES INTELIGENTES - Culpar a personas 
             var personasYAcciones = new[]
             {
                 "porque el administrador", "porque la administrador", "porque el jefe", "porque la jefa",
                 "porque el gerente", "porque el director", "porque la directora",
-                "porque alguien", "porque √©l", "porque ella", "porque yo",
-                "porque el due√±o", "porque la empresa", "porque la compa√±√≠a"
+                "porque alguien", "porque Èl", "porque ella", "porque yo",
+                "porque el dueÒo", "porque la empresa", "porque la compaÒÌa"
             };
 
             foreach (var patron in personasYAcciones)
             {
                 if (motivoLower.Contains(patron))
                 {
-                    // Si culpa a una persona, debe tener raz√≥n objetiva
-                    var razonObjetiva = new[] { "da√±o", "roto", "caducado", "vencido", "robo", "perdida",
-                        "obsoleto", "error", "defecto", "fallo", "politica", "norma", "auditor√≠a",
+                    // Si culpa a una persona, debe tener razÛn objetiva
+                    var razonObjetiva = new[] { "daÒo", "roto", "caducado", "vencido", "robo", "perdida",
+                        "obsoleto", "error", "defecto", "fallo", "politica", "norma", "auditorÌa",
                         "stock", "inventario", "control" };
                     bool tieneRazon = false;
                     foreach (var r in razonObjetiva)
@@ -869,10 +862,10 @@ namespace Nuevo_Proyecto.Models.Views
                 }
             }
 
-            // Detectar acciones vac√≠as
-            var accionesVacias = new[] { "quiso", "decidi√≥", "decidio", "se le dio la gana", "le vino en gana", "se le antoj√≥", "se le antojo" };
+            // Detectar acciones vacÌas
+            var accionesVacias = new[] { "quiso", "decidiÛ", "decidio", "se le dio la gana", "le vino en gana", "se le antojÛ", "se le antojo" };
             bool tienePersona = false;
-            foreach (var personas in new[] { "administrador", "jefe", "gerente", "director", "due√±o", "√©l", "ella", "yo" })
+            foreach (var personas in new[] { "administrador", "jefe", "gerente", "director", "dueÒo", "Èl", "ella", "yo" })
             {
                 if (motivoLower.Contains(personas)) { tienePersona = true; break; }
             }
@@ -884,18 +877,18 @@ namespace Nuevo_Proyecto.Models.Views
                 }
             }
 
-            // 3Ô∏è‚É£ VERIFICAR QUE TENGA MOTIVOS V√ÅLIDOS
+            // 3?? VERIFICAR QUE TENGA MOTIVOS V¡LIDOS
             var motivosValidos = new[]
             {
-                "da√±o", "da√±ado", "roto", "mojado", "oxidado", "deterioro",
+                "daÒo", "daÒado", "roto", "mojado", "oxidado", "deterioro",
                 "caducado", "caducidad", "vencido", "podrido", "fermentado",
                 "robo", "robado", "perdida", "perdido", "extraviado",
                 "obsoleto", "antiguo", "sin movimiento", "viejo",
                 "stock", "inventario", "agotado", "exceso",
-                "retiro", "cambio", "devoluci√≥n", "devuelto",
-                "error", "equivocaci√≥n", "confusi√≥n", "defecto", "aver√≠a",
-                "inspecci√≥n", "revisi√≥n", "auditor√≠a", "control",
-                "mantenimiento", "limpieza", "higiene", "desinfecci√≥n"
+                "retiro", "cambio", "devoluciÛn", "devuelto",
+                "error", "equivocaciÛn", "confusiÛn", "defecto", "averÌa",
+                "inspecciÛn", "revisiÛn", "auditorÌa", "control",
+                "mantenimiento", "limpieza", "higiene", "desinfecciÛn"
             };
 
             bool tieneMotivoValido = false;
@@ -907,7 +900,7 @@ namespace Nuevo_Proyecto.Models.Views
             if (!tieneMotivoValido)
                 return false;
 
-            // 4Ô∏è‚É£ DETECTAR PALABRAS INCOMPLETAS
+            // 4?? DETECTAR PALABRAS INCOMPLETAS
             foreach (var palabra in palabras)
             {
                 if (palabra.Length < 3)
@@ -917,7 +910,7 @@ namespace Nuevo_Proyecto.Models.Views
                         return false;
                 }
 
-                if (palabra.Length > 3 && (palabra.EndsWith("cad") || palabra.EndsWith("da√±") ||
+                if (palabra.Length > 3 && (palabra.EndsWith("cad") || palabra.EndsWith("daÒ") ||
                     palabra.EndsWith("rust") || palabra.EndsWith("prod")) && palabra.Length < 8)
                 {
                     if (!palabra.Equals("stock"))
@@ -925,7 +918,7 @@ namespace Nuevo_Proyecto.Models.Views
                 }
             }
 
-            // 5Ô∏è‚É£ DETECTAR SPAM - Cambios err√°ticos de may√∫scula
+            // 5?? DETECTAR SPAM - Cambios err·ticos de may˙scula
             int cambiosMayuscula = 0;
             for (int i = 1; i < motivo.Length; i++)
             {
@@ -941,7 +934,7 @@ namespace Nuevo_Proyecto.Models.Views
             return true;
         }
 
-        private void CbCategorias_SelectedIndexChanged(object sender, EventArgs e)
+        private void CbCategorias_SelectedIndexChanged(object? sender, EventArgs e)
         {
 
 
@@ -956,8 +949,8 @@ namespace Nuevo_Proyecto.Models.Views
         {
             if (this.DesignMode) return;
 
-            // Si hay una b√∫squeda activa (txtBucarInvet no est√° vac√≠o), no filtrar por categor√≠a
-            // La b√∫squeda tiene PRIORIDAD
+            // Si hay una b˙squeda activa (txtBucarInvet no est· vacÌo), no filtrar por categorÌa
+            // La b˙squeda tiene PRIORIDAD
             if (!string.IsNullOrEmpty(txtBucarInvet.Text?.Trim()))
             {
                 return;
@@ -969,13 +962,13 @@ namespace Nuevo_Proyecto.Models.Views
 
                 if (categoriaID == 0)
                 {
-                    // Mostrar slo activos con stock por defecto
-                    dataGridInventario.DataSource = FilterOnlyWithStock(_presenter.ObtenerInventarioActivo());
+                    // Mostrar ˙nicamente activos con stock por defecto; la decisiÛn de negocio va en el presenter.
+                    dataGridInventario.DataSource = _presenter.ObtenerInventarioActivoConStock();
                 }
                 else
                 {
-                    // Mostrar inventario filtrado por categora SIN filtrar por stock (incluye agotados)
-                    dataGridInventario.DataSource = _presenter.GetInventarioActivoPorCategoria(categoriaID);
+                    // Mostrar inventario filtrado por categorÌa; la lÛgica de negocio sigue en el presenter.
+                    dataGridInventario.DataSource = _presenter.ObtenerInventarioActivoPorCategoria(categoriaID, soloConStock: false);
                 }
 
                 // Ajustar apariencia de la columna Estado/Activo
@@ -1007,7 +1000,7 @@ namespace Nuevo_Proyecto.Models.Views
                         }
                     }
 
-                    // Si el producto est√° inactivo (Activo = false) mostrar "Inactivo"
+                    // Si el producto est· inactivo (Activo = false) mostrar "Inactivo"
                     if (!esActivo)
                     {
                         e.Value = "Inactivo";
@@ -1015,7 +1008,7 @@ namespace Nuevo_Proyecto.Models.Views
                         return;
                     }
 
-                    // Si est√° activo, verificar stock
+                    // Si est· activo, verificar stock
                     string estado = "Activo";
                     if (dataGridInventario.Columns.Contains("Stock") && e.RowIndex >= 0 && e.RowIndex < dataGridInventario.Rows.Count)
                     {
@@ -1035,7 +1028,7 @@ namespace Nuevo_Proyecto.Models.Views
             }
             catch
             {
-                // no propagar excepci√≥n de formateo
+                // no propagar excepciÛn de formateo
             }
 
         }
@@ -1045,7 +1038,7 @@ namespace Nuevo_Proyecto.Models.Views
             e.ThrowException = false;
         }
 
-        // Carga los datos de ediciÔøΩn desde un DataRow (usado por OnBuscarChanged del presenter)
+        // Carga los datos de edici?n desde un DataRow (usado por OnBuscarChanged del presenter)
         public void CargarDatosEdicion(System.Data.DataRow fila)
         {
             if (fila == null) return;
@@ -1068,12 +1061,12 @@ namespace Nuevo_Proyecto.Models.Views
                 txtPrecioVentas.Text = PrecioVentaOriginal.ToString("0.00");
                 txtStock.Text = StockOriginal.ToString();
                 txtMinimo.Text = StockMinimoOriginal.ToString();
-                // NO llenar cmboxCategoriaInve (es el filtro de b√∫squeda)
+                // NO llenar cmboxCategoriaInve (es el filtro de b˙squeda)
                 // cmboxCategoriaInve.SelectedValue = CategoriaOriginalID;
                 cmboxUnidad.SelectedValue = UnidadOriginalID;
                 checkBoxInventario.Checked = EstadoOriginal;
 
-                // Llenar combos de ediciÔøΩn solo con categorÔøΩas activas
+                // Llenar combos de edici?n solo con categor?as activas
                 cmboxCategorias.DisplayMember = "Nombre";
                 cmboxCategorias.ValueMember = "CategoriaID";
                 cmboxCategorias.DataSource = _presenter.GetCategoriasActivas();
@@ -1086,7 +1079,7 @@ namespace Nuevo_Proyecto.Models.Views
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al cargar datos de ediciÔøΩn: {ex.Message}");
+                MessageBox.Show($"Error al cargar datos de edici?n: {ex.Message}");
             }
         }
 
@@ -1114,7 +1107,7 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void dataGridInventario_SelectionChanged(object? sender, EventArgs e)
         {
-            // Solo cargar campos si hay m√∫ltiples resultados (resultado de b√∫squeda)
+            // Solo cargar campos si hay m˙ltiples resultados (resultado de b˙squeda)
             if (!HayMultiplesResultados)
                 return;
 
@@ -1125,7 +1118,7 @@ namespace Nuevo_Proyecto.Models.Views
                 {
                     CargarDatosEdicion(drv.Row);
 
-                    // üîñ Guardar estado original e inicializar detecci√≥n de cambios
+                    // ?? Guardar estado original e inicializar detecciÛn de cambios
                     GuardarDatosOriginalesProducto();
                     ActivarDeteccionCambiosProducto();
                 }
@@ -1133,7 +1126,7 @@ namespace Nuevo_Proyecto.Models.Views
         }
 
         /// <summary>
-        /// Guarda los datos actuales como estado original para comparar despu√©s
+        /// Guarda los datos actuales como estado original para comparar despuÈs
         /// </summary>
         private void GuardarDatosOriginalesProducto()
         {
@@ -1157,7 +1150,7 @@ namespace Nuevo_Proyecto.Models.Views
         /// <summary>
         /// Handler para detectar cualquier cambio en los datos
         /// </summary>
-        private void OnDatosChangedProducto(object sender, EventArgs e)
+        private void OnDatosChangedProducto(object? sender, EventArgs e)
         {
             if (!_datosModificados)
             {
@@ -1166,7 +1159,7 @@ namespace Nuevo_Proyecto.Models.Views
         }
 
         /// <summary>
-        /// Desactiva los listeners de detecci√≥n de cambios
+        /// Desactiva los listeners de detecciÛn de cambios
         /// </summary>
         private void DesactivarDeteccionCambiosProducto()
         {
@@ -1181,7 +1174,7 @@ namespace Nuevo_Proyecto.Models.Views
         /// <summary>
         /// Evento FormClosing para mostrar advertencia si hay cambios sin guardar
         /// </summary>
-        private void Inventario_FormClosing(object sender, FormClosingEventArgs e)
+        private void Inventario_FormClosing(object? sender, FormClosingEventArgs e)
         {
             // Si hay datos modificados, mostrar advertencia
             if (_datosModificados)
@@ -1198,14 +1191,14 @@ namespace Nuevo_Proyecto.Models.Views
                 }
                 else
                 {
-                    // Si selecciona "S√≠", limpiar estado y permitir cerrar
+                    // Si selecciona "SÌ", limpiar estado y permitir cerrar
                     DesactivarDeteccionCambiosProducto();
                     _datosModificados = false;
                 }
             }
         }
 
-        private void groupBox1_Enter(object sender, EventArgs e)
+        private void groupBox1_Enter(object? sender, EventArgs e)
         {
 
         }

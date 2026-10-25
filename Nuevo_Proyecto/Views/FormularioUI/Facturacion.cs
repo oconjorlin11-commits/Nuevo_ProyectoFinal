@@ -2,6 +2,7 @@ using Microsoft.Data.SqlClient;
 using Nuevo_Proyecto.Catalogos;
 using Nuevo_Proyecto.Models.Entities;
 using Nuevo_Proyecto.Presenters;
+using Nuevo_Proyecto.Services;
 using Nuevo_Proyecto.Services.Helpers;
 using Nuevo_Proyecto.Views.Interfaces;
 using System;
@@ -73,25 +74,19 @@ namespace Nuevo_Proyecto.Models.Views
         // Implementación de métodos de la interfaz
         public void LoadCategorias(DataTable categorias)
         {
-            cmboxCategorias.DataSource = categorias;
-            cmboxCategorias.DisplayMember = "Nombre";
-            cmboxCategorias.ValueMember = "CategoriaID";
+            ComboBoxBindingHelper.Bind(cmboxCategorias, categorias, "Nombre", "CategoriaID");
             cmboxCategorias.SelectedIndex = -1;
         }
 
         public void LoadProductosPorCategoria(DataTable productos)
         {
-            cmboxProductos.DataSource = productos;
-            cmboxProductos.DisplayMember = "Nombre";
-            cmboxProductos.ValueMember = "ProductoID";
+            ComboBoxBindingHelper.Bind(cmboxProductos, productos, "Nombre", "ProductoID");
             cmboxProductos.SelectedIndex = -1;
         }
 
         public void LoadEmpleados(DataTable empleados)
         {
-            cmboxAtendidoPor.DataSource = empleados;
-            cmboxAtendidoPor.DisplayMember = "Nombre";
-            cmboxAtendidoPor.ValueMember = "EmpleadoID";
+            ComboBoxBindingHelper.Bind(cmboxAtendidoPor, empleados, "Nombre", "EmpleadoID");
             cmboxAtendidoPor.SelectedIndex = -1;
 
             // Preseleccionar automáticamente el usuario que inició sesión
@@ -103,17 +98,13 @@ namespace Nuevo_Proyecto.Models.Views
 
         public void LoadClientes(DataTable clientes)
         {
-            cmboxClientes.DataSource = clientes;
-            cmboxClientes.DisplayMember = "Nombre";
-            cmboxClientes.ValueMember = "ClienteID";
+            ComboBoxBindingHelper.Bind(cmboxClientes, clientes, "Nombre", "ClienteID");
             cmboxClientes.SelectedIndex = -1;
         }
 
         public void LoadFormasPago(DataTable formasPago)
         {
-            comboBox2.DataSource = formasPago;
-            comboBox2.DisplayMember = "Nombre";
-            comboBox2.ValueMember = "FormaPagoID";
+            ComboBoxBindingHelper.Bind(comboBox2, formasPago, "Nombre", "FormaPagoID");
             comboBox2.SelectedIndex = -1;
         }
 
@@ -145,39 +136,39 @@ namespace Nuevo_Proyecto.Models.Views
             txtTotal.Text = subtotal.ToString("F2");
         }
 
-        private void Detalle_Factura_Load(object sender, EventArgs e)
+        private void Detalle_Factura_Load(object? sender, EventArgs e)
         {
-            // Cargar datos mediante el presenter
-            LoadCategorias(_presenter.ObtenerCategorias());
-
-            // Asegurar que el combo de categorías cargue los productos al cambiar
-            // Regla de negocio: solo cargar productos si hay categoría seleccionada
-            cmboxCategorias.SelectedIndexChanged += (s, ev) =>
+            try
             {
-                int? categoriaSeleccionada = cmboxCategorias.SelectedValue == null ? (int?)null : Convert.ToInt32(cmboxCategorias.SelectedValue);
-                var productos = _presenter.ObtenerProductosPorCategoriaSeguro(categoriaSeleccionada);
-                LoadProductosPorCategoria(productos);
-            };
+                // Cargar datos mediante el presenter con fallback automático a SQLite si SQL cae.
+                _presenter.CargarCatalogosBase(this);
+                cmboxCategorias.SelectedIndexChanged += CmboxCategorias_SelectedIndexChanged;
 
-            LoadEmpleados(_presenter.ObtenerEmpleados());
-            LoadClientes(_presenter.ObtenerClientes());
-            LoadFormasPago(_presenter.ObtenerFormasPago());
+                dataGridDetallesFacturas.Columns.Clear();
+                dataGridDetallesFacturas.Columns.Add("CodigoFactura", "Código Factura");
+                dataGridDetallesFacturas.Columns.Add("ProductoID", "ID Producto");
+                dataGridDetallesFacturas.Columns.Add("NombreProducto", "Producto");
+                dataGridDetallesFacturas.Columns.Add("Cantidad", "Cantidad");
+                dataGridDetallesFacturas.Columns.Add("PrecioUnitario", "Precio Unitario");
+                dataGridDetallesFacturas.Columns.Add("Subtotal", "Subtotal");
+                dataGridDetallesFacturas.Columns.Add("Estado", "Estado");
 
-            // Configuración del DataGridView
-            dataGridDetallesFacturas.Columns.Clear();
-            dataGridDetallesFacturas.Columns.Add("CodigoFactura", "Código Factura");
-            dataGridDetallesFacturas.Columns.Add("ProductoID", "ID Producto");
-            dataGridDetallesFacturas.Columns.Add("NombreProducto", "Producto");
-            dataGridDetallesFacturas.Columns.Add("Cantidad", "Cantidad");
-            dataGridDetallesFacturas.Columns.Add("PrecioUnitario", "Precio Unitario");
-            dataGridDetallesFacturas.Columns.Add("Subtotal", "Subtotal");
-            dataGridDetallesFacturas.Columns.Add("Estado", "Estado");
-
-            dataGridDetallesFacturas.Columns["PrecioUnitario"]!.DefaultCellStyle.Format = "C2";
-            dataGridDetallesFacturas.Columns["Subtotal"]!.DefaultCellStyle.Format = "C2";
+                dataGridDetallesFacturas.Columns["PrecioUnitario"]!.DefaultCellStyle.Format = "C2";
+                dataGridDetallesFacturas.Columns["Subtotal"]!.DefaultCellStyle.Format = "C2";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error cargando Facturación: {ex.Message}");
+                ConnectionStateManager.VerificarConexionAlServidor();
+                MessageBox.Show(
+                    "Se detectó una caída del servidor SQL Server. La facturación continuará en modo offline temporal.",
+                    "Modo Offline",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+            }
         }
 
-        private void BtnNuevoCliente_Click(object sender, EventArgs e)
+        private void BtnNuevoCliente_Click(object? sender, EventArgs e)
         {
             // Crear instancia del formulario NuevoCliente
             NuevoCliente frm = new NuevoCliente();
@@ -185,12 +176,12 @@ namespace Nuevo_Proyecto.Models.Views
         }
 
         // Método esperado por el Designer.cs para btnNuevoCliente
-        private void button1_Click(object sender, EventArgs e)
+        private void button1_Click(object? sender, EventArgs e)
         {
             BtnNuevoCliente_Click(sender, e);
         }
 
-        private void btnGuardarfact_Click(object sender, EventArgs e)
+        private void btnGuardarfact_Click(object? sender, EventArgs e)
         {
             try
             {
@@ -202,7 +193,6 @@ namespace Nuevo_Proyecto.Models.Views
                     return;
                 }
 
-                // Validaciones de campos obligatorios
                 if (cmboxAtendidoPor.SelectedValue == null || !int.TryParse(cmboxAtendidoPor.SelectedValue.ToString(), out int empleadoId) || empleadoId <= 0)
                 {
                     MessageBox.Show("Debes seleccionar un empleado válido.");
@@ -216,8 +206,6 @@ namespace Nuevo_Proyecto.Models.Views
                 }
 
                 var clienteId = ClienteSeleccionado;
-
-                // La vista solo envía producto y cantidad; precios, totales, stock y número los resuelve el repositorio
                 var lineas = dataGridDetallesFacturas.Rows.Cast<DataGridViewRow>()
                     .Where(r => !r.IsNewRow)
                     .Select(r => new Nuevo_Proyecto.Models.DTOs.LineaFacturaDto
@@ -227,14 +215,7 @@ namespace Nuevo_Proyecto.Models.Views
                     })
                     .ToList();
 
-                var resultado = _presenter.CrearFactura(new Nuevo_Proyecto.Models.DTOs.NuevaFacturaDto
-                {
-                    ClienteId = clienteId,
-                    EmpleadoId = empleadoId,
-                    FormaPagoId = formaPagoId,
-                    Observacion = string.IsNullOrWhiteSpace(Observacion) ? null : Observacion.Trim(),
-                    Lineas = lineas
-                });
+                var resultado = _presenter.GuardarFacturaDesdeVista(empleadoId, formaPagoId, clienteId, Observacion, lineas);
 
                 MessageBox.Show($"Factura guardada correctamente con código: {resultado.Numero}");
 
@@ -268,7 +249,7 @@ namespace Nuevo_Proyecto.Models.Views
             }
         }
 
-        private void btnImprimir_Click(object sender, EventArgs e)
+        private void btnImprimir_Click(object? sender, EventArgs e)
         {
             // Crear instancia del formulario FacturasEmitidas
             FacturasEmitidas frm = new FacturasEmitidas();
@@ -294,7 +275,21 @@ namespace Nuevo_Proyecto.Models.Views
             txtTotal.Text = "0.00";
         }
 
-        private void btnQuitarLinea_Click(object sender, EventArgs e)
+        private void CmboxCategorias_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            try
+            {
+                var productos = _presenter.ObtenerProductosPorCategoriaSeleccionada(CategoriaSeleccionada);
+                LoadProductosPorCategoria(productos);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error cargando productos por categoría: {ex.Message}");
+                LoadProductosPorCategoria(new DataTable());
+            }
+        }
+
+        private void btnQuitarLinea_Click(object? sender, EventArgs e)
         {
             // Quitar la(s) filas seleccionadas del detalle
             try
@@ -329,12 +324,12 @@ namespace Nuevo_Proyecto.Models.Views
             }
         }
 
-        private void btnLimpiarAll_Click(object sender, EventArgs e)
+        private void btnLimpiarAll_Click(object? sender, EventArgs e)
         {
             ResetFields();
         }
 
-        private void btnAgregarProduc_Click(object sender, EventArgs e)
+        private void btnAgregarProduc_Click(object? sender, EventArgs e)
         {
             // Validaciones obligatorias
             if (cmboxAtendidoPor.SelectedItem == null)
@@ -380,22 +375,22 @@ namespace Nuevo_Proyecto.Models.Views
             numericUpCantidad.Value = 0;
         }
 
-        private void panel1_Paint(object sender, PaintEventArgs e)
+        private void panel1_Paint(object? sender, PaintEventArgs e)
         {
         }
 
-        private void groupBox2_Enter(object sender, EventArgs e)
+        private void groupBox2_Enter(object? sender, EventArgs e)
         {
         }
 
-        private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBox2_SelectedIndexChanged(object? sender, EventArgs e)
         {
         }
 
         /// <summary>
         /// Evento FormClosing para mostrar advertencia si hay cambios sin guardar
         /// </summary>
-        private void Facturacion_FormClosing(object sender, FormClosingEventArgs e)
+        private void Facturacion_FormClosing(object? sender, FormClosingEventArgs e)
         {
             // Si hay datos modificados (productos agregados pero no guardados), mostrar advertencia
             if (_datosModificados)

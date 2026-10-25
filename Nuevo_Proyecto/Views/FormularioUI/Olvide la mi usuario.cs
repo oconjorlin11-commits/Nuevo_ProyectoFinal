@@ -294,17 +294,17 @@ namespace Nuevo_Proyecto.Views.FormularioUI
             public string? Cargo { get; set; }
         }
 
-        private void LblVerificacion_Click(object sender, EventArgs e)
+        private void LblVerificacion_Click(object? sender, EventArgs e)
         {
 
         }
 
-        private void label9_Click(object sender, EventArgs e)
+        private void label9_Click(object? sender, EventArgs e)
         {
 
         }
 
-        private void label6_Click(object sender, EventArgs e)
+        private void label6_Click(object? sender, EventArgs e)
         {
 
         }

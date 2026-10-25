@@ -151,6 +151,7 @@
             Controls.Add(label2);
             Controls.Add(TxtIngreseElMotivo);
             Name = "Motivo_de_anulcion_de_factura";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "Anular Factura";
             panel1.ResumeLayout(false);
             panel1.PerformLayout();

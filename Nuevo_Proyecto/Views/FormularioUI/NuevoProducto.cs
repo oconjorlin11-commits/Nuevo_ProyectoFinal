@@ -71,69 +71,14 @@ namespace Nuevo_Proyecto.Models.Views
         }
 
 
-        private bool ValidarCampos()
-        {
-
-            if (string.IsNullOrWhiteSpace(txtCodigoProduc.Text))
-            {
-                MensajeHelper.Validacion.CampoObligatorio("Código");
-                return false;
-            }
-
-            if (string.IsNullOrWhiteSpace(txtNombreProduct.Text))
-            {
-                MensajeHelper.Validacion.CampoObligatorio("Nombre");
-                return false;
-            }
-
-            if (!decimal.TryParse(txtPrecioProduct.Text, out decimal precioVenta) || precioVenta <= 0)
-            {
-                MensajeHelper.Validacion.RangoInvalido("Precio de venta", "Debe ser mayor a 0");
-                return false;
-            }
-
-            if (!int.TryParse(txtStockInicial.Text, out int stock) || stock < 0)
-            {
-                MensajeHelper.Validacion.RangoInvalido("Stock inicial", "No puede ser negativo");
-                return false;
-            }
-
-            if (!int.TryParse(txtStockMinimo.Text, out int minimo) || minimo < 0)
-            {
-                MensajeHelper.Validacion.RangoInvalido("Stock mínimo", "No puede ser negativo");
-                return false;
-            }
-
-            if (cmboxCategoriaProduc.SelectedValue == null || (int)cmboxCategoriaProduc.SelectedValue < 0)
-            {
-                MensajeHelper.Validacion.CampoObligatorio("Categoría");
-                return false;
-            }
-
-            if (cmboxUnidadProduct.SelectedValue == null || (int)cmboxUnidadProduct.SelectedValue < 0)
-            {
-                MensajeHelper.Validacion.CampoObligatorio("Unidad de medida");
-                return false;
-            }
-
-            // 👉 Validar que el producto esté marcado como activo
-            if (!checkBoxProductosActi.Checked)
-            {
-                MensajeHelper.Advertencia("El producto debe estar marcado como ACTIVO para poder guardarse.", "Producto inactivo");
-                return false;
-            }
-
-            return true;
-        }
-
-        private void btnCancelarProduct_Click(object sender, EventArgs e)
+        private void btnCancelarProduct_Click(object? sender, EventArgs e)
         {
             // Avisar al presenter que se canceló (si hay suscriptores)
             CancelarClicked?.Invoke(this, EventArgs.Empty);
             this.Close();
         }
 
-        private void NuevoProducto_Load(object sender, EventArgs e)
+        private void NuevoProducto_Load(object? sender, EventArgs e)
         {
             // Código automático
             txtCodigoProduc.Text = _presenter.ObtenerProximoCodigoProducto();
@@ -141,41 +86,40 @@ namespace Nuevo_Proyecto.Models.Views
 
             // Categorías - Agregar placeholder
             DataTable dtCategorias = _presenter.GetCategoriasActivas();
+            if (!dtCategorias.Columns.Contains("Nombre") || !dtCategorias.Columns.Contains("CategoriaID"))
+            {
+                dtCategorias = new DataTable();
+                dtCategorias.Columns.Add("CategoriaID", typeof(int));
+                dtCategorias.Columns.Add("Nombre", typeof(string));
+            }
+
             DataRow placeholderCat = dtCategorias.NewRow();
             placeholderCat["Nombre"] = "Seleccione una categoría";
             placeholderCat["CategoriaID"] = -1;
             dtCategorias.Rows.InsertAt(placeholderCat, 0);
-            cmboxCategoriaProduc.DataSource = dtCategorias;
-            cmboxCategoriaProduc.DisplayMember = "Nombre";
-            cmboxCategoriaProduc.ValueMember = "CategoriaID";
+            ComboBoxBindingHelper.Bind(cmboxCategoriaProduc, dtCategorias, "Nombre", "CategoriaID");
             cmboxCategoriaProduc.SelectedIndex = 0;
 
             // Unidades - Agregar placeholder
             DataTable dtUnidades = _presenter.GetUnidades();
+            if (!dtUnidades.Columns.Contains("Nombre") || !dtUnidades.Columns.Contains("UnidadID"))
+            {
+                dtUnidades = new DataTable();
+                dtUnidades.Columns.Add("UnidadID", typeof(int));
+                dtUnidades.Columns.Add("Nombre", typeof(string));
+            }
+
             DataRow placeholderUni = dtUnidades.NewRow();
             placeholderUni["Nombre"] = "Seleccione una unidad de medida";
             placeholderUni["UnidadID"] = -1;
             dtUnidades.Rows.InsertAt(placeholderUni, 0);
-            cmboxUnidadProduct.DataSource = dtUnidades;
-            cmboxUnidadProduct.DisplayMember = "Nombre";
-            cmboxUnidadProduct.ValueMember = "UnidadID";
+            ComboBoxBindingHelper.Bind(cmboxUnidadProduct, dtUnidades, "Nombre", "UnidadID");
             cmboxUnidadProduct.SelectedIndex = 0;
         }
 
-        private void btnGuardarProduc_Click(object sender, EventArgs e)
+        private void btnGuardarProduc_Click(object? sender, EventArgs e)
         {
-
-            if (!ValidarCampos())
-                return;
-
-            // 👉 Verificar que el usuario actual sea admin (validación en el presenter)
-            if (!SesionActual.EsAdministrador)
-            {
-                MensajeHelper.Permiso.AccesoDenegado("crear productos");
-                return;
-            }
-
-            // Delegar al presenter (el presenter verifica permisos y persiste)
+            // La vista solo dispara el evento; la validación y persistencia quedan en el presenter.
             GuardarClicked?.Invoke(this, EventArgs.Empty);
 
             // Verificar que el producto se guardó correctamente (UltimoProductoIDCreado será asignado)
@@ -206,7 +150,7 @@ namespace Nuevo_Proyecto.Models.Views
         /// <summary>
         /// Evento FormClosing para mostrar advertencia si hay datos sin guardar
         /// </summary>
-        private void NuevoProducto_FormClosing(object sender, FormClosingEventArgs e)
+        private void NuevoProducto_FormClosing(object? sender, FormClosingEventArgs e)
         {
             // Si la razón de cierre no es una acción del usuario, permitir cerrar
             if (e.CloseReason != CloseReason.UserClosing)

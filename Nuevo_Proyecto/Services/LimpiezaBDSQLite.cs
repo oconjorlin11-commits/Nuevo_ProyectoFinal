@@ -46,5 +46,32 @@ namespace Nuevo_Proyecto.Services
                 Console.WriteLine($"⚠️  Error al limpiar BD: {ex.Message}");
             }
         }
+
+        /// <summary>
+        /// Elimina el caché temporal de SQLite al restaurarse la conexión en vivo.
+        /// El archivo local solo sirve como respaldo temporal y debe quedar limpio al volver a SQL Server.
+        /// </summary>
+        public static void LimpiarBDTemporal()
+        {
+            EliminarBDAnterior();
+
+            try
+            {
+                string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                string folder = Path.Combine(appDataPath, "Comideria");
+                if (Directory.Exists(folder))
+                {
+                    foreach (var file in Directory.GetFiles(folder, "comideria_offline*.db*", SearchOption.TopDirectoryOnly))
+                    {
+                        try { File.Delete(file); }
+                        catch { }
+                    }
+                }
+            }
+            catch
+            {
+                // Ignorar errores de limpieza final
+            }
+        }
     }
 }

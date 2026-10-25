@@ -90,9 +90,7 @@ namespace Nuevo_Proyecto.Models.Views
 
         public void CargarNotas(DataTable notas)
         {
-            cmboxNotasClient.DataSource = notas;
-            cmboxNotasClient.DisplayMember = "Nota";
-            cmboxNotasClient.ValueMember = "Nota";
+            ComboBoxBindingHelper.Bind(cmboxNotasClient, notas, "Nota", "Nota");
             cmboxNotasClient.DropDownStyle = ComboBoxStyle.DropDown;
         }
 
@@ -105,7 +103,7 @@ namespace Nuevo_Proyecto.Models.Views
         // Carga y configuración visual de la interfaz UI (sin lógica de negocio)
         // =========================================================================
 
-        private void Clientescs_Load(object sender, EventArgs e)
+        private void Clientescs_Load(object? sender, EventArgs e)
         {
             txtCodigoClient.ReadOnly = true;
             txtCodigoClient.BackColor = Color.LightGray;
@@ -170,7 +168,7 @@ namespace Nuevo_Proyecto.Models.Views
             });
         }
 
-        private void btnNuevoClien_Click(object sender, EventArgs e)
+        private void btnNuevoClien_Click(object? sender, EventArgs e)
         {
             // No-op handler kept for clarity.
             using var frm = new NuevoCliente();
@@ -178,16 +176,16 @@ namespace Nuevo_Proyecto.Models.Views
             _presenter.CargarClientesActivos();
         }
 
-        private void btnEditarClien_Click(object sender, EventArgs e) =>
+        private void btnEditarClien_Click(object? sender, EventArgs e) =>
             EditarClicked?.Invoke(this, EventArgs.Empty);
 
-        private void btnEliminarClie_Click(object sender, EventArgs e) =>
+        private void btnEliminarClie_Click(object? sender, EventArgs e) =>
             EliminarClicked?.Invoke(this, EventArgs.Empty);
 
-        private void txtBuscarClientes_TextChanged(object sender, EventArgs e) =>
+        private void txtBuscarClientes_TextChanged(object? sender, EventArgs e) =>
             BuscarChanged?.Invoke(this, EventArgs.Empty);
 
-        private void dataGridClientes_SelectionChanged(object sender, EventArgs e)
+        private void dataGridClientes_SelectionChanged(object? sender, EventArgs e)
         {
             // Solo cargar campos si hay múltiples resultados (resultado de búsqueda)
             if (!HayMultiplesResultados)
@@ -239,7 +237,7 @@ namespace Nuevo_Proyecto.Models.Views
         /// <summary>
         /// Handler para detectar cualquier cambio en los datos
         /// </summary>
-        private void OnDatosChanged(object sender, EventArgs e)
+        private void OnDatosChanged(object? sender, EventArgs e)
         {
             if (!_datosModificados)
             {
@@ -270,12 +268,12 @@ namespace Nuevo_Proyecto.Models.Views
 
         private void label1_Click(object? sender, EventArgs e) { }
 
-        private void txtDireccionClient_TextChanged(object sender, EventArgs e)
+        private void txtDireccionClient_TextChanged(object? sender, EventArgs e)
         {
 
         }
 
-        private void groupBox1_Enter(object sender, EventArgs e)
+        private void groupBox1_Enter(object? sender, EventArgs e)
         {
 
         }
@@ -283,7 +281,7 @@ namespace Nuevo_Proyecto.Models.Views
         /// <summary>
         /// Evento FormClosing para mostrar advertencia si hay cambios sin guardar
         /// </summary>
-        private void Clientescs_FormClosing(object sender, FormClosingEventArgs e)
+        private void Clientescs_FormClosing(object? sender, FormClosingEventArgs e)
         {
             // Si hay datos modificados, mostrar advertencia
             if (_datosModificados)

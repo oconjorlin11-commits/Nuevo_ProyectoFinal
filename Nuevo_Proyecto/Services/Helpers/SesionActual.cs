@@ -7,6 +7,7 @@ namespace Nuevo_Proyecto.Services.Helpers
     {
         public static SesionUsuarioDto? Usuario { get; private set; }
         public static string? UsuarioAutorizador { get; set; }
+        public static HashSet<string> AdministradoresSistema { get; private set; } = new(StringComparer.OrdinalIgnoreCase);
 
         public static bool HaySesion => Usuario != null;
         public static int EmpleadoId => Usuario?.EmpleadoId ?? 0;
@@ -16,9 +17,41 @@ namespace Nuevo_Proyecto.Services.Helpers
 
         public static bool EsAdministrador =>
             Usuario != null &&
-            (Contiene(Usuario.Rol, "admin") || Contiene(Usuario.Cargo, "admin"));
+            (
+                Contiene(Usuario.Rol, "admin") ||
+                Contiene(Usuario.Cargo, "admin") ||
+                AdministradoresSistema.Contains(Usuario.NombreUsuario)
+            );
 
-        public static void Iniciar(SesionUsuarioDto usuario) => Usuario = usuario;
+        public static void Iniciar(SesionUsuarioDto usuario)
+        {
+            Usuario = usuario;
+            if (string.IsNullOrWhiteSpace(usuario.NombreUsuario))
+            {
+                return;
+            }
+
+            if ((usuario.Rol.Contains("admin", StringComparison.OrdinalIgnoreCase) || usuario.Cargo.Contains("admin", StringComparison.OrdinalIgnoreCase))
+                && !AdministradoresSistema.Contains(usuario.NombreUsuario))
+            {
+                AdministradoresSistema.Add(usuario.NombreUsuario);
+            }
+        }
+
+        public static void ActualizarAdministradores(IEnumerable<string>? usuarios)
+        {
+            AdministradoresSistema.Clear();
+            if (usuarios == null) return;
+
+            foreach (var usuario in usuarios)
+            {
+                if (!string.IsNullOrWhiteSpace(usuario))
+                {
+                    AdministradoresSistema.Add(usuario.Trim());
+                }
+            }
+        }
+
         public static void Cerrar()
         {
             Usuario = null;

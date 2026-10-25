@@ -1,4 +1,4 @@
-Ôªøusing System;
+using System;
 using System.Windows.Forms;
 
 namespace Nuevo_Proyecto.Views.FormularioUI
@@ -13,8 +13,8 @@ namespace Nuevo_Proyecto.Views.FormularioUI
         }
 
         /// <summary>
-        /// Valida motivos de ANULACI√ìN DE FACTURA
-        /// Menos estricto que eliminaci√≥n, pero requiere justificaci√≥n v√°lida
+        /// Valida motivos de ANULACI”N DE FACTURA
+        /// Menos estricto que eliminaciÛn, pero requiere justificaciÛn v·lida
         /// </summary>
         private bool EsMotivoValidoParaAnulacion(string motivo)
         {
@@ -24,7 +24,7 @@ namespace Nuevo_Proyecto.Views.FormularioUI
             motivo = motivo.Trim();
             var motivoLower = motivo.ToLower();
 
-            // M√≠nimo 10 caracteres (menos estricto que eliminaci√≥n de 15)
+            // MÌnimo 10 caracteres (menos estricto que eliminaciÛn de 15)
             if (motivo.Length < 10)
             {
                 MessageBox.Show(
@@ -43,11 +43,11 @@ namespace Nuevo_Proyecto.Views.FormularioUI
                 return false;
             }
 
-            // VALIDACI√ìN: Rechazar frases triviales
+            // VALIDACI”N: Rechazar frases triviales
             var frasesAbsurdas = new[]
             {
-                "porque s√≠", "porque si", "me dio la gana", "sin raz√≥n", "sin motivo",
-                "al azar", "capricho", "no lo quiero", "as√≠ nomas", "me da la gana",
+                "porque sÌ", "porque si", "me dio la gana", "sin razÛn", "sin motivo",
+                "al azar", "capricho", "no lo quiero", "asÌ nomas", "me da la gana",
                 "me da", "azar", "porque", "prueba", "test"
             };
 
@@ -56,10 +56,10 @@ namespace Nuevo_Proyecto.Views.FormularioUI
                 if (motivoLower.Contains(frase))
                 {
                     MessageBox.Show(
-                        "El motivo ingresado no es v√°lido. Debe indicar una raz√≥n real y justificada.\n\n" +
-                        "Motivos v√°lidos: cliente solicita, error en factura, duplicado, " +
-                        "datos incorrectos, devoluci√≥n de producto, anulaci√≥n autorizada, etc.",
-                        "Motivo sin justificaci√≥n v√°lida", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        "El motivo ingresado no es v·lido. Debe indicar una razÛn real y justificada.\n\n" +
+                        "Motivos v·lidos: cliente solicita, error en factura, duplicado, " +
+                        "datos incorrectos, devoluciÛn de producto, anulaciÛn autorizada, etc.",
+                        "Motivo sin justificaciÛn v·lida", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return false;
                 }
             }
@@ -77,14 +77,14 @@ namespace Nuevo_Proyecto.Views.FormularioUI
                     if (!palabrasCortas.Contains(palabra.ToLower()))
                     {
                         MessageBox.Show(
-                            "El motivo contiene palabras incompletas o inv√°lidas.",
-                            "Motivo inv√°lido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            "El motivo contiene palabras incompletas o inv·lidas.",
+                            "Motivo inv·lido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         return false;
                     }
                 }
             }
 
-            // Detectar spam (cambios err√°ticos de may√∫scula)
+            // Detectar spam (cambios err·ticos de may˙scula)
             int cambiosMayuscula = 0;
             for (int i = 1; i < motivo.Length; i++)
             {
@@ -97,12 +97,12 @@ namespace Nuevo_Proyecto.Views.FormularioUI
             if (cambiosMayuscula > 5)
             {
                 MessageBox.Show(
-                    "El motivo contiene formato inv√°lido (may√∫sculas err√°ticas).",
-                    "Motivo inv√°lido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    "El motivo contiene formato inv·lido (may˙sculas err·ticas).",
+                    "Motivo inv·lido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
 
-            // Rechazar si contiene pocos caracteres alfab√©ticos
+            // Rechazar si contiene pocos caracteres alfabÈticos
             int letraCount = 0;
             foreach (char c in motivo)
             {
@@ -111,15 +111,15 @@ namespace Nuevo_Proyecto.Views.FormularioUI
             if (letraCount < motivo.Length * 0.6)
             {
                 MessageBox.Show(
-                    "El motivo debe contener principalmente texto, no n√∫meros ni caracteres especiales.",
-                    "Formato inv√°lido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    "El motivo debe contener principalmente texto, no n˙meros ni caracteres especiales.",
+                    "Formato inv·lido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
 
             return true;
         }
 
-        private void BtnAceptar_Click(object sender, EventArgs e)
+        private void BtnAceptar_Click(object? sender, EventArgs e)
         {
             string motivo = TxtIngreseElMotivo.Text.Trim();
 
@@ -134,11 +134,11 @@ namespace Nuevo_Proyecto.Views.FormularioUI
             this.Close();
         }
 
-        private void BtnCancelar_Click(object sender, EventArgs e)
+        private void BtnCancelar_Click(object? sender, EventArgs e)
         {
             DialogResult resultado = MessageBox.Show(
-                "¬øEst√° seguro de que no desea enviar un motivo?",
-                "Confirmar cancelaci√≥n",
+                "øEst· seguro de que no desea enviar un motivo?",
+                "Confirmar cancelaciÛn",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question
             );

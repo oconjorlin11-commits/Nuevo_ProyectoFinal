@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Nuevo_Proyecto.Data;
 using Nuevo_Proyecto.Data.DbSqlite;
@@ -53,69 +54,175 @@ namespace Nuevo_Proyecto.Services
             Activo = c.Activo ?? false
         };
 
+        private static bool EsErrorDeConexion(Exception ex)
+        {
+            if (ex is SqlException sqlEx)
+            {
+                return sqlEx.Number == 0 || sqlEx.Number == 26 || sqlEx.Number == 40 || sqlEx.Number == 64
+                    || sqlEx.Message.Contains("network", StringComparison.OrdinalIgnoreCase)
+                    || sqlEx.Message.Contains("server not found", StringComparison.OrdinalIgnoreCase)
+                    || sqlEx.Message.Contains("connection timeout", StringComparison.OrdinalIgnoreCase)
+                    || sqlEx.Message.Contains("error al buscar", StringComparison.OrdinalIgnoreCase);
+            }
+
+            return ex.Message.Contains("network", StringComparison.OrdinalIgnoreCase)
+                || ex.Message.Contains("server not found", StringComparison.OrdinalIgnoreCase)
+                || ex.Message.Contains("connection timeout", StringComparison.OrdinalIgnoreCase)
+                || ex.Message.Contains("error al buscar", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private T EjecutarConsulta<T>(Func<Dev_ComideriaDbContext, T> consultaSql, Func<ComideriaSqliteContext, T> consultaSqlite)
+        {
+            if (ConnectionStateManager.UsandoSqlite || !ConnectionStateManager.VerificarConexionAlServidor())
+            {
+                using var sqlite = new ComideriaSqliteContextFactory().CreateDbContext();
+                return consultaSqlite(sqlite);
+            }
+
+            try
+            {
+                using var db = _factory.CreateDbContext();
+                return consultaSql(db);
+            }
+            catch (Exception ex) when (EsErrorDeConexion(ex))
+            {
+                ConnectionStateManager.VerificarConexionAlServidor();
+                using var sqlite = new ComideriaSqliteContextFactory().CreateDbContext();
+                return consultaSqlite(sqlite);
+            }
+        }
+
+        private IReadOnlyList<ClienteDto> EjecutarConsultaClientes(
+            Func<Dev_ComideriaDbContext, IReadOnlyList<ClienteDto>> consultaSql,
+            Func<ComideriaSqliteContext, IReadOnlyList<ClienteDto>> consultaSqlite)
+        {
+            return EjecutarConsulta(consultaSql, consultaSqlite);
+        }
+
         public IReadOnlyList<ClienteDto> GetActivos()
         {
-            using var db = _factory.CreateDbContext();
-            return db.Clientes.AsNoTracking()
-                .Where(c => c.Activo == true && c.Codigo != CodigoConsumidorFinal)
-                .OrderBy(c => c.Codigo)
-                .Select(ADto)
-                .ToList();
+            return EjecutarConsultaClientes(
+                db => db.Clientes.AsNoTracking()
+                    .Where(c => c.Activo == true && c.Codigo != CodigoConsumidorFinal)
+                    .OrderBy(c => c.Codigo)
+                    .Select(ADto)
+                    .ToList(),
+                sqlite => sqlite.Clientes.AsNoTracking()
+                    .Where(c => c.Activo == true && c.Codigo != CodigoConsumidorFinal)
+                    .OrderBy(c => c.Codigo)
+                    .Select(c => new ClienteDto
+                    {
+                        ClienteId = c.ClienteId,
+                        Codigo = c.Codigo,
+                        Nombre = c.Nombre,
+                        Telefono = c.Telefono,
+                        Direccion = c.Direccion,
+                        Nota = c.Nota,
+                        Activo = c.Activo ?? false
+                    })
+                    .ToList());
         }
 
         public IReadOnlyList<ClienteDto> BuscarPorCodigo(string codigoExacto)
         {
-            using var db = _factory.CreateDbContext();
-            return db.Clientes.AsNoTracking()
-                .Where(c => c.Codigo == codigoExacto)
-                .OrderBy(c => c.Codigo)
-                .Select(ADto)
-                .ToList();
+            return EjecutarConsultaClientes(
+                db => db.Clientes.AsNoTracking()
+                    .Where(c => c.Codigo == codigoExacto)
+                    .OrderBy(c => c.Codigo)
+                    .Select(ADto)
+                    .ToList(),
+                sqlite => sqlite.Clientes.AsNoTracking()
+                    .Where(c => c.Codigo == codigoExacto)
+                    .OrderBy(c => c.Codigo)
+                    .Select(c => new ClienteDto
+                    {
+                        ClienteId = c.ClienteId,
+                        Codigo = c.Codigo,
+                        Nombre = c.Nombre,
+                        Telefono = c.Telefono,
+                        Direccion = c.Direccion,
+                        Nota = c.Nota,
+                        Activo = c.Activo ?? false
+                    })
+                    .ToList());
         }
 
         public IReadOnlyList<ClienteDto> BuscarPorCodigoONombre(string termino)
         {
-            using var db = _factory.CreateDbContext();
-            string terminoNormalizado = termino.ToUpper();
-
-            return db.Clientes.AsNoTracking()
-                .Where(c => 
-                    c.Codigo.ToUpper().Contains(terminoNormalizado) ||
-                    c.Nombre.ToUpper().Contains(terminoNormalizado)
-                )
-                .OrderBy(c => c.Codigo)
-                .Select(ADto)
-                .ToList();
+            return EjecutarConsultaClientes(
+                db =>
+                {
+                    string terminoNormalizado = termino.ToUpper();
+                    return db.Clientes.AsNoTracking()
+                        .Where(c => c.Codigo.ToUpper().Contains(terminoNormalizado) || c.Nombre.ToUpper().Contains(terminoNormalizado))
+                        .OrderBy(c => c.Codigo)
+                        .Select(ADto)
+                        .ToList();
+                },
+                sqlite =>
+                {
+                    string terminoNormalizado = termino.ToUpper();
+                    return sqlite.Clientes.AsNoTracking()
+                        .Where(c => c.Codigo.ToUpper().Contains(terminoNormalizado) || c.Nombre.ToUpper().Contains(terminoNormalizado))
+                        .OrderBy(c => c.Codigo)
+                        .Select(c => new ClienteDto
+                        {
+                            ClienteId = c.ClienteId,
+                            Codigo = c.Codigo,
+                            Nombre = c.Nombre,
+                            Telefono = c.Telefono,
+                            Direccion = c.Direccion,
+                            Nota = c.Nota,
+                            Activo = c.Activo ?? false
+                        })
+                        .ToList();
+                });
         }
 
         public IReadOnlyList<string> GetNotas()
         {
-            using var db = _factory.CreateDbContext();
-            return db.Clientes.AsNoTracking()
-                .Select(c => c.Nota)
-                .Where(n => n != null && n != "")
-                .Distinct()
-                .OrderBy(n => n)
-                .ToList()!;
+            return EjecutarConsulta(
+                db => db.Clientes.AsNoTracking()
+                    .Select(c => c.Nota)
+                    .Where(n => n != null && n != "")
+                    .Distinct()
+                    .OrderBy(n => n)
+                    .ToList()!,
+                sqlite => sqlite.Clientes.AsNoTracking()
+                    .Select(c => c.Nota)
+                    .Where(n => n != null && n != "")
+                    .Distinct()
+                    .OrderBy(n => n)
+                    .ToList()!);
         }
 
         public string GetSiguienteCodigo()
         {
-            using var db = _factory.CreateDbContext();
-            var codigos = db.Clientes.AsNoTracking().Select(c => c.Codigo).ToList();
-            return CodigoGenerator.SiguienteAgrupado("CLI", codigos, "CLI-001");
+            return EjecutarConsulta(
+                db =>
+                {
+                    var codigos = db.Clientes.AsNoTracking().Select(c => c.Codigo).ToList();
+                    return CodigoGenerator.SiguienteAgrupado("CLI", codigos, "CLI-001");
+                },
+                sqlite =>
+                {
+                    var codigos = sqlite.Clientes.AsNoTracking().Select(c => c.Codigo).ToList();
+                    return CodigoGenerator.SiguienteAgrupado("CLI", codigos, "CLI-001");
+                });
         }
 
         public bool CodigoExiste(string codigo)
         {
-            using var db = _factory.CreateDbContext();
-            return db.Clientes.AsNoTracking().Any(c => c.Codigo == codigo);
+            return EjecutarConsulta(
+                db => db.Clientes.AsNoTracking().Any(c => c.Codigo == codigo),
+                sqlite => sqlite.Clientes.AsNoTracking().Any(c => c.Codigo == codigo));
         }
 
         public bool TelefonoExiste(string telefono)
         {
-            using var db = _factory.CreateDbContext();
-            return db.Clientes.AsNoTracking().Any(c => c.Telefono == telefono);
+            return EjecutarConsulta(
+                db => db.Clientes.AsNoTracking().Any(c => c.Telefono == telefono),
+                sqlite => sqlite.Clientes.AsNoTracking().Any(c => c.Telefono == telefono));
         }
 
         /// <summary>
@@ -370,7 +477,7 @@ namespace Nuevo_Proyecto.Services
                     Nombre = customer.Nombre,
                     Telefono = customer.Telefono,
                     Direccion = customer.Direccion ?? "N/A",
-                    Nota = customer.Nota,
+                    Nota = customer.Nota ?? string.Empty,
                     Activo = customer.Activo
                 };
 
@@ -414,7 +521,7 @@ namespace Nuevo_Proyecto.Services
                 entity.Nombre = customer.Nombre;
                 entity.Telefono = customer.Telefono;
                 entity.Direccion = customer.Direccion ?? entity.Direccion;
-                entity.Nota = customer.Nota;
+                entity.Nota = customer.Nota ?? string.Empty;
                 entity.Activo = customer.Activo;
 
                 await db.SaveChangesAsync();

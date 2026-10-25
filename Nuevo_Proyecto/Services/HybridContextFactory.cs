@@ -30,6 +30,14 @@ namespace Nuevo_Proyecto.Services
                     "SQL Server no está disponible. Use CreateSqliteContext() o restablezca la conexión."
                 );
             }
+
+            if (!ConnectionStateManager.VerificarConexionAlServidor())
+            {
+                throw new InvalidOperationException(
+                    "SQL Server no está disponible. La operación se debe ejecutar en modo SQLite temporal o esperar a la reconexión."
+                );
+            }
+
             return _sqlFactory.CreateDbContext();
         }
 
@@ -57,14 +65,12 @@ namespace Nuevo_Proyecto.Services
                         return await operacionSql(db);
                     }
                 }
-                catch (Microsoft.Data.SqlClient.SqlException ex) when (EsErrorDeConexion(ex))
+                catch (Exception ex) when (EsErrorDeConexion(ex))
                 {
-                    // Error de conexión - cambiar a SQLite
                     ConnectionStateManager.VerificarConexionAlServidor();
                 }
             }
 
-            // Usar SQLite como fallback
             using (var db = CreateSqliteContext())
             {
                 return await operacionSqlite(db);
@@ -87,14 +93,12 @@ namespace Nuevo_Proyecto.Services
                         return operacionSql(db);
                     }
                 }
-                catch (Microsoft.Data.SqlClient.SqlException ex) when (EsErrorDeConexion(ex))
+                catch (Exception ex) when (EsErrorDeConexion(ex))
                 {
-                    // Error de conexión - cambiar a SQLite
                     ConnectionStateManager.VerificarConexionAlServidor();
                 }
             }
 
-            // Usar SQLite como fallback
             using (var db = CreateSqliteContext())
             {
                 return operacionSqlite(db);
@@ -105,22 +109,26 @@ namespace Nuevo_Proyecto.Services
         /// Determina si un SqlException es de conexión (que justifica fallback a SQLite)
         /// Códigos de error comunes: 26, 40, 64, 233, 4060, 40197, 40501, 40613
         /// </summary>
-        private static bool EsErrorDeConexion(Microsoft.Data.SqlClient.SqlException ex)
+        private static bool EsErrorDeConexion(Exception ex)
         {
-            // Errores de conexión comunes en SQL Server
-            int[] erroresConexion = 
-            { 
-                26,     // Error al buscar servidor/instancia especificado
-                40,     // No se pudo establecer conexión
-                64,     // Error al comunicarse con servidor
-                233,    // La conexión se inicializó con un error
-                4060,   // No se puede abrir la base de datos
-                40197,  // Límite de recursos alcanzado
-                40501,  // Servicio ocupado
-                40613   // Base de datos no disponible
-            };
+            if (ex is Microsoft.Data.SqlClient.SqlException sqlEx)
+            {
+                int[] erroresConexion =
+                {
+                    26, 40, 64, 233, 4060, 40197, 40501, 40613
+                };
 
-            return ex.Number == 0 || erroresConexion.Contains(ex.Number) || ex.Message.Contains("network");
+                return sqlEx.Number == 0 || erroresConexion.Contains(sqlEx.Number)
+                    || sqlEx.Message.Contains("network", StringComparison.OrdinalIgnoreCase)
+                    || sqlEx.Message.Contains("server not found", StringComparison.OrdinalIgnoreCase)
+                    || sqlEx.Message.Contains("connection timeout", StringComparison.OrdinalIgnoreCase)
+                    || sqlEx.Message.Contains("error al buscar", StringComparison.OrdinalIgnoreCase);
+            }
+
+            return ex.Message.Contains("network", StringComparison.OrdinalIgnoreCase)
+                || ex.Message.Contains("server not found", StringComparison.OrdinalIgnoreCase)
+                || ex.Message.Contains("connection timeout", StringComparison.OrdinalIgnoreCase)
+                || ex.Message.Contains("error al buscar", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

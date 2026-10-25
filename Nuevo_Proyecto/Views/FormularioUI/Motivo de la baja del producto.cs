@@ -1,4 +1,4 @@
-Ôªøusing System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -36,7 +36,7 @@ namespace Nuevo_Proyecto.Views.FormularioUI
         }
 
         /// <summary>
-        /// Valida que el motivo de baja sea coherente y con raz√≥n v√°lida
+        /// Valida que el motivo de baja sea coherente y con razÛn v·lida
         /// </summary>
         private bool EsMotivoValido(string motivo)
         {
@@ -45,15 +45,15 @@ namespace Nuevo_Proyecto.Views.FormularioUI
 
             motivo = motivo.Trim();
 
-            // M√≠nimo 15 caracteres para asegurar que es un motivo real
+            // MÌnimo 15 caracteres para asegurar que es un motivo real
             if (motivo.Length < 15)
             {
-                MessageBox.Show("El motivo de baja debe tener al menos 15 caracteres. Sea m√°s descriptivo.",
+                MessageBox.Show("El motivo de baja debe tener al menos 15 caracteres. Sea m·s descriptivo.",
                     "Motivo incompleto", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
 
-            // Verificar que tenga al menos 2 palabras (es mucho m√°s flexible)
+            // Verificar que tenga al menos 2 palabras (es mucho m·s flexible)
             int cantidadPalabras = motivo.Split(" ", System.StringSplitOptions.RemoveEmptyEntries).Length;
             if (cantidadPalabras < 2)
             {
@@ -64,12 +64,12 @@ namespace Nuevo_Proyecto.Views.FormularioUI
 
             var motivoLower = motivo.ToLower();
 
-            // ‚úÖ VALIDACI√ìN: Rechazar SOLO motivos sin raz√≥n v√°lida
-            // Palabras/frases que indican falta de raz√≥n v√°lida
+            // ? VALIDACI”N: Rechazar SOLO motivos sin razÛn v·lida
+            // Palabras/frases que indican falta de razÛn v·lida
             var frasesInvalidas = new[]
             {
-                "porque s√≠", "porque si", "me dio la gana", "me dio gana", "solo porque", 
-                "sin raz√≥n", "sin motivo", "sin justificaci√≥n", "sin justificacion", "al azar", 
+                "porque sÌ", "porque si", "me dio la gana", "me dio gana", "solo porque", 
+                "sin razÛn", "sin motivo", "sin justificaciÛn", "sin justificacion", "al azar", 
                 "capricho", "just because", "for no reason", "aleatoria", "aleatoriamente",
                 "como me vino", "me vino en gana"
             };
@@ -79,8 +79,8 @@ namespace Nuevo_Proyecto.Views.FormularioUI
                 if (motivoLower.Contains(frase))
                 {
                     MessageBox.Show(
-                        "El motivo de baja no es v√°lido. Debe indicar una raz√≥n real.",
-                        "Motivo sin justificaci√≥n v√°lida", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        "El motivo de baja no es v·lido. Debe indicar una razÛn real.",
+                        "Motivo sin justificaciÛn v·lida", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return false;
                 }
             }
@@ -88,7 +88,7 @@ namespace Nuevo_Proyecto.Views.FormularioUI
             return true;
         }
 
-        private void BtnAceptar_Click(object sender, EventArgs e)
+        private void BtnAceptar_Click(object? sender, EventArgs e)
         {
             string motivo = TxtIngreseElMotivo.Text.Trim();
 
@@ -103,11 +103,11 @@ namespace Nuevo_Proyecto.Views.FormularioUI
             this.Close();
         }
 
-        private void BtnCancelar_Click(object sender, EventArgs e)
+        private void BtnCancelar_Click(object? sender, EventArgs e)
         {
             DialogResult resultado = MessageBox.Show(
-                "¬øEst√° seguro de que no desea enviar un motivo?",
-                "Confirmar cancelaci√≥n",
+                "øEst· seguro de que no desea enviar un motivo?",
+                "Confirmar cancelaciÛn",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question
             );

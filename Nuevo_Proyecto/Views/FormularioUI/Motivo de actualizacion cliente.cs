@@ -1,4 +1,4 @@
-Ôªøusing System;
+using System;
 using System.Windows.Forms;
 using Nuevo_Proyecto.Services.Helpers;
 using System.Linq;
@@ -16,8 +16,8 @@ namespace Nuevo_Proyecto.Views.FormularioUI
         }
 
         /// <summary>
-        /// Valida motivos de ACTUALIZACI√ìN - M√ÅS FLEXIBLE
-        /// Permite motivos operacionales sin palabras clave espec√≠ficas
+        /// Valida motivos de ACTUALIZACI”N - M¡S FLEXIBLE
+        /// Permite motivos operacionales sin palabras clave especÌficas
         /// </summary>
         private bool EsMotivoValido(string motivo)
         {
@@ -26,7 +26,7 @@ namespace Nuevo_Proyecto.Views.FormularioUI
 
             motivo = motivo.Trim();
 
-            // M√≠nimo 10 caracteres (flexible)
+            // MÌnimo 10 caracteres (flexible)
             if (motivo.Length < 10)
             {
                 MensajeHelper.Motivo.MotivoInvalido("Debe tener al menos 10 caracteres");
@@ -43,10 +43,10 @@ namespace Nuevo_Proyecto.Views.FormularioUI
 
             var motivoLower = motivo.ToLower();
 
-            // ‚úÖ VALIDACI√ìN: Rechazar SOLO frases absurdas sin raz√≥n
+            // ? VALIDACI”N: Rechazar SOLO frases absurdas sin razÛn
             var frasesAbsurdas = new[]
             {
-                "porque s√≠", "porque si", "me dio la gana", "sin raz√≥n", "sin motivo",
+                "porque sÌ", "porque si", "me dio la gana", "sin razÛn", "sin motivo",
                 "al azar", "capricho"
             };
 
@@ -54,17 +54,17 @@ namespace Nuevo_Proyecto.Views.FormularioUI
             {
                 if (motivoLower.Contains(frase))
                 {
-                    MensajeHelper.Motivo.MotivoInvalido("Debe indicar una raz√≥n real");
+                    MensajeHelper.Motivo.MotivoInvalido("Debe indicar una razÛn real");
                     return false;
                 }
             }
 
-            // Rechazar si culpa a persona SIN raz√≥n objetiva
+            // Rechazar si culpa a persona SIN razÛn objetiva
             if (motivoLower.Contains("porque el") || motivoLower.Contains("porque la"))
             {
                 var razonesObjetivas = new[] { 
-                    "ingreso", "error", "corregir", "correg√≠", "ajust", "cambio",
-                    "actualiz", "revisar", "correcci√≥n", "control", "verificaci√≥n", "datos"
+                    "ingreso", "error", "corregir", "corregÌ", "ajust", "cambio",
+                    "actualiz", "revisar", "correcciÛn", "control", "verificaciÛn", "datos"
                 };
                 bool tieneRazon = false;
                 foreach (var r in razonesObjetivas)
@@ -73,7 +73,7 @@ namespace Nuevo_Proyecto.Views.FormularioUI
                 }
                 if (!tieneRazon)
                 {
-                    MensajeHelper.Motivo.MotivoInvalido("No puede atribuir a una persona sin raz√≥n objetiva");
+                    MensajeHelper.Motivo.MotivoInvalido("No puede atribuir a una persona sin razÛn objetiva");
                     return false;
                 }
             }
@@ -89,13 +89,13 @@ namespace Nuevo_Proyecto.Views.FormularioUI
                     };
                     if (!palabrasCortas.Contains(palabra.ToLower()))
                     {
-                        MensajeHelper.Motivo.MotivoInvalido("Contiene palabras incompletas o inv√°lidas");
+                        MensajeHelper.Motivo.MotivoInvalido("Contiene palabras incompletas o inv·lidas");
                         return false;
                     }
                 }
             }
 
-            // Detectar spam (cambios err√°ticos de may√∫scula)
+            // Detectar spam (cambios err·ticos de may˙scula)
             int cambiosMayuscula = 0;
             for (int i = 1; i < motivo.Length; i++)
             {
@@ -107,14 +107,14 @@ namespace Nuevo_Proyecto.Views.FormularioUI
 
             if (cambiosMayuscula > 3)
             {
-                MensajeHelper.Motivo.MotivoInvalido("Formato inv√°lido (may√∫sculas err√°ticas)");
+                MensajeHelper.Motivo.MotivoInvalido("Formato inv·lido (may˙sculas err·ticas)");
                 return false;
             }
 
             return true;
         }
 
-        private void BtnAceptar_Click(object sender, EventArgs e)
+        private void BtnAceptar_Click(object? sender, EventArgs e)
         {
             string motivo = TxtIngreseElMotivo.Text.Trim();
 
@@ -129,11 +129,11 @@ namespace Nuevo_Proyecto.Views.FormularioUI
             this.Close();
         }
 
-        private void BtnCancelar_Click(object sender, EventArgs e)
+        private void BtnCancelar_Click(object? sender, EventArgs e)
         {
             DialogResult resultado = MessageBox.Show(
-                "¬øEst√° seguro de que no desea enviar un motivo?",
-                "Confirmar cancelaci√≥n",
+                "øEst· seguro de que no desea enviar un motivo?",
+                "Confirmar cancelaciÛn",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question
             );

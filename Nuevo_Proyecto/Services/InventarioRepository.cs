@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Nuevo_Proyecto.Catalogos;
 using Nuevo_Proyecto.Data;
+using Nuevo_Proyecto.Data.DbSqlite;
 using Nuevo_Proyecto.Models.DTOs;
+using Nuevo_Proyecto.Models.Entities;
 using Nuevo_Proyecto.Services.Helpers;
 using Nuevo_Proyecto.Services.Interfaz_service;
 
@@ -11,33 +13,159 @@ namespace Nuevo_Proyecto.Services
     {
         private readonly IDbContextFactory<Dev_ComideriaDbContext> _factory;
         private readonly AuditoriaService _auditoria;
+        private readonly HybridContextFactory _hybridFactory;
 
         public InventarioRepository(IDbContextFactory<Dev_ComideriaDbContext>? factory = null)
         {
             _factory = factory ?? new ComideriaContextFactory();
             _auditoria = new AuditoriaService(_factory);
+            _hybridFactory = new HybridContextFactory();
+        }
+
+        private static ProductoInventarioDto MapProductoInventario(
+            Productos producto,
+            Inventario? inventario = null,
+            MovimientoInventario? ultimoMovimiento = null)
+        {
+            var observacion = ultimoMovimiento?.Observacion ?? string.Empty;
+
+            return new ProductoInventarioDto
+            {
+                ProductoId = producto.ProductoId,
+                Codigo = producto.Codigo,
+                Nombre = producto.Nombre,
+                CategoriaId = producto.CategoriaId,
+                Categoria = producto.Categoria != null ? producto.Categoria.Nombre : string.Empty,
+                UnidadId = producto.UnidadId,
+                Unidad = producto.Unidade != null ? producto.Unidade.Nombre : string.Empty,
+                PrecioVenta = producto.PrecioVenta,
+                Stock = inventario != null ? inventario.Stock : 0,
+                StockMinimo = inventario != null ? inventario.StockMinimo : 0,
+                Activo = producto.Activo ?? false,
+                Observacion = observacion
+            };
+        }
+
+        private static List<ProductoInventarioDto> MaterializarProductos(
+            IEnumerable<Productos> productos,
+            IReadOnlyDictionary<int, Inventario> inventariosPorProducto,
+            IReadOnlyDictionary<int, MovimientoInventario> movimientosPorProducto)
+        {
+            return productos
+                .Select(p =>
+                {
+                    inventariosPorProducto.TryGetValue(p.ProductoId, out var inventario);
+                    movimientosPorProducto.TryGetValue(p.ProductoId, out var ultimoMovimiento);
+                    return MapProductoInventario(p, inventario, ultimoMovimiento);
+                })
+                .ToList();
+        }
+
+        private static IReadOnlyDictionary<int, Inventario> ObtenerInventarioPorProductoSql(Dev_ComideriaDbContext db, IEnumerable<Productos> productos)
+        {
+            var ids = productos.Select(p => p.ProductoId).ToList();
+            return db.Inventario.AsNoTracking()
+                .Where(i => ids.Contains(i.ProductoId))
+                .ToList()
+                .GroupBy(i => i.ProductoId)
+                .ToDictionary(g => g.Key, g => g.First());
+        }
+
+        private static IReadOnlyDictionary<int, Inventario> ObtenerInventarioPorProductoSqlite(ComideriaSqliteContext db, IEnumerable<Productos> productos)
+        {
+            var ids = productos.Select(p => p.ProductoId).ToList();
+            return db.Inventario.AsNoTracking()
+                .Where(i => ids.Contains(i.ProductoId))
+                .ToList()
+                .GroupBy(i => i.ProductoId)
+                .ToDictionary(g => g.Key, g => g.First());
+        }
+
+        private static IReadOnlyDictionary<int, MovimientoInventario> ObtenerUltimoMovimientoPorProductoSql(Dev_ComideriaDbContext db, IEnumerable<Productos> productos)
+        {
+            var ids = productos.Select(p => p.ProductoId).ToList();
+            return db.MovimientoInventarios.AsNoTracking()
+                .Where(m => ids.Contains(m.ProductoId))
+                .ToList()
+                .GroupBy(m => m.ProductoId)
+                .ToDictionary(g => g.Key, g => g.OrderByDescending(m => m.Fecha).First());
+        }
+
+        private static IReadOnlyDictionary<int, MovimientoInventario> ObtenerUltimoMovimientoPorProductoSqlite(ComideriaSqliteContext db, IEnumerable<Productos> productos)
+        {
+            return new Dictionary<int, MovimientoInventario>();
         }
 
         public IReadOnlyList<ProductoInventarioDto> GetTodos()
         {
-            using var db = _factory.CreateDbContext();
-            return db.Productos.AsNoTracking().OrderBy(p => p.Nombre)
-                .Select(Proyecciones.ProductoInventario).ToList();
+            if (ConnectionStateManager.UsandoSqlite || !ConnectionStateManager.VerificarConexionAlServidor())
+            {
+                using var sqlite = _hybridFactory.CreateSqliteContext();
+                var productos = sqlite.Productos.AsNoTracking().OrderBy(p => p.Nombre).ToList();
+                return MaterializarProductos(productos, ObtenerInventarioPorProductoSqlite(sqlite, productos), ObtenerUltimoMovimientoPorProductoSqlite(sqlite, productos));
+            }
+
+            try
+            {
+                using var db = _factory.CreateDbContext();
+                var productos = db.Productos.AsNoTracking().OrderBy(p => p.Nombre).ToList();
+                return MaterializarProductos(productos, ObtenerInventarioPorProductoSql(db, productos), ObtenerUltimoMovimientoPorProductoSql(db, productos));
+            }
+            catch
+            {
+                using var sqlite = _hybridFactory.CreateSqliteContext();
+                var productos = sqlite.Productos.AsNoTracking().OrderBy(p => p.Nombre).ToList();
+                return MaterializarProductos(productos, ObtenerInventarioPorProductoSqlite(sqlite, productos), ObtenerUltimoMovimientoPorProductoSqlite(sqlite, productos));
+            }
         }
 
         public IReadOnlyList<ProductoInventarioDto> GetActivos()
         {
-            using var db = _factory.CreateDbContext();
-            return db.Productos.AsNoTracking().Where(p => p.Activo == true).OrderBy(p => p.Codigo)
-                .Select(Proyecciones.ProductoInventario).ToList();
+            if (ConnectionStateManager.UsandoSqlite || !ConnectionStateManager.VerificarConexionAlServidor())
+            {
+                using var sqlite = _hybridFactory.CreateSqliteContext();
+                var productos = sqlite.Productos.AsNoTracking().Where(p => p.Activo == true).OrderBy(p => p.Codigo).ToList();
+                return MaterializarProductos(productos, ObtenerInventarioPorProductoSqlite(sqlite, productos), ObtenerUltimoMovimientoPorProductoSqlite(sqlite, productos));
+            }
+
+            try
+            {
+                using var db = _factory.CreateDbContext();
+                var productos = db.Productos.AsNoTracking().Where(p => p.Activo == true).OrderBy(p => p.Codigo).ToList();
+                return MaterializarProductos(productos, ObtenerInventarioPorProductoSql(db, productos), ObtenerUltimoMovimientoPorProductoSql(db, productos));
+            }
+            catch
+            {
+                using var sqlite = _hybridFactory.CreateSqliteContext();
+                var productos = sqlite.Productos.AsNoTracking().Where(p => p.Activo == true).OrderBy(p => p.Codigo).ToList();
+                return MaterializarProductos(productos, ObtenerInventarioPorProductoSqlite(sqlite, productos), ObtenerUltimoMovimientoPorProductoSqlite(sqlite, productos));
+            }
         }
 
         public IReadOnlyList<ProductoInventarioDto> GetActivosPorCategoria(int categoriaId)
         {
-            using var db = _factory.CreateDbContext();
-            return db.Productos.AsNoTracking()
-                .Where(p => p.Activo == true && p.CategoriaId == categoriaId).OrderBy(p => p.Nombre)
-                .Select(Proyecciones.ProductoInventario).ToList();
+            if (categoriaId <= 0)
+                return new List<ProductoInventarioDto>();
+
+            if (ConnectionStateManager.UsandoSqlite || !ConnectionStateManager.VerificarConexionAlServidor())
+            {
+                using var sqlite = _hybridFactory.CreateSqliteContext();
+                var productos = sqlite.Productos.AsNoTracking().Where(p => p.Activo == true && p.CategoriaId == categoriaId).OrderBy(p => p.Nombre).ToList();
+                return MaterializarProductos(productos, ObtenerInventarioPorProductoSqlite(sqlite, productos), ObtenerUltimoMovimientoPorProductoSqlite(sqlite, productos));
+            }
+
+            try
+            {
+                using var db = _factory.CreateDbContext();
+                var productos = db.Productos.AsNoTracking().Where(p => p.Activo == true && p.CategoriaId == categoriaId).OrderBy(p => p.Nombre).ToList();
+                return MaterializarProductos(productos, ObtenerInventarioPorProductoSql(db, productos), ObtenerUltimoMovimientoPorProductoSql(db, productos));
+            }
+            catch
+            {
+                using var sqlite = _hybridFactory.CreateSqliteContext();
+                var productos = sqlite.Productos.AsNoTracking().Where(p => p.Activo == true && p.CategoriaId == categoriaId).OrderBy(p => p.Nombre).ToList();
+                return MaterializarProductos(productos, ObtenerInventarioPorProductoSqlite(sqlite, productos), ObtenerUltimoMovimientoPorProductoSqlite(sqlite, productos));
+            }
         }
 
         public IReadOnlyList<ProductoInventarioDto> Buscar(string texto)

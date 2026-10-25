@@ -74,6 +74,24 @@ namespace Nuevo_Proyecto.Presenters
         public DataTable ObtenerProductosPorCategoria(int categoriaId) =>
             DataTableMapper.ProductosParaVenta(_productos.GetActivosPorCategoria(categoriaId));
 
+        public void CargarCatalogosBase(IFacturacionView view)
+        {
+            if (view == null) return;
+
+            view.LoadCategorias(ObtenerCategorias());
+            view.LoadEmpleados(ObtenerEmpleados());
+            view.LoadClientes(ObtenerClientes());
+            view.LoadFormasPago(ObtenerFormasPago());
+        }
+
+        public DataTable ObtenerProductosPorCategoriaSeleccionada(int? categoriaId)
+        {
+            if (!categoriaId.HasValue || categoriaId.Value <= 0)
+                return new DataTable();
+
+            return ObtenerProductosPorCategoriaSeguro(categoriaId.Value);
+        }
+
         /// <summary>
         /// Obtiene productos de una categoría aplicando regla de negocio:
         /// Si no hay categoría seleccionada, retorna DataTable vacío.
@@ -100,6 +118,37 @@ namespace Nuevo_Proyecto.Presenters
 
         /// <summary>Guarda la factura (descuenta stock, registra movimientos y auditoría en una sola transacción).</summary>
         public ResultadoFacturaDto CrearFactura(NuevaFacturaDto factura) => _facturas.Crear(factura);
+
+        public ResultadoFacturaDto GuardarFacturaDesdeVista(int empleadoId, int formaPagoId, int? clienteId, string? observacion, IEnumerable<LineaFacturaDto> lineas)
+        {
+            if (empleadoId <= 0)
+                throw new InvalidOperationException("Debe seleccionar un empleado válido.");
+
+            if (formaPagoId <= 0)
+                throw new InvalidOperationException("Debe seleccionar una forma de pago válida.");
+
+            if (lineas == null || !lineas.Any())
+                throw new InvalidOperationException("No hay líneas de factura para guardar.");
+
+            var factura = new NuevaFacturaDto
+            {
+                ClienteId = clienteId,
+                EmpleadoId = empleadoId,
+                FormaPagoId = formaPagoId,
+                Observacion = string.IsNullOrWhiteSpace(observacion) ? null : observacion.Trim(),
+                Lineas = lineas.ToList()
+            };
+
+            return CrearFactura(factura);
+        }
+
+        public decimal ObtenerPrecioProductoSeleccionado(int productoId)
+        {
+            if (productoId <= 0)
+                throw new InvalidOperationException("Debe seleccionar un producto válido.");
+
+            return ObtenerPrecioProducto(productoId);
+        }
 
         public void AnularFactura(string numero, string motivo) =>
             _facturas.Anular(numero, Services.Helpers.SesionActual.EmpleadoORespaldo(0), motivo);

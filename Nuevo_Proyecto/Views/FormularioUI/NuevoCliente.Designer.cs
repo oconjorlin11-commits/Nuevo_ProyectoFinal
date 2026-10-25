@@ -1,11 +1,13 @@
-ï»¿namespace Nuevo_Proyecto.Models.Views
+#nullable enable
+
+namespace Nuevo_Proyecto.Models.Views
 {
     partial class NuevoCliente
     {
         /// <summary>
         /// Required designer variable.
         /// </summary>
-        private System.ComponentModel.IContainer components = null;
+        private System.ComponentModel.IContainer? components = null;
 
         /// <summary>
         /// Clean up any resources being used.
@@ -137,7 +139,7 @@
             txtNombreClient.Location = new Point(196, 240);
             txtNombreClient.Margin = new Padding(2, 2, 2, 2);
             txtNombreClient.Name = "txtNombreClient";
-            txtNombreClient.PlaceholderText = "Ej: Juan PÃ©rez";
+            txtNombreClient.PlaceholderText = "Ej: Juan Pérez";
             txtNombreClient.Size = new Size(236, 31);
             txtNombreClient.TabIndex = 39;
             // 
@@ -253,7 +255,7 @@
             label7.Name = "label7";
             label7.Size = new Size(287, 50);
             label7.TabIndex = 54;
-            label7.Text = "Ingrese los datos del nuevo cliente \r\nen los campos vacÃ­os";
+            label7.Text = "Ingrese los datos del nuevo cliente \r\nen los campos vacíos";
             // 
             // NuevoCliente
             // 
@@ -288,44 +290,44 @@
             PerformLayout();
         }
 
-        private void cmboxNota_SelectedIndexChanged(object sender, EventArgs e)
+        private void cmboxNota_SelectedIndexChanged(object? sender, EventArgs e)
         {
             // No action required on designer-side; event exists for future logic in the form class.
         }
 
-        private void checboxActico_CheckedChanged(object sender, EventArgs e)
+        private void checboxActico_CheckedChanged(object? sender, EventArgs e)
         {
             throw new NotImplementedException();
         }
 
-        private void txtDireccionClient_TextChanged(object sender, EventArgs e)
+        private void txtDireccionClient_TextChanged(object? sender, EventArgs e)
         {
             throw new NotImplementedException();
         }
 
-        private void txtTelefonoClient_TextChanged(object sender, EventArgs e)
+        private void txtTelefonoClient_TextChanged(object? sender, EventArgs e)
         {
             throw new NotImplementedException();
         }
 
         #endregion
 
-        private Button btnCancelarClient;
-        private Button btnGuardarClient;
-        private Label label5;
-        private Label label3;
-        private TextBox txtTelefonoClient;
-        private Label label2;
-        private TextBox txtNombreClient;
-        private Label label1;
-        private TextBox txtCodigoClient;
-        private Label label4;
-        private TextBox txtDireccionClient;
-        private PictureBox pictureBox1;
-        private CheckBox checboxActico;
-        private ComboBox cmboxNota;
-        private Panel panel1;
-        private Label label6;
-        private Label label7;
+        private Button btnCancelarClient = null!;
+        private Button btnGuardarClient = null!;
+        private Label label5 = null!;
+        private Label label3 = null!;
+        private TextBox txtTelefonoClient = null!;
+        private Label label2 = null!;
+        private TextBox txtNombreClient = null!;
+        private Label label1 = null!;
+        private TextBox txtCodigoClient = null!;
+        private Label label4 = null!;
+        private TextBox txtDireccionClient = null!;
+        private PictureBox pictureBox1 = null!;
+        private CheckBox checboxActico = null!;
+        private ComboBox cmboxNota = null!;
+        private Panel panel1 = null!;
+        private Label label6 = null!;
+        private Label label7 = null!;
     }
 }

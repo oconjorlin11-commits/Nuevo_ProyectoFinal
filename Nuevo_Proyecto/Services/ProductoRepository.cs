@@ -12,11 +12,13 @@ namespace Nuevo_Proyecto.Services
     {
         private readonly IDbContextFactory<Dev_ComideriaDbContext> _factory;
         private readonly AuditoriaService _auditoria;
+        private readonly HybridContextFactory _hybridFactory;
 
         public ProductoRepository(IDbContextFactory<Dev_ComideriaDbContext>? factory = null)
         {
             _factory = factory ?? new ComideriaContextFactory();
             _auditoria = new AuditoriaService(_factory);
+            _hybridFactory = new HybridContextFactory();
         }
 
         public string GetSiguienteCodigo()
@@ -151,12 +153,87 @@ namespace Nuevo_Proyecto.Services
 
         public IReadOnlyList<ProductoInventarioDto> GetActivosPorCategoria(int categoriaId)
         {
-            using var db = _factory.CreateDbContext();
-            return db.Productos.AsNoTracking()
-                .Where(p => p.Activo == true && p.CategoriaId == categoriaId)
-                .OrderBy(p => p.Nombre)
-                .Select(Proyecciones.ProductoInventario)
-                .ToList();
+            if (categoriaId <= 0)
+                return new List<ProductoInventarioDto>();
+
+            return _hybridFactory.EjecutarConFallbackSync(
+                sqlDb =>
+                {
+                    var productos = sqlDb.Productos.AsNoTracking()
+                        .Where(p => p.Activo == true && p.CategoriaId == categoriaId)
+                        .OrderBy(p => p.Nombre)
+                        .ToList();
+
+                    var ids = productos.Select(p => p.ProductoId).ToList();
+                    var inventarios = sqlDb.Inventario.AsNoTracking()
+                        .Where(i => ids.Contains(i.ProductoId))
+                        .ToList();
+                    var movimientos = sqlDb.MovimientoInventarios.AsNoTracking()
+                        .Where(m => ids.Contains(m.ProductoId))
+                        .ToList();
+
+                    var inventarioPorProducto = inventarios.GroupBy(i => i.ProductoId).ToDictionary(g => g.Key, g => g.First());
+                    var ultimoMovimientoPorProducto = movimientos
+                        .GroupBy(m => m.ProductoId)
+                        .ToDictionary(g => g.Key, g => g.OrderByDescending(m => m.Fecha).First());
+
+                    return productos.Select(p =>
+                    {
+                        inventarioPorProducto.TryGetValue(p.ProductoId, out var inventario);
+                        ultimoMovimientoPorProducto.TryGetValue(p.ProductoId, out var ultimoMovimiento);
+
+                        return new ProductoInventarioDto
+                        {
+                            ProductoId = p.ProductoId,
+                            Codigo = p.Codigo,
+                            Nombre = p.Nombre,
+                            CategoriaId = p.CategoriaId,
+                            Categoria = p.Categoria != null ? p.Categoria.Nombre : string.Empty,
+                            UnidadId = p.UnidadId,
+                            Unidad = p.Unidade != null ? p.Unidade.Nombre : string.Empty,
+                            PrecioVenta = p.PrecioVenta,
+                            Stock = inventario != null ? inventario.Stock : 0,
+                            StockMinimo = inventario != null ? inventario.StockMinimo : 0,
+                            Activo = p.Activo ?? false,
+                            Observacion = ultimoMovimiento?.Observacion ?? string.Empty
+                        };
+                    }).ToList();
+                },
+                sqliteDb =>
+                {
+                    var productos = sqliteDb.Productos.AsNoTracking()
+                        .Where(p => p.Activo == true && p.CategoriaId == categoriaId)
+                        .OrderBy(p => p.Nombre)
+                        .ToList();
+
+                    var ids = productos.Select(p => p.ProductoId).ToList();
+                    var inventarios = sqliteDb.Inventario.AsNoTracking()
+                        .Where(i => ids.Contains(i.ProductoId))
+                        .ToList();
+
+                    var inventarioPorProducto = inventarios.GroupBy(i => i.ProductoId).ToDictionary(g => g.Key, g => g.First());
+
+                    return productos.Select(p =>
+                    {
+                        inventarioPorProducto.TryGetValue(p.ProductoId, out var inventario);
+
+                        return new ProductoInventarioDto
+                        {
+                            ProductoId = p.ProductoId,
+                            Codigo = p.Codigo,
+                            Nombre = p.Nombre,
+                            CategoriaId = p.CategoriaId,
+                            Categoria = p.Categoria != null ? p.Categoria.Nombre : string.Empty,
+                            UnidadId = p.UnidadId,
+                            Unidad = p.Unidade != null ? p.Unidade.Nombre : string.Empty,
+                            PrecioVenta = p.PrecioVenta,
+                            Stock = inventario != null ? inventario.Stock : 0,
+                            StockMinimo = inventario != null ? inventario.StockMinimo : 0,
+                            Activo = p.Activo ?? false,
+                            Observacion = string.Empty
+                        };
+                    }).ToList();
+                });
         }
 
         /// <summary>

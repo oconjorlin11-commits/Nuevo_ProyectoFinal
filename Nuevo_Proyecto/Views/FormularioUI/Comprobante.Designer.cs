@@ -1,11 +1,13 @@
-﻿namespace Nuevo_Proyecto.Models.Views
+#nullable enable
+
+namespace Nuevo_Proyecto.Models.Views
 {
     partial class Comprobante
     {
         /// <summary>
         /// Required designer variable.
         /// </summary>
-        private System.ComponentModel.IContainer components = null;
+        private System.ComponentModel.IContainer? components = null;
 
         /// <summary>
         /// Clean up any resources being used.
@@ -478,7 +480,7 @@
             ResumeLayout(false);
         }
 
-        private void btnExportar_Click(object sender, EventArgs e)
+        private void btnExportar_Click(object? sender, EventArgs e)
         {
             throw new NotImplementedException();
         }

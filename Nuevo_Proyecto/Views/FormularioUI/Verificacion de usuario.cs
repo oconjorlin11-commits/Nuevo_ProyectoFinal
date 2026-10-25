@@ -1,4 +1,4 @@
-ï»¿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -17,6 +17,8 @@ namespace Nuevo_Proyecto.Views.FormularioUI
     {
         private readonly IAuthService _auth;
         public string AdminNombreVerificado { get; private set; } = string.Empty;
+        public string UsuarioEspecial => TxtUsuarioEspecial.Text.Trim();
+        public string ClaveEspecial => TxtContraseñaEspecial.Text;
 
         public Verificacion_de_usuario()
         {
@@ -139,15 +141,15 @@ namespace Nuevo_Proyecto.Views.FormularioUI
                     return;
                 }
 
-                if (string.IsNullOrWhiteSpace(TxtContraseÃ±aEspecial.Text))
+                if (string.IsNullOrWhiteSpace(TxtContraseñaEspecial.Text))
                 {
-                    MensajeHelper.Validacion.CampoObligatorio("ContraseÃ±a");
-                    TxtContraseÃ±aEspecial.Focus();
+                    MensajeHelper.Validacion.CampoObligatorio("Contraseña");
+                    TxtContraseñaEspecial.Focus();
                     return;
                 }
 
                 // Validar credenciales del usuario
-                var resultadoAuth = _auth.Autenticar(TxtUsuarioEspecial.Text, TxtContraseÃ±aEspecial.Text);
+                var resultadoAuth = _auth.Autenticar(TxtUsuarioEspecial.Text, TxtContraseñaEspecial.Text);
 
                 if (!resultadoAuth.Exitoso || resultadoAuth.Sesion == null)
                 {
@@ -158,13 +160,13 @@ namespace Nuevo_Proyecto.Views.FormularioUI
                 // Usuario encontrado y autenticado correctamente
                 LblRespUsuario.Text = resultadoAuth.Sesion.NombreUsuario ?? "N/A";
 
-                // ðŸ‘‰ Guardar el nombre del admin verificado
+                // ?? Guardar el nombre del admin verificado
                 AdminNombreVerificado = resultadoAuth.Sesion.NombreEmpleado ?? resultadoAuth.Sesion.NombreUsuario ?? "Desconocido";
 
                 // Mostrar resultados en verde
                 MostrarResultadosExitosos();
 
-                // Cerrar el diÃ¡logo con resultado OK despuÃ©s de un breve tiempo para que el usuario vea el resultado exitoso
+                // Cerrar el diálogo con resultado OK después de un breve tiempo para que el usuario vea el resultado exitoso
                 await Task.Delay(1500);
                 this.DialogResult = DialogResult.OK;
                 this.Close();
@@ -176,17 +178,17 @@ namespace Nuevo_Proyecto.Views.FormularioUI
             }
         }
 
-        private void label2_Click(object sender, EventArgs e)
+        private void label2_Click(object? sender, EventArgs e)
         {
 
         }
 
-        private void GbVerificacion_Enter(object sender, EventArgs e)
+        private void GbVerificacion_Enter(object? sender, EventArgs e)
         {
 
         }
 
-        private void Verificacion_de_usuario_Load(object sender, EventArgs e)
+        private void Verificacion_de_usuario_Load(object? sender, EventArgs e)
         {
 
         }

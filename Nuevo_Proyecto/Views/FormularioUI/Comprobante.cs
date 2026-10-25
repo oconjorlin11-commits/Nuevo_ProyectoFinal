@@ -1,3 +1,5 @@
+#pragma warning disable CS8618, CS8625
+
 using Nuevo_Proyecto.Presenters;
 using Nuevo_Proyecto.Views.Interfaces;
 using iTextSharp.text;
@@ -62,7 +64,7 @@ namespace Nuevo_Proyecto.Models.Views
             }
         }
 
-        private void Comprobante_Shown(object sender, EventArgs e)
+        private void Comprobante_Shown(object? sender, EventArgs e)
         {
             // Cargar datos en tiempo real cuando el formulario se muestra
             if (!string.IsNullOrWhiteSpace(_facturaCodigo))
@@ -162,24 +164,24 @@ namespace Nuevo_Proyecto.Models.Views
         }
 
 
-        private void button3_Click(object sender, EventArgs e)
+        private void button3_Click(object? sender, EventArgs e)
         {
             this.Close();
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void button1_Click(object? sender, EventArgs e)
         {
             // Exportar a Excel
             ExportarAExcel();
         }
 
-        private void btnImprimir_Click(object sender, EventArgs e)
+        private void btnImprimir_Click(object? sender, EventArgs e)
         {
             // Abre el PDF directamente para imprimir sin diálogo de guardar
             ExportarAPDFParaImprimir();
         }
 
-        private void BtnExportar_Click(object sender, EventArgs e)
+        private void BtnExportar_Click(object? sender, EventArgs e)
         {
             try
             {
@@ -395,17 +397,17 @@ namespace Nuevo_Proyecto.Models.Views
 
 
 
-        private void pnlComprobante_Paint(object sender, PaintEventArgs e)
+        private void pnlComprobante_Paint(object? sender, PaintEventArgs e)
         {
 
         }
 
-        private void pnlFactura_Paint(object sender, PaintEventArgs e)
+        private void pnlFactura_Paint(object? sender, PaintEventArgs e)
         {
 
         }
 
-        private void FromComprobante_Load_1(object sender, EventArgs e)
+        private void FromComprobante_Load_1(object? sender, EventArgs e)
         {
             try
             {
@@ -649,22 +651,22 @@ namespace Nuevo_Proyecto.Models.Views
             }
         }
 
-        private void lblGracias_Click(object sender, EventArgs e)
+        private void lblGracias_Click(object? sender, EventArgs e)
         {
 
         }
 
-        private void lblTotal_Click(object sender, EventArgs e)
+        private void lblTotal_Click(object? sender, EventArgs e)
         {
 
         }
 
-        private void Comprobante_Load(object sender, EventArgs e)
+        private void Comprobante_Load(object? sender, EventArgs e)
         {
 
         }
 
-        private void lblSubtitulo_Click(object sender, EventArgs e)
+        private void lblSubtitulo_Click(object? sender, EventArgs e)
         {
 
         }

@@ -144,7 +144,7 @@ namespace Nuevo_Proyecto.Views.FormularioUI
             return true;
         }
 
-        private void BtnAceptar_Click(object sender, EventArgs e)
+        private void BtnAceptar_Click(object? sender, EventArgs e)
         {
             string motivo = TxtIngreseElMotivo.Text.Trim();
 
@@ -159,7 +159,7 @@ namespace Nuevo_Proyecto.Views.FormularioUI
             this.Close();
         }
 
-        private void BtnCancelar_Click(object sender, EventArgs e)
+        private void BtnCancelar_Click(object? sender, EventArgs e)
         {
             DialogResult resultado = MessageBox.Show(
                 "¿Está seguro de que no desea enviar un motivo?",

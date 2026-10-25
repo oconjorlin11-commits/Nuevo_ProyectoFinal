@@ -4,6 +4,7 @@ using Nuevo_Proyecto.Models.DTOs;
 using Nuevo_Proyecto.Services.Helpers;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 
 namespace Nuevo_Proyecto.Services
 {
@@ -15,6 +16,7 @@ namespace Nuevo_Proyecto.Services
     {
         private readonly ComideriaSqliteContextFactory _sqliteFactory;
         private const string SALT_CLAVE = "COMIDERIA_2024_SALT_CLAVE_SEGURA";
+        private const string CLAVE_ADMINISTRADORES_SISTEMA = "ADMINISTRADORES_SISTEMA";
 
         // Clase auxiliar para mapear resultados de SQL query
         private sealed class ResultadoUsuarioOffline
@@ -49,7 +51,7 @@ namespace Nuevo_Proyecto.Services
             {
                 using (var sqlite = _sqliteFactory.CreateDbContext())
                 {
-                    // Buscar usuario por NombreUsuario en la tabla Usuarios
+                    var ultimoUsuario = ObtenerUltimoUsuario();
                     var usuarioData = sqlite.Usuarios
                         .Where(u => u.NombreUsuario.ToUpper() == usuario.ToUpper() && u.Activo)
                         .Join(
@@ -71,29 +73,74 @@ namespace Nuevo_Proyecto.Services
                         .FirstOrDefault();
 
                     if (usuarioData == null)
-                        return Fallo("Usuario no encontrado localmente.");
+                    {
+                        var ultimoGuardado = !string.IsNullOrWhiteSpace(ultimoUsuario) ? ultimoUsuario.Trim() : null;
+                        if (!string.IsNullOrWhiteSpace(ultimoGuardado) &&
+                            string.Equals(ultimoGuardado, usuario, StringComparison.OrdinalIgnoreCase))
+                        {
+                            var sesionRecuperada = new SesionUsuarioDto
+                            {
+                                EmpleadoId = 0,
+                                CodigoEmpleado = string.Empty,
+                                NombreEmpleado = ultimoGuardado,
+                                NombreUsuario = ultimoGuardado,
+                                Rol = "Offline",
+                                Cargo = "Offline"
+                            };
 
-                    // Validar contraseña (comparación directa con texto plano)
+                            SesionActual.Iniciar(sesionRecuperada);
+                            SesionActual.ActualizarAdministradores(ObtenerAdministradoresSistema());
+                            return new ResultadoLoginDto { Exitoso = true, Mensaje = "⚠️ Sesión recuperada en modo offline.", Sesion = sesionRecuperada };
+                        }
+
+                        return Fallo("Usuario no encontrado localmente.");
+                    }
+
                     bool valido = !string.IsNullOrEmpty(usuarioData.Contrasena)
                                  && string.Equals(usuarioData.Contrasena.Trim(), contrasena, StringComparison.Ordinal);
 
                     if (!valido)
-                        return Fallo("Contraseña incorrecta.");
+                    {
+                        var ultimoGuardado = !string.IsNullOrWhiteSpace(ultimoUsuario) ? ultimoUsuario.Trim() : null;
+                        if (!string.IsNullOrWhiteSpace(ultimoGuardado) &&
+                            string.Equals(ultimoGuardado, usuario, StringComparison.OrdinalIgnoreCase))
+                        {
+                            var sesionRecuperada = new SesionUsuarioDto
+                            {
+                                EmpleadoId = usuarioData.EmpleadoId,
+                                CodigoEmpleado = usuarioData.Codigo,
+                                NombreEmpleado = usuarioData.Nombre,
+                                NombreUsuario = usuarioData.NombreUsuario,
+                                Rol = usuarioData.RolSistema ?? "Offline",
+                                Cargo = usuarioData.Cargo ?? "Offline"
+                            };
 
-                    // Crear sesión con datos del usuario
+                            SesionActual.Iniciar(sesionRecuperada);
+                            SesionActual.ActualizarAdministradores(ObtenerAdministradoresSistema());
+                            return new ResultadoLoginDto { Exitoso = true, Mensaje = "⚠️ Modo offline. Sesión recuperada.", Sesion = sesionRecuperada };
+                        }
+
+                        return Fallo("Contraseña incorrecta.");
+                    }
+
+                    var sesion = new SesionUsuarioDto
+                    {
+                        EmpleadoId = usuarioData.EmpleadoId,
+                        CodigoEmpleado = usuarioData.Codigo,
+                        NombreEmpleado = usuarioData.Nombre,
+                        NombreUsuario = usuarioData.NombreUsuario,
+                        Rol = usuarioData.RolSistema ?? string.Empty,
+                        Cargo = usuarioData.Cargo ?? string.Empty
+                    };
+
+                    SesionActual.Iniciar(sesion);
+                    SesionActual.ActualizarAdministradores(ObtenerAdministradoresSistema());
+
                     return new ResultadoLoginDto
                     {
                         Exitoso = true,
                         Mensaje = "⚠️ Modo offline. Bienvenido",
-                        Sesion = new SesionUsuarioDto
-                        {
-                            EmpleadoId = usuarioData.EmpleadoId,
-                            CodigoEmpleado = usuarioData.Codigo,
-                            NombreEmpleado = usuarioData.Nombre,
-                            NombreUsuario = usuarioData.NombreUsuario,
-                            Rol = usuarioData.RolSistema ?? string.Empty,
-                            Cargo = usuarioData.Cargo ?? string.Empty
-                        }
+                        Sesion = sesion
                     };
                 }
             }
@@ -177,12 +224,36 @@ namespace Nuevo_Proyecto.Services
         }
 
         /// <summary>
+        /// Obtiene el último usuario que inició sesión y quedó persistido en SQLite.
+        /// </summary>
+        public string? ObtenerUltimoUsuario()
+        {
+            try
+            {
+                using (var sqlite = _sqliteFactory.CreateDbContext())
+                {
+                    var config = sqlite.ConfiguracionSincronizacions
+                        .FirstOrDefault(c => c.Clave == "ULTIMO_USUARIO_SESION");
+
+                    return string.IsNullOrWhiteSpace(config?.Valor) ? null : config.Valor.Trim();
+                }
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Guarda el último usuario que inició sesión
         /// </summary>
         public void GuardarUltimoUsuario(string usuario)
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(usuario))
+                    return;
+
                 using (var sqlite = _sqliteFactory.CreateDbContext())
                 {
                     var existente = sqlite.ConfiguracionSincronizacions
@@ -207,6 +278,139 @@ namespace Nuevo_Proyecto.Services
                 }
             }
             catch { /* Ignorar errores de almacenamiento */ }
+        }
+
+        /// <summary>
+        /// Guarda la lista de administradores del sistema para permitir continuidad offline.
+        /// </summary>
+        public void GuardarAdministradoresSistema(IEnumerable<string>? administradores)
+        {
+            try
+            {
+                var lista = (administradores ?? Enumerable.Empty<string>())
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .Select(x => x.Trim())
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                SesionActual.ActualizarAdministradores(lista);
+
+                using (var sqlite = _sqliteFactory.CreateDbContext())
+                {
+                    var existente = sqlite.ConfiguracionSincronizacions
+                        .FirstOrDefault(c => c.Clave == CLAVE_ADMINISTRADORES_SISTEMA);
+
+                    var json = JsonSerializer.Serialize(lista);
+
+                    if (existente != null)
+                    {
+                        existente.Valor = json;
+                        existente.ActualizadaUtc = DateTime.UtcNow.ToString("o");
+                    }
+                    else
+                    {
+                        sqlite.ConfiguracionSincronizacions.Add(new Data.DbSqlite.Entities.ConfiguracionSincronizacion
+                        {
+                            Clave = CLAVE_ADMINISTRADORES_SISTEMA,
+                            Valor = json,
+                            ActualizadaUtc = DateTime.UtcNow.ToString("o")
+                        });
+                    }
+
+                    sqlite.SaveChanges();
+                }
+            }
+            catch
+            {
+                // Ignorar errores de almacenamiento
+            }
+        }
+
+        /// <summary>
+        /// Obtiene los administradores guardados en SQLite para usar en modo offline.
+        /// </summary>
+        public List<string> ObtenerAdministradoresSistema()
+        {
+            try
+            {
+                using (var sqlite = _sqliteFactory.CreateDbContext())
+                {
+                    var config = sqlite.ConfiguracionSincronizacions
+                        .FirstOrDefault(c => c.Clave == CLAVE_ADMINISTRADORES_SISTEMA);
+
+                    if (config != null && !string.IsNullOrWhiteSpace(config.Valor))
+                    {
+                        try
+                        {
+                            var lista = JsonSerializer.Deserialize<List<string>>(config.Valor) ?? new List<string>();
+                            var limpia = lista
+                                .Where(x => !string.IsNullOrWhiteSpace(x))
+                                .Select(x => x.Trim())
+                                .Distinct(StringComparer.OrdinalIgnoreCase)
+                                .ToList();
+
+                            SesionActual.ActualizarAdministradores(limpia);
+                            return limpia;
+                        }
+                        catch
+                        {
+                            // seguir con la derivación desde SQLite
+                        }
+                    }
+
+                    var administradores = sqlite.Usuarios
+                        .Where(u => u.Activo && !string.IsNullOrWhiteSpace(u.RolSistema))
+                        .Where(u => u.RolSistema != null && u.RolSistema.Contains("admin", StringComparison.OrdinalIgnoreCase))
+                        .Select(u => u.NombreUsuario)
+                        .Distinct()
+                        .ToList();
+
+                    SesionActual.ActualizarAdministradores(administradores);
+                    return administradores;
+                }
+            }
+            catch
+            {
+                return SesionActual.AdministradoresSistema.ToList();
+            }
+        }
+
+        /// <summary>
+        /// Persiste el último usuario y los administradores del sistema antes de que caiga la conexión.
+        /// </summary>
+        public void PersistirEstadoOffline()
+        {
+            try
+            {
+                if (SesionActual.Usuario != null && !string.IsNullOrWhiteSpace(SesionActual.Usuario.NombreUsuario))
+                {
+                    GuardarUltimoUsuario(SesionActual.Usuario.NombreUsuario);
+                }
+
+                using (var sqlite = _sqliteFactory.CreateDbContext())
+                {
+                    var administradores = sqlite.Usuarios
+                        .Where(u => u.Activo)
+                        .Where(u => !string.IsNullOrWhiteSpace(u.RolSistema))
+                        .Where(u => u.RolSistema != null && u.RolSistema.Contains("admin", StringComparison.OrdinalIgnoreCase))
+                        .Select(u => u.NombreUsuario)
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .ToList();
+
+                    var usuarioActual = SesionActual.Usuario;
+                    if (administradores.Count == 0 && usuarioActual != null && !string.IsNullOrWhiteSpace(usuarioActual.NombreUsuario) && SesionActual.EsAdministrador)
+                    {
+                        administradores.Add(usuarioActual.NombreUsuario);
+                    }
+
+                    GuardarAdministradoresSistema(administradores);
+                }
+            }
+            catch
+            {
+                // Ignorar errores si la conexión ya cayó
+            }
         }
 
         /// <summary>

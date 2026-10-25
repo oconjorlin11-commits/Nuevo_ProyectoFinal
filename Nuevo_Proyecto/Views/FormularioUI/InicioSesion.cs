@@ -54,14 +54,14 @@ namespace Nuevo_Proyecto.Models.Views
         }
 
         // ---- Eventos
-        private void button2_Click(object sender, EventArgs e) => IngresarClicked?.Invoke(this, EventArgs.Empty);
+        private void button2_Click(object? sender, EventArgs e) => IngresarClicked?.Invoke(this, EventArgs.Empty);
 
-        private void pictureBox1_Click(object sender, EventArgs e) { }
+        private void pictureBox1_Click(object? sender, EventArgs e) { }
 
         /// <summary>
         /// Toggle para mostrar/ocultar la contraseña
         /// </summary>
-        private void BtnOcultarContraseña_Click(object sender, EventArgs e)
+        private void BtnOcultarContraseña_Click(object? sender, EventArgs e)
         {
             _contrasenaVisible = !_contrasenaVisible;
             txtContraseña.UseSystemPasswordChar = !_contrasenaVisible;
@@ -71,7 +71,7 @@ namespace Nuevo_Proyecto.Models.Views
         /// <summary>
         /// Abre el diálogo para recuperar contraseña (requiere credenciales admin)
         /// </summary>
-        private void BtnResetearOMostrarConstraseña_Click(object sender, EventArgs e)
+        private void BtnResetearOMostrarConstraseña_Click(object? sender, EventArgs e)
         {
             var dialogoRecuperacion = new Olvide_la_mi_usuario();
             if (dialogoRecuperacion.ShowDialog(this) == DialogResult.OK)
@@ -80,7 +80,7 @@ namespace Nuevo_Proyecto.Models.Views
             }
         }
 
-        private void panel2_Paint(object sender, PaintEventArgs e)
+        private void panel2_Paint(object? sender, PaintEventArgs e)
         {
 
         }

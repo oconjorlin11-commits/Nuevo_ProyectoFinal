@@ -41,6 +41,21 @@ namespace Nuevo_Proyecto.Presenters
 
         public DataTable ObtenerInventarioActivo() => DataTableMapper.Inventario(_inventario.GetActivos());
 
+        public DataTable ObtenerInventarioActivoConStock() =>
+            DataTableMapper.Inventario(_inventario.GetActivos().Where(p => p.Stock > 0));
+
+        public DataTable ObtenerInventarioActivoPorCategoria(int categoriaId, bool soloConStock = false)
+        {
+            var productos = categoriaId <= 0
+                ? _inventario.GetActivos()
+                : _inventario.GetActivosPorCategoria(categoriaId);
+
+            if (soloConStock)
+                productos = productos.Where(p => p.Stock > 0).ToList();
+
+            return DataTableMapper.Inventario(productos);
+        }
+
         public DataTable BuscarInventarioPorCodigoONombre(string texto) => 
             DataTableMapper.Inventario(_inventario.BuscarPorCodigoONombreProducto(texto));
 

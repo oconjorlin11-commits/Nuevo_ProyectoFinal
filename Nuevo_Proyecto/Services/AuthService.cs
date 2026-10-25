@@ -39,6 +39,11 @@ namespace Nuevo_Proyecto.Services
             public string? Cargo { get; set; }
         }
 
+        private sealed class AdministradorSistemaFila
+        {
+            public string NombreUsuario { get; set; } = string.Empty;
+        }
+
         public ResultadoLoginDto Autenticar(string usuario, string contrasena)
         {
             usuario = (usuario ?? string.Empty).Trim();
@@ -49,6 +54,11 @@ namespace Nuevo_Proyecto.Services
 
             try
             {
+                if (!ConnectionStateManager.VerificarConexionAlServidor())
+                {
+                    return IntentarAutenticacionOffline(usuario, contrasena);
+                }
+
                 using var db = _factory.CreateDbContext();
 
                 var fila = db.Database.SqlQuery<FilaLogin>($@"
@@ -88,6 +98,36 @@ namespace Nuevo_Proyecto.Services
 
                 // Guardar en cache local para uso offline posterior
                 _autenticacionOffline.GuardarUltimoUsuario(usuario);
+
+                var administradores = db.Database
+                    .SqlQuery<AdministradorSistemaFila>(
+                        $"SELECT NombreUsuario FROM Usuarios WHERE Activo = 1 AND RolSistema IS NOT NULL AND RolSistema LIKE '%admin%'")
+                    .AsEnumerable()
+                    .Select(x => x.NombreUsuario)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+                _autenticacionOffline.GuardarAdministradoresSistema(administradores);
+                _autenticacionOffline.PersistirEstadoOffline();
+
+                try
+                {
+                    var sincronizacionCompleta = new SincronizacionCompletaService();
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await sincronizacionCompleta.SincronizarCompleto();
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Advertencia: No se pudo sincronizar catálogo a SQLite: {ex.Message}");
+                        }
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Advertencia: No se pudo preparar la sincronización del catálogo: {ex.Message}");
+                }
 
                 var resultado = new ResultadoLoginDto
                 {
@@ -157,6 +197,16 @@ namespace Nuevo_Proyecto.Services
             {
                 var resultado = _autenticacionOffline.AutenticarOffline(usuario, contrasena);
 
+                if (!resultado.Exitoso)
+                {
+                    var ultimoUsuario = _autenticacionOffline.ObtenerUltimoUsuario();
+                    if (!string.IsNullOrWhiteSpace(ultimoUsuario) &&
+                        string.Equals(usuario, ultimoUsuario, StringComparison.OrdinalIgnoreCase))
+                    {
+                        resultado = _autenticacionOffline.AutenticarUltimoUsuarioOffline();
+                    }
+                }
+
                 if (resultado.Exitoso)
                 {
                     _autenticacionOffline.RegistrarLoginOfflineEnAuditoria(usuario, true);
@@ -211,6 +261,11 @@ namespace Nuevo_Proyecto.Services
 
             try
             {
+                if (!ConnectionStateManager.VerificarConexionAlServidor())
+                {
+                    return AuthenticationResultDto.Failure("SQL Server no disponible. Se intentará autenticar en modo offline.");
+                }
+
                 using var db = await _factory.CreateDbContextAsync();
 
                 var fila = await db.Database.SqlQuery<FilaLogin>($@"

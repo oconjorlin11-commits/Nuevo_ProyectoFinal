@@ -18,11 +18,28 @@ internal static class Program
         Application.SetHighDpiMode(HighDpiMode.SystemAware);
         ApplicationConfiguration.Initialize();
 
-        // PASO -1: LIMPIAR BD SQLITE (Eliminar versión anterior)
+        // Debe configurarse antes de crear cualquier control para evitar errores del hilo de UI.
+        Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+        Application.ThreadException += (sender, e) => ManejarExcepcionGlobal(e.Exception, "WinForms");
+        AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+        {
+            if (e.ExceptionObject is Exception ex)
+            {
+                ManejarExcepcionGlobal(ex, "Dominio");
+            }
+        };
+        TaskScheduler.UnobservedTaskException += (sender, e) =>
+        {
+            ManejarExcepcionGlobal(e.Exception, "Tarea");
+            e.SetObserved();
+        };
+
         Console.WriteLine("═══════════════════════════════════════════════════════");
         Console.WriteLine("🔄 SINCRONIZACIÓN COMPLETA SQL SERVER → SQLite");
         Console.WriteLine("═══════════════════════════════════════════════════════\n");
-        LimpiezaBDSQLite.EliminarBDAnterior();
+
+        // SQLite es un caché temporal para continuar operando mientras SQL está caído.
+        // No se debe borrar al iniciar si SQL está vivo; se limpia al restablecerse la conexión.
 
         // PASO 0: Verificar estructura de BD SQLite
         Console.WriteLine("🔍 Verificando estructura de BD SQLite...");
@@ -32,6 +49,7 @@ internal static class Program
         // PASO 1: Verificar conexión a SQL Server al iniciar
         Console.WriteLine("🔍 Verificando conectividad al servidor...");
         bool sqlServerDisponible = ConnectionStateManager.VerificarConexionAlServidor();
+        ConnectionStateManager.IniciarMonitoreoConexion();
 
         if (!sqlServerDisponible)
         {
@@ -65,13 +83,69 @@ internal static class Program
         {
             if (inicioSesion.ShowDialog() == DialogResult.OK && SesionActual.HaySesion)
             {
+                try
+                {
+                    var sincronizacion = new SincronizacionCompletaService();
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await sincronizacion.SincronizarCompleto();
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Advertencia: no se pudo sincronizar SQLite tras login: {ex.Message}");
+                        }
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Advertencia: no se pudo sincronizar SQLite tras login: {ex.Message}");
+                }
+
                 // Si login fue exitoso y hay sesión, abrir MenuPrincipal
+                ConnectionStateManager.IniciarMonitoreoConexion();
                 Application.Run(new MenuPrincipal());
             }
         }
         finally
         {
             inicioSesion.Dispose();
+        }
+    }
+
+    private static void ManejarExcepcionGlobal(Exception ex, string origen)
+    {
+        try
+        {
+            if (ex is Microsoft.Data.SqlClient.SqlException sqlEx)
+            {
+                Console.WriteLine($"[{origen}] Error de SQL detectado: {sqlEx.Number} - {sqlEx.Message}");
+                ConnectionStateManager.VerificarConexionAlServidor();
+                if (Application.OpenForms.Count > 0)
+                {
+                    MessageBox.Show(
+                        "Se detectó una caída del servidor SQL Server. La aplicación continuará en modo OFFLINE temporal para no cerrar la sesión y sincronizará cuando se restablezca la conexión.",
+                        "Modo Offline Temporal",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                }
+                return;
+            }
+
+            Console.WriteLine($"[{origen}] Excepción no controlada: {ex.Message}");
+            if (Application.OpenForms.Count > 0)
+            {
+                MessageBox.Show(
+                    $"Se produjo un error de la aplicación. La sesión se mantendrá activa y se continuará con el modo de recuperación del sistema.\n\nDetalle: {ex.Message}",
+                    "Error del sistema",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+            }
+        }
+        catch
+        {
+            // No detener la aplicación ni la sesión por un error del manejador.
         }
     }
 }

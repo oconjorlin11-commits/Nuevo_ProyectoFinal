@@ -58,6 +58,7 @@ namespace Nuevo_Proyecto.Presenters
         public EmpleadoPresenter(IEmpleadoRepository? empleados = null)
         {
             _empleados = empleados ?? new EmpleadoRepository();
+            _usuarios = new UsuarioRepository();
         }
 
         // ---------------------------------------------------------------- control de la vista

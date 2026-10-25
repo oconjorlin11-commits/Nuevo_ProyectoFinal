@@ -149,22 +149,22 @@ namespace Nuevo_Proyecto.Models.Views
                 dataGridReportes.Columns["CantidadProductosDescontados"]!.HeaderText = "Productos Descontados (Pagadas)";
         }
 
-        private void groupBoxDatosPedido_Enter(object sender, EventArgs e)
+        private void groupBoxDatosPedido_Enter(object? sender, EventArgs e)
         {
 
         }
 
-        private void Reportes_Load(object sender, EventArgs e)
+        private void Reportes_Load(object? sender, EventArgs e)
         {
             CargarReportes(null, null);
         }
 
-        private void btnExportaReportes_Click(object sender, EventArgs e)
+        private void btnExportaReportes_Click(object? sender, EventArgs e)
         {
             ExportarMovimientosAPdf();
         }
 
-        private void btnConsultarReport_Click(object sender, EventArgs e)
+        private void btnConsultarReport_Click(object? sender, EventArgs e)
         {
             DateTime? desde = dateDesde.Value.Date;
             DateTime? hasta = dateHasta.Value.Date;

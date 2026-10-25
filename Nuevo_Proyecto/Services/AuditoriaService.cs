@@ -31,6 +31,29 @@ namespace Nuevo_Proyecto.Services
         {
             try
             {
+                if (!ConnectionStateManager.VerificarConexionAlServidor())
+                {
+                    var colaService = new ColaOperacionesService();
+                    colaService.RegistrarOperacion(
+                        nombreEntidad: "Auditoria",
+                        accion: "AUDITORIA_OFFLINE",
+                        identificadorEntidad: $"{usuario ?? SesionActual.NombreUsuario ?? "Sistema"}_{DateTime.UtcNow:yyyyMMddHHmmss}",
+                        payload: new
+                        {
+                            UsuarioNombre = usuario ?? SesionActual.NombreUsuario ?? "Sistema",
+                            RolUsuario = rolUsuario ?? SesionActual.Rol ?? "Usuario",
+                            UsuarioAutorizador = usuarioAutorizador ?? SesionActual.UsuarioAutorizador,
+                            Accion = accion,
+                            Seccion = seccion,
+                            RegistroID = registroId,
+                            Detalle = detalle,
+                            Descripcion = descripcion ?? detalle,
+                            FechaHora = DateTime.UtcNow,
+                            Direccion = ipEquipo ?? ObtenerIPEquipo()
+                        });
+                    return;
+                }
+
                 // Si no se proporciona usuario, usar el actual
                 usuario ??= SesionActual.NombreUsuario;
                 rolUsuario ??= SesionActual.Rol;
@@ -82,6 +105,29 @@ namespace Nuevo_Proyecto.Services
         {
             try
             {
+                if (!ConnectionStateManager.VerificarConexionAlServidor())
+                {
+                    var colaService = new ColaOperacionesService();
+                    colaService.RegistrarOperacion(
+                        nombreEntidad: "Auditoria",
+                        accion: "LOGIN",
+                        identificadorEntidad: $"{usuario}_{DateTime.UtcNow:yyyyMMddHHmmss}",
+                        payload: new
+                        {
+                            UsuarioNombre = usuario,
+                            RolUsuario = rolUsuario,
+                            UsuarioAutorizador = usuarioAutorizador ?? SesionActual.UsuarioAutorizador,
+                            Accion = accion,
+                            Seccion = seccion,
+                            RegistroID = registroID,
+                            Detalle = detalle,
+                            Descripcion = descripcion ?? detalle,
+                            FechaHora = DateTime.UtcNow,
+                            Direccion = ipEquipo ?? ObtenerIPEquipo()
+                        });
+                    return true;
+                }
+
                 using var db = _factory.CreateDbContext();
 
                 // Obtener IP del equipo si no se proporciona

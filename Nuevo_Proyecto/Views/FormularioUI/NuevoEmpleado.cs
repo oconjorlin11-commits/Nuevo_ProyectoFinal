@@ -87,19 +87,19 @@ namespace Nuevo_Proyecto.Models.Views
         public DateTime? FechaIngreso { get => dateTimePicker1.Value; set => dateTimePicker1.Value = value ?? DateTime.Now; }
         public bool Activo { get => checkEmpleadoAct.Checked; set => checkEmpleadoAct.Checked = value; }
 
-        private void label4_Click(object sender, EventArgs e)
+        private void label4_Click(object? sender, EventArgs e)
         {
 
         }
 
-        private void btnCancelarEmple_Click(object sender, EventArgs e)
+        private void btnCancelarEmple_Click(object? sender, EventArgs e)
         {
             // Notify presenter to reset fields if subscribed
             CancelarClicked?.Invoke(this, EventArgs.Empty);
             this.Close();
         }
 
-        private void btnGuardarEmple_Click(object sender, EventArgs e)
+        private void btnGuardarEmple_Click(object? sender, EventArgs e)
         {
             // Validar campos antes de guardar
             if (string.IsNullOrWhiteSpace(txtCodigoEmple.Text))
@@ -157,16 +157,20 @@ namespace Nuevo_Proyecto.Models.Views
             // El presenter coordinará la creación y auditoría
         }
 
-        private void NuevoEmpleado_Load(object sender, EventArgs e)
+        private void NuevoEmpleado_Load(object? sender, EventArgs e)
         {
             // Obtener valores iniciales desde el presenter
             txtCodigoEmple.Text = _presenter.GetNextCodigoEmpleado();
 
             // Cargar cargos disponibles en el ComboBox
             DataTable cargos = _presenter.GetCargos();
-            comboxCargoEmpleado.DataSource = cargos;
-            comboxCargoEmpleado.DisplayMember = "Cargo";
-            comboxCargoEmpleado.ValueMember = "Cargo";
+            if (!cargos.Columns.Contains("Cargo"))
+            {
+                cargos = new DataTable();
+                cargos.Columns.Add("Cargo", typeof(string));
+            }
+
+            ComboBoxBindingHelper.Bind(comboxCargoEmpleado, cargos, "Cargo", "Cargo");
             comboxCargoEmpleado.SelectedIndex = -1;
             comboxCargoEmpleado.Text = "Selecciona un cargo"; // Placeholder text
 
@@ -201,7 +205,7 @@ namespace Nuevo_Proyecto.Models.Views
         /// <summary>
         /// Evento FormClosing para mostrar advertencia si hay datos sin guardar
         /// </summary>
-        private void NuevoEmpleado_FormClosing(object sender, FormClosingEventArgs e)
+        private void NuevoEmpleado_FormClosing(object? sender, FormClosingEventArgs e)
         {
             // Si la razón de cierre no es una acción del usuario, permitir cerrar
             if (e.CloseReason != CloseReason.UserClosing)

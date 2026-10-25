@@ -120,12 +120,12 @@ namespace Nuevo_Proyecto.Models.Views
             return dtFiltrada;
         }
 
-        private void DtpFechaFiltro_ValueChanged(object sender, EventArgs e)
+        private void DtpFechaFiltro_ValueChanged(object? sender, EventArgs e)
         {
             BuscarFacturaPorCodigo();
         }
 
-        private void btnVerComprob_Click(object sender, EventArgs e)
+        private void btnVerComprob_Click(object? sender, EventArgs e)
         {
             string busqueda = txtBuscarFact.Text.Trim();
 
@@ -164,12 +164,12 @@ namespace Nuevo_Proyecto.Models.Views
             CargarTodasLasFacturas();
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void button2_Click(object? sender, EventArgs e)
         {
             AnularFacturaSeleccionada();
         }
 
-        private void FacturasEmitidas_Load(object sender, EventArgs e)
+        private void FacturasEmitidas_Load(object? sender, EventArgs e)
         {
             CargarTodasLasFacturas(); // 👉 al abrir, carga todas las facturas con detalles
 
@@ -243,7 +243,7 @@ namespace Nuevo_Proyecto.Models.Views
 
             // Validar 3: Obtener la fila seleccionada
             DataGridViewRow filaSeleccionada = dataGridFacturasEmitidas.SelectedRows[0];
-            string numero = filaSeleccionada.Cells["Numero"].Value?.ToString();
+            string numero = filaSeleccionada.Cells["Numero"].Value?.ToString() ?? string.Empty;
 
             if (string.IsNullOrWhiteSpace(numero))
             {
@@ -289,7 +289,7 @@ namespace Nuevo_Proyecto.Models.Views
             }
         }
 
-        private void txtBuscarFact_TextChanged(object sender, EventArgs e)
+        private void txtBuscarFact_TextChanged(object? sender, EventArgs e)
         {
             BuscarFacturaPorCodigo();
         }

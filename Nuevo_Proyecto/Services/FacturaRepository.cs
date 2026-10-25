@@ -16,11 +16,13 @@ namespace Nuevo_Proyecto.Services
 
         private readonly IDbContextFactory<Dev_ComideriaDbContext> _factory;
         private readonly AuditoriaService _auditoria;
+        private readonly HybridContextFactory _hybridFactory;
 
         public FacturaRepository(IDbContextFactory<Dev_ComideriaDbContext>? factory = null)
         {
             _factory = factory ?? new ComideriaContextFactory();
             _auditoria = new AuditoriaService(_factory);
+            _hybridFactory = new HybridContextFactory();
         }
 
         // ------------------------------------------------------------------ consultas
@@ -40,45 +42,220 @@ namespace Nuevo_Proyecto.Services
 
         public IReadOnlyList<FacturaResumenDto> GetTodas()
         {
-            using var db = _factory.CreateDbContext();
-            return Resumen(db.Facturas.AsNoTracking().Where(f => f.Estado == EstadoActiva));
+            if (ConnectionStateManager.UsandoSqlite || !ConnectionStateManager.VerificarConexionAlServidor())
+            {
+                using var sqlite = _hybridFactory.CreateSqliteContext();
+                return sqlite.Facturas.AsNoTracking()
+                    .Where(f => f.Estado == null || f.Estado != EstadoAnulada)
+                    .OrderByDescending(f => f.Fecha)
+                    .Select(f => new FacturaResumenDto
+                    {
+                        Numero = f.Numero ?? string.Empty,
+                        Fecha = f.Fecha,
+                        Total = f.Total,
+                        Empleado = f.Empleado != null ? f.Empleado.Nombre : string.Empty,
+                        FormaPago = f.FormaPago != null ? f.FormaPago.Nombre : string.Empty,
+                        Estado = f.Estado
+                    })
+                    .ToList();
+            }
+
+            try
+            {
+                using var db = _factory.CreateDbContext();
+                return Resumen(db.Facturas.AsNoTracking().Where(f => f.Estado == null || f.Estado != EstadoAnulada));
+            }
+            catch
+            {
+                using var sqlite = _hybridFactory.CreateSqliteContext();
+                return sqlite.Facturas.AsNoTracking()
+                    .Where(f => f.Estado == null || f.Estado != EstadoAnulada)
+                    .OrderByDescending(f => f.Fecha)
+                    .Select(f => new FacturaResumenDto
+                    {
+                        Numero = f.Numero ?? string.Empty,
+                        Fecha = f.Fecha,
+                        Total = f.Total,
+                        Empleado = f.Empleado != null ? f.Empleado.Nombre : string.Empty,
+                        FormaPago = f.FormaPago != null ? f.FormaPago.Nombre : string.Empty,
+                        Estado = f.Estado
+                    })
+                    .ToList();
+            }
         }
 
         public IReadOnlyList<FacturaResumenDto> BuscarPorNumero(string prefijoNumero)
         {
-            using var db = _factory.CreateDbContext();
-            return Resumen(db.Facturas.AsNoTracking().Where(f => f.Numero != null && f.Numero.ToUpper() == prefijoNumero.ToUpper()));
+            if (ConnectionStateManager.UsandoSqlite || !ConnectionStateManager.VerificarConexionAlServidor())
+            {
+                using var sqlite = _hybridFactory.CreateSqliteContext();
+                return sqlite.Facturas.AsNoTracking()
+                    .Where(f => f.Numero != null && f.Numero.ToUpper() == prefijoNumero.ToUpper() && (f.Estado == null || f.Estado != EstadoAnulada))
+                    .OrderByDescending(f => f.Fecha)
+                    .Select(f => new FacturaResumenDto
+                    {
+                        Numero = f.Numero ?? string.Empty,
+                        Fecha = f.Fecha,
+                        Total = f.Total,
+                        Empleado = f.Empleado != null ? f.Empleado.Nombre : string.Empty,
+                        FormaPago = f.FormaPago != null ? f.FormaPago.Nombre : string.Empty,
+                        Estado = f.Estado
+                    })
+                    .ToList();
+            }
+
+            try
+            {
+                using var db = _factory.CreateDbContext();
+                return Resumen(db.Facturas.AsNoTracking().Where(f => f.Numero != null && f.Numero.ToUpper() == prefijoNumero.ToUpper() && (f.Estado == null || f.Estado != EstadoAnulada)));
+            }
+            catch
+            {
+                using var sqlite = _hybridFactory.CreateSqliteContext();
+                return sqlite.Facturas.AsNoTracking()
+                    .Where(f => f.Numero != null && f.Numero.ToUpper() == prefijoNumero.ToUpper() && (f.Estado == null || f.Estado != EstadoAnulada))
+                    .OrderByDescending(f => f.Fecha)
+                    .Select(f => new FacturaResumenDto
+                    {
+                        Numero = f.Numero ?? string.Empty,
+                        Fecha = f.Fecha,
+                        Total = f.Total,
+                        Empleado = f.Empleado != null ? f.Empleado.Nombre : string.Empty,
+                        FormaPago = f.FormaPago != null ? f.FormaPago.Nombre : string.Empty,
+                        Estado = f.Estado
+                    })
+                    .ToList();
+            }
         }
 
         public IReadOnlyList<FacturaResumenDto> BuscarPorFechaEspecifica(DateTime fecha)
         {
-            using var db = _factory.CreateDbContext();
-            // Crear el inicio y fin del día específico
-            var inicio = fecha.Date;  // Comienza a las 00:00:00
-            var fin = Proyecciones.FinDeDia(fecha);  // Termina a las 23:59:59
-            return Resumen(db.Facturas.AsNoTracking().Where(f => f.Fecha >= inicio && f.Fecha <= fin).OrderByDescending(f => f.Fecha));
+            var inicio = fecha.Date;
+            var fin = Proyecciones.FinDeDia(fecha);
+
+            if (ConnectionStateManager.UsandoSqlite || !ConnectionStateManager.VerificarConexionAlServidor())
+            {
+                using var sqlite = _hybridFactory.CreateSqliteContext();
+                return sqlite.Facturas.AsNoTracking().Where(f => f.Fecha >= inicio && f.Fecha <= fin && (f.Estado == null || f.Estado != EstadoAnulada)).OrderByDescending(f => f.Fecha)
+                    .Select(f => new FacturaResumenDto
+                    {
+                        Numero = f.Numero ?? string.Empty,
+                        Fecha = f.Fecha,
+                        Total = f.Total,
+                        Empleado = f.Empleado != null ? f.Empleado.Nombre : string.Empty,
+                        FormaPago = f.FormaPago != null ? f.FormaPago.Nombre : string.Empty,
+                        Estado = f.Estado
+                    })
+                    .ToList();
+            }
+
+            try
+            {
+                using var db = _factory.CreateDbContext();
+                return Resumen(db.Facturas.AsNoTracking().Where(f => f.Fecha >= inicio && f.Fecha <= fin && (f.Estado == null || f.Estado != EstadoAnulada)).OrderByDescending(f => f.Fecha));
+            }
+            catch
+            {
+                using var sqlite = _hybridFactory.CreateSqliteContext();
+                return sqlite.Facturas.AsNoTracking().Where(f => f.Fecha >= inicio && f.Fecha <= fin && (f.Estado == null || f.Estado != EstadoAnulada)).OrderByDescending(f => f.Fecha)
+                    .Select(f => new FacturaResumenDto
+                    {
+                        Numero = f.Numero ?? string.Empty,
+                        Fecha = f.Fecha,
+                        Total = f.Total,
+                        Empleado = f.Empleado != null ? f.Empleado.Nombre : string.Empty,
+                        FormaPago = f.FormaPago != null ? f.FormaPago.Nombre : string.Empty,
+                        Estado = f.Estado
+                    })
+                    .ToList();
+            }
         }
 
         public IReadOnlyList<FacturaResumenDto> FiltrarPorFecha(DateTime desde, DateTime hasta)
         {
-            using var db = _factory.CreateDbContext();
-            var fin = Proyecciones.FinDeDia(hasta);   // antes se perdía todo el último día
-            return Resumen(db.Facturas.AsNoTracking().Where(f => f.Fecha >= desde && f.Fecha <= fin));
+            var fin = Proyecciones.FinDeDia(hasta);
+
+            if (ConnectionStateManager.UsandoSqlite || !ConnectionStateManager.VerificarConexionAlServidor())
+            {
+                using var sqlite = _hybridFactory.CreateSqliteContext();
+                return sqlite.Facturas.AsNoTracking().Where(f => f.Fecha >= desde && f.Fecha <= fin && (f.Estado == null || f.Estado != EstadoAnulada))
+                    .OrderByDescending(f => f.Fecha)
+                    .Select(f => new FacturaResumenDto
+                    {
+                        Numero = f.Numero ?? string.Empty,
+                        Fecha = f.Fecha,
+                        Total = f.Total,
+                        Empleado = f.Empleado != null ? f.Empleado.Nombre : string.Empty,
+                        FormaPago = f.FormaPago != null ? f.FormaPago.Nombre : string.Empty,
+                        Estado = f.Estado
+                    })
+                    .ToList();
+            }
+
+            try
+            {
+                using var db = _factory.CreateDbContext();
+                return Resumen(db.Facturas.AsNoTracking().Where(f => f.Fecha >= desde && f.Fecha <= fin && (f.Estado == null || f.Estado != EstadoAnulada)));
+            }
+            catch
+            {
+                using var sqlite = _hybridFactory.CreateSqliteContext();
+                return sqlite.Facturas.AsNoTracking().Where(f => f.Fecha >= desde && f.Fecha <= fin && (f.Estado == null || f.Estado != EstadoAnulada))
+                    .OrderByDescending(f => f.Fecha)
+                    .Select(f => new FacturaResumenDto
+                    {
+                        Numero = f.Numero ?? string.Empty,
+                        Fecha = f.Fecha,
+                        Total = f.Total,
+                        Empleado = f.Empleado != null ? f.Empleado.Nombre : string.Empty,
+                        FormaPago = f.FormaPago != null ? f.FormaPago.Nombre : string.Empty,
+                        Estado = f.Estado
+                    })
+                    .ToList();
+            }
         }
 
         public ResumenVentasDto GetResumenVentas(DateTime desde, DateTime hasta)
         {
-            using var db = _factory.CreateDbContext();
             var fin = Proyecciones.FinDeDia(hasta);
 
-            var vigentes = db.Facturas.AsNoTracking()
-                .Where(f => f.Fecha >= desde && f.Fecha <= fin && f.Estado != EstadoAnulada);
-
-            return new ResumenVentasDto
+            if (ConnectionStateManager.UsandoSqlite || !ConnectionStateManager.VerificarConexionAlServidor())
             {
-                Total = vigentes.Sum(f => (decimal?)f.Total) ?? 0m,
-                CantidadFacturas = vigentes.Count()
-            };
+                using var sqlite = _hybridFactory.CreateSqliteContext();
+                var vigentes = sqlite.Facturas.AsNoTracking()
+                    .Where(f => f.Fecha >= desde && f.Fecha <= fin && f.Estado != EstadoAnulada);
+
+                return new ResumenVentasDto
+                {
+                    Total = vigentes.Sum(f => (decimal?)f.Total) ?? 0m,
+                    CantidadFacturas = vigentes.Count()
+                };
+            }
+
+            try
+            {
+                using var db = _factory.CreateDbContext();
+                var vigentes = db.Facturas.AsNoTracking()
+                    .Where(f => f.Fecha >= desde && f.Fecha <= fin && f.Estado != EstadoAnulada);
+
+                return new ResumenVentasDto
+                {
+                    Total = vigentes.Sum(f => (decimal?)f.Total) ?? 0m,
+                    CantidadFacturas = vigentes.Count()
+                };
+            }
+            catch
+            {
+                using var sqlite = _hybridFactory.CreateSqliteContext();
+                var vigentes = sqlite.Facturas.AsNoTracking()
+                    .Where(f => f.Fecha >= desde && f.Fecha <= fin && f.Estado != EstadoAnulada);
+
+                return new ResumenVentasDto
+                {
+                    Total = vigentes.Sum(f => (decimal?)f.Total) ?? 0m,
+                    CantidadFacturas = vigentes.Count()
+                };
+            }
         }
 
         private static List<FacturaResumenDto> Resumen(IQueryable<Facturas> query) =>
@@ -96,24 +273,70 @@ namespace Nuevo_Proyecto.Services
 
         public IReadOnlyList<FacturaDetalleDto> GetDetallePorNumero(string numero)
         {
-            using var db = _factory.CreateDbContext();
-            return db.DetalleFactura.AsNoTracking()
-                .Where(d => d.Factura.Numero == numero)
-                .OrderBy(d => d.DetalleId)
-                .Select(d => new FacturaDetalleDto
-                {
-                    Numero = d.Factura.Numero ?? string.Empty,
-                    Fecha = d.Factura.Fecha,
-                    Cliente = d.Factura.Cliente != null ? d.Factura.Cliente.Nombre : ClienteRepository.NombreConsumidorFinal,
-                    Empleado = d.Factura.Empleado.Nombre,
-                    FormaPago = d.Factura.FormaPago.Nombre,
-                    Estado = d.Factura.Estado,
-                    Producto = d.Producto.Nombre,
-                    Cantidad = d.Cantidad,
-                    Precio = d.PrecioUnitario,
-                    Subtotal = d.subtotal
-                })
-                .ToList();
+            if (ConnectionStateManager.UsandoSqlite || !ConnectionStateManager.VerificarConexionAlServidor())
+            {
+                using var sqlite = _hybridFactory.CreateSqliteContext();
+                return sqlite.DetalleFacturas.AsNoTracking()
+                    .Where(d => d.Factura.Numero == numero)
+                    .OrderBy(d => d.DetalleId)
+                    .Select(d => new FacturaDetalleDto
+                    {
+                        Numero = d.Factura.Numero ?? string.Empty,
+                        Fecha = d.Factura.Fecha,
+                        Cliente = d.Factura.Cliente != null ? d.Factura.Cliente.Nombre : ClienteRepository.NombreConsumidorFinal,
+                        Empleado = d.Factura.Empleado != null ? d.Factura.Empleado.Nombre : string.Empty,
+                        FormaPago = d.Factura.FormaPago != null ? d.Factura.FormaPago.Nombre : string.Empty,
+                        Estado = d.Factura.Estado,
+                        Producto = d.Producto != null ? d.Producto.Nombre : string.Empty,
+                        Cantidad = d.Cantidad,
+                        Precio = d.PrecioUnitario,
+                        Subtotal = d.subtotal
+                    })
+                    .ToList();
+            }
+
+            try
+            {
+                using var db = _factory.CreateDbContext();
+                return db.DetalleFactura.AsNoTracking()
+                    .Where(d => d.Factura.Numero == numero)
+                    .OrderBy(d => d.DetalleId)
+                    .Select(d => new FacturaDetalleDto
+                    {
+                        Numero = d.Factura.Numero ?? string.Empty,
+                        Fecha = d.Factura.Fecha,
+                        Cliente = d.Factura.Cliente != null ? d.Factura.Cliente.Nombre : ClienteRepository.NombreConsumidorFinal,
+                        Empleado = d.Factura.Empleado.Nombre,
+                        FormaPago = d.Factura.FormaPago.Nombre,
+                        Estado = d.Factura.Estado,
+                        Producto = d.Producto.Nombre,
+                        Cantidad = d.Cantidad,
+                        Precio = d.PrecioUnitario,
+                        Subtotal = d.subtotal
+                    })
+                    .ToList();
+            }
+            catch
+            {
+                using var sqlite = _hybridFactory.CreateSqliteContext();
+                return sqlite.DetalleFacturas.AsNoTracking()
+                    .Where(d => d.Factura.Numero == numero)
+                    .OrderBy(d => d.DetalleId)
+                    .Select(d => new FacturaDetalleDto
+                    {
+                        Numero = d.Factura.Numero ?? string.Empty,
+                        Fecha = d.Factura.Fecha,
+                        Cliente = d.Factura.Cliente != null ? d.Factura.Cliente.Nombre : ClienteRepository.NombreConsumidorFinal,
+                        Empleado = d.Factura.Empleado != null ? d.Factura.Empleado.Nombre : string.Empty,
+                        FormaPago = d.Factura.FormaPago != null ? d.Factura.FormaPago.Nombre : string.Empty,
+                        Estado = d.Factura.Estado,
+                        Producto = d.Producto != null ? d.Producto.Nombre : string.Empty,
+                        Cantidad = d.Cantidad,
+                        Precio = d.PrecioUnitario,
+                        Subtotal = d.subtotal
+                    })
+                    .ToList();
+            }
         }
 
         // ------------------------------------------------------------------ crear

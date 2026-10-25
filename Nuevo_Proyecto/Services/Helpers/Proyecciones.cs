@@ -22,7 +22,8 @@ namespace Nuevo_Proyecto.Services.Helpers
                 Stock = p.Inventarios.Select(i => i.Stock).FirstOrDefault(),
                 StockMinimo = p.Inventarios.Select(i => i.StockMinimo).FirstOrDefault(),
                 Activo = p.Activo ?? false,
-                Observacion = p.MovimientoInventarios.OrderByDescending(m => m.Fecha).Select(m => m.Observacion).FirstOrDefault() ?? string.Empty
+                // Evitar OrderByDescending sobre colección navegacional en SQLite: EF Core no lo traduce bien.
+                Observacion = p.MovimientoInventarios.Select(m => m.Observacion).FirstOrDefault() ?? string.Empty
             };
 
         /// <summary>Si la fecha 'hasta' viene sin hora (00:00) se interpreta como "hasta el final de ese día".</summary>

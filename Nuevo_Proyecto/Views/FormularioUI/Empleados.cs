@@ -107,7 +107,7 @@ namespace Nuevo_Proyecto.Models.Views
         // Configuración y eventos visuales
         // =========================================================================
 
-        private void Empleados_Load(object sender, EventArgs e)
+        private void Empleados_Load(object? sender, EventArgs e)
         {
             txtCodigoEmpl.ReadOnly = true;
             txtCodigoEmpl.BackColor = Color.LightGray;
@@ -243,7 +243,7 @@ namespace Nuevo_Proyecto.Models.Views
         /// <summary>
         /// Handler para detectar cualquier cambio en los datos
         /// </summary>
-        private void OnDatosChangedEmpleado(object sender, EventArgs e)
+        private void OnDatosChangedEmpleado(object? sender, EventArgs e)
         {
             if (!_datosModificados)
             {
@@ -264,140 +264,24 @@ namespace Nuevo_Proyecto.Models.Views
             checkBoxEmpleado.CheckedChanged -= OnDatosChangedEmpleado;
         }
 
-        private void btnNuevoEmpleado_Click(object sender, EventArgs e)
+        private void btnNuevoEmpleado_Click(object? sender, EventArgs e)
         {
-            // Verificar acceso: só lo admin puro puede crear empleados
-            if (!SesionActual.EsAdministrador)
-            {
-                MessageBox.Show(
-                    "Solo administradores pueden crear nuevos empleados.",
-                    "Acceso denegado",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning
-                );
-                return;
-            }
-
             using (var frm = new NuevoEmpleado())
             {
                 frm.ShowDialog();
             }
+
             _presenter.CargarEmpleadosActivos();
         }
 
-        private void btnEditarEmpl_Click(object sender, EventArgs e)
+        private void btnEditarEmpl_Click(object? sender, EventArgs e)
         {
-            // Verificar acceso: solo admin puro puede editar
-            if (!SesionActual.EsAdministrador)
-            {
-                MessageBox.Show(
-                    "Solo administradores pueden editar empleados.",
-                    "Acceso denegado",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning
-                );
-                return;
-            }
-
-            string codigo = Codigo.Trim();
-            if (string.IsNullOrWhiteSpace(codigo))
-            {
-                MessageBox.Show("Debe ingresar un código de empleado a editar.", "Código requerido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            // Validar cambios
-            if (Nombre.Trim() == _nombreEmpleadoOriginal &&
-                Cargo == string.Empty &&
-                Cedula == string.Empty &&
-                Telefono == string.Empty &&
-                Salario == 0)
-            {
-                MessageBox.Show("No hay cambios para guardar.", "Sin cambios", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            try
-            {
-                bool resultado = _empleadoRepository.Actualizar(
-                    codigo,
-                    Nombre.Trim(),
-                    Cargo,
-                    Cedula.Trim(),
-                    Telefono,
-                    Salario
-                );
-
-                if (resultado)
-                {
-                    MessageBox.Show("Actualizado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    BuscarTexto = string.Empty;  // Limpiar búsqueda
-                    ResetFields();               // Limpiar campos
-                    _presenter.CargarEmpleadosActivos();  // Recargar lista
-                }
-                else
-                {
-                    MessageBox.Show("No se pudo actualizar el empleado.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error al actualizar: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            EditarClicked?.Invoke(this, EventArgs.Empty);
         }
 
-        private void btnEliminarEmpl_Click(object sender, EventArgs e)
+        private void btnEliminarEmpl_Click(object? sender, EventArgs e)
         {
-            // Verificar acceso: solo admin puro puede eliminar
-            if (!SesionActual.EsAdministrador)
-            {
-                MessageBox.Show(
-                    "Solo administradores pueden despedir empleados.",
-                    "Acceso denegado",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning
-                );
-                return;
-            }
-
-            string codigo = Codigo.Trim();
-            if (string.IsNullOrWhiteSpace(codigo))
-            {
-                MessageBox.Show("Debe ingresar un código de empleado a despedir.", "Código requerido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            // Confirmación previa
-            DialogResult conf = MessageBox.Show(
-                $"¿Está seguro de que desea despedir al empleado {_nombreEmpleadoOriginal}?",
-                "Confirmar despido",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question
-            );
-
-            if (conf != DialogResult.Yes)
-                return;
-
-            try
-            {
-                bool resultado = _empleadoRepository.Desactivar(codigo);
-
-                if (resultado)
-                {
-                    MessageBox.Show("Empleado despedido correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    BuscarTexto = string.Empty;  // Limpiar búsqueda
-                    ResetFields();               // Limpiar campos
-                    _presenter.CargarEmpleadosActivos();  // Recargar lista
-                }
-                else
-                {
-                    MessageBox.Show("No se pudo despedir al empleado.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error al despedir: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            EliminarClicked?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>
@@ -474,12 +358,12 @@ namespace Nuevo_Proyecto.Models.Views
             }
         }
 
-        private void txtCedulaEmpl_TextChanged(object sender, EventArgs e)
+        private void txtCedulaEmpl_TextChanged(object? sender, EventArgs e)
         {
 
         }
 
-        private void groupBox1_Enter(object sender, EventArgs e)
+        private void groupBox1_Enter(object? sender, EventArgs e)
         {
 
         }
@@ -487,7 +371,7 @@ namespace Nuevo_Proyecto.Models.Views
         /// <summary>
         /// Evento FormClosing para mostrar advertencia si hay cambios sin guardar
         /// </summary>
-        private void Empleados_FormClosing(object sender, FormClosingEventArgs e)
+        private void Empleados_FormClosing(object? sender, FormClosingEventArgs e)
         {
             // Si hay datos modificados, mostrar advertencia
             if (_datosModificados)

@@ -411,11 +411,11 @@ namespace pruebaGeneralProyecto
             Clientes.Add(new ClienteDto
             {
                 ClienteId = Clientes.Count + 1,
-                Codigo = customer.Codigo,
-                Nombre = customer.Nombre,
-                Telefono = customer.Telefono,
-                Direccion = customer.Direccion,
-                Nota = customer.Nota,
+                Codigo = customer.Codigo ?? string.Empty,
+                Nombre = customer.Nombre ?? string.Empty,
+                Telefono = customer.Telefono ?? string.Empty,
+                Direccion = customer.Direccion ?? string.Empty,
+                Nota = customer.Nota ?? string.Empty,
                 Activo = customer.Activo
             });
             return Task.FromResult(Clientes.Count);

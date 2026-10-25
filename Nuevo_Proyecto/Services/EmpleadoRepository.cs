@@ -1,6 +1,8 @@
 using System.Linq.Expressions;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Nuevo_Proyecto.Data;
+using Nuevo_Proyecto.Data.DbSqlite;
 using Nuevo_Proyecto.Models.DTOs;
 using Nuevo_Proyecto.Models.Entities;
 using Nuevo_Proyecto.Services.Helpers;
@@ -32,14 +34,70 @@ namespace Nuevo_Proyecto.Services
             Activo = e.Activo ?? false
         };        
 
+        private IReadOnlyList<EmpleadoDto> EjecutarConsultaEmpleados(
+            Func<Dev_ComideriaDbContext, IReadOnlyList<EmpleadoDto>> consultaSql,
+            Func<ComideriaSqliteContext, IReadOnlyList<EmpleadoDto>> consultaSqlite)
+        {
+            if (ConnectionStateManager.UsandoSqlite || !ConnectionStateManager.VerificarConexionAlServidor())
+            {
+                using var sqlite = new ComideriaSqliteContextFactory().CreateDbContext();
+                return consultaSqlite(sqlite);
+            }
+
+            try
+            {
+                using var db = _factory.CreateDbContext();
+                return consultaSql(db);
+            }
+            catch (Exception ex) when (EsErrorDeConexion(ex))
+            {
+                ConnectionStateManager.VerificarConexionAlServidor();
+                using var sqlite = new ComideriaSqliteContextFactory().CreateDbContext();
+                return consultaSqlite(sqlite);
+            }
+        }
+
+        private static bool EsErrorDeConexion(Exception ex)
+        {
+            if (ex is SqlException sqlEx)
+            {
+                return sqlEx.Number == 0 || sqlEx.Number == 26 || sqlEx.Number == 40 || sqlEx.Number == 64
+                    || sqlEx.Message.Contains("network", StringComparison.OrdinalIgnoreCase)
+                    || sqlEx.Message.Contains("server not found", StringComparison.OrdinalIgnoreCase)
+                    || sqlEx.Message.Contains("connection timeout", StringComparison.OrdinalIgnoreCase)
+                    || sqlEx.Message.Contains("error al buscar", StringComparison.OrdinalIgnoreCase);
+            }
+
+            return ex.Message.Contains("network", StringComparison.OrdinalIgnoreCase)
+                || ex.Message.Contains("server not found", StringComparison.OrdinalIgnoreCase)
+                || ex.Message.Contains("connection timeout", StringComparison.OrdinalIgnoreCase)
+                || ex.Message.Contains("error al buscar", StringComparison.OrdinalIgnoreCase);
+        }
+
         public IReadOnlyList<EmpleadoDto> GetActivos()
         {
-            using var db = _factory.CreateDbContext();
-            return db.Empleados.AsNoTracking()
-                .Where(e => e.Activo == true)
-                .OrderBy(e => e.Codigo)
-                .Select(ADto)
-                .ToList();
+            return EjecutarConsultaEmpleados(
+                db => db.Empleados.AsNoTracking()
+                    .Where(e => e.Activo == true)
+                    .OrderBy(e => e.Codigo)
+                    .Select(ADto)
+                    .ToList(),
+                sqlite => sqlite.Empleados.AsNoTracking()
+                    .Where(e => e.Activo == true)
+                    .OrderBy(e => e.Codigo)
+                    .Select(e => new EmpleadoDto
+                    {
+                        EmpleadoId = e.EmpleadoId,
+                        Codigo = e.Codigo,
+                        Nombre = e.Nombre,
+                        Cedula = e.Cedula,
+                        Telefono = e.Telefono,
+                        Cargo = e.Cargo,
+                        Salario = e.Salario,
+                        FechaIngreso = e.Fechaingreso,
+                        Activo = e.Activo ?? false
+                    })
+                    .ToList());
         }
 
         public IReadOnlyList<EmpleadoDto> GetPorCargos(params string[] cargos)

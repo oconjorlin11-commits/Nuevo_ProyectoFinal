@@ -30,29 +30,34 @@ namespace Nuevo_Proyecto.Services
         /// Sincroniza TODAS las tablas de SQL Server a SQLite
         /// Se ejecuta automáticamente al iniciar si SQL está disponible
         /// </summary>
-        public async Task SincronizarCompleto()
+        public async Task<bool> SincronizarCompleto()
         {
-            if (!ConnectionStateManager.UsandoSqlite == false)
+            if (ConnectionStateManager.UsandoSqlite)
             {
-                // Solo sincronizar si SQL Server está disponible
-                Console.WriteLine("⚠️ SQL Server no disponible - omitiendo sincronización completa");
-                return;
+                Console.WriteLine("⚠️ SQLite temporal activo - omitiendo sincronización completa");
+                return false;
             }
 
-            _timer.Start();
+            if (!ConnectionStateManager.VerificarConexionAlServidor())
+            {
+                Console.WriteLine("⚠️ SQL Server no disponible. No se hace sincronización completa.");
+                return false;
+            }
+
+            _timer.Restart();
             Console.WriteLine("\n🔄 INICIANDO SINCRONIZACIÓN COMPLETA SQL → SQLite...");
             Console.WriteLine("═══════════════════════════════════════════════════════\n");
 
             try
             {
+                LimpiezaBDSQLite.EliminarBDAnterior();
+
                 using (var sqlDb = _sqlFactory.CreateDbContext())
                 using (var sqliteDb = _sqliteFactory.CreateDbContext())
                 {
-                    // 1. LIMPIAR BD SQLite completamente
                     Console.WriteLine("🗑️  Limpiando BD SQLite anterior...");
                     LimpiarBDSQLite(sqliteDb);
 
-                    // 2. SINCRONIZAR TODAS LAS TABLAS
                     await SincronizarTabla<Cliente>(sqlDb, sqliteDb, "Clientes", c => c.Activo ?? true);
                     await SincronizarTabla<Empleado>(sqlDb, sqliteDb, "Empleados", e => e.Activo ?? true);
                     await SincronizarTabla<Categoria>(sqlDb, sqliteDb, "Categorias", null);
@@ -62,21 +67,21 @@ namespace Nuevo_Proyecto.Services
                     await SincronizarTabla<Inventario>(sqlDb, sqliteDb, "Inventario", null);
                     await SincronizarTabla<Facturas>(sqlDb, sqliteDb, "Facturas", null);
                     await SincronizarTabla<DetalleFactura>(sqlDb, sqliteDb, "DetalleFacturas", null);
-
-                    // 3. SINCRONIZAR USUARIOS (CRÍTICO PARA OFFLINE)
                     await SincronizarUsuarios(sqlDb, sqliteDb);
 
                     _timer.Stop();
                     Console.WriteLine("\n═══════════════════════════════════════════════════════");
                     Console.WriteLine($"✅ SINCRONIZACIÓN COMPLETADA EN {_timer.ElapsedMilliseconds}ms");
                     Console.WriteLine("✓ BD SQLite lista para operación OFFLINE\n");
+                    return true;
                 }
             }
             catch (Exception ex)
             {
                 _timer.Stop();
                 Console.WriteLine($"\n❌ ERROR EN SINCRONIZACIÓN: {ex.Message}");
-                Console.WriteLine("⚠️  La aplicación continuará en OFFLINE con datos anterior");
+                Console.WriteLine("⚠️  La aplicación continuará con el caché existente o apagada.");
+                return false;
             }
         }
 
